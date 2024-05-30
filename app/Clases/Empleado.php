@@ -3,42 +3,51 @@
 <?php
 
 require_once './db/AccesoDatos.php';
-require_once 'Sector.php';
+require_once 'RolDeTrabajo.php';
 
 class Empleado extends Usuario
 {
     private $id;
     private $nombre;
-    private $idDeSector;
+    private $rolDeTrabajo;
     private $estado;
-
    
-    public function __construct($mail,$clave,$nombre,$idDeSector) {
+    public function __construct($mail,$clave,$nombre,$rolDeTrabajo,$estado = "activo") {
         
         parent::__construct($mail,$clave,"Empleado");
         $this->SetNombre($nombre);
-        $this->SetSector($idDeSector);
-        $this->estado = "activo";
+        $this->rolDeTrabajo = $rolDeTrabajo;
+        $this->estado = $estado;
     }
 
-    private function SetSector($idDeSector)
+    public function ToString()
     {
-        $unSector =  Sector::BuscarSectorPorIdBD($idDeSector);
+      
+        return 
+        "Nombre: ".$this->nombre.
+        "<br>".parent::ToString().
+        "Rol de trabajo: ".$this->rolDeTrabajo->GetNombre().'<br>'
+        ."estado: ". $this->estado;
+         ;
+    }
+    private function SetRolDeTrabajo($idDerol)
+    {
+        $unRol =  RolDeTrabajo::BuscarRolDeTrabajoPorIdBD($idDerol);
         $estado  = false;
-        if(isset( $unSector))
+        if(isset( $unRol))
         {
-            $this->idDeSector = $idDeSector;
+            $this->rolDeTrabajo = $unRol;
         }
 
         return $estado;
     }
 
-    public static function DarDeAltaUnEmpleado($mail,$clave,$nombre,$sector)
+    public static function DarDeAltaUnEmpleado($mail,$clave,$nombre,$rolDeTrabajo)
     {
         $estado = false;
-        $unEmpleado = new Empleado($mail,$clave,$nombre,$sector);
+        $unEmpleado = new Empleado($mail,$clave,$nombre,$rolDeTrabajo);
 
-        if(empty($unEmpleado->nombre) == false && empty($unEmpleado->idDeSector) == false)
+        if(empty($unEmpleado->nombre) == false && empty($unEmpleado->rolDeTrabajo) == false)
         {
             $estado = $unEmpleado->AgregarBD();
         }
@@ -53,10 +62,10 @@ class Empleado extends Usuario
         $idDeUsuario = parent::AgregarBD();
         if(isset($objAccesoDatos) && isset($idDeUsuario))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Empleado (idDeUsuario,nombre,idDeSector,estado) values (:idDeUsuario,:nombre,:idDeSector,:estado)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Empleado (idDeUsuario,nombre,idDeRolDeTrabajo,estado) values (:idDeUsuario,:nombre,:rolDeTrabajo,:estado)");
             $consulta->bindValue(':idDeUsuario',$idDeUsuario,PDO::PARAM_INT);
             $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
+            $consulta->bindValue(':rolDeTrabajo',$this->rolDeTrabajo->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $estado = $consulta->execute();
         }
@@ -64,24 +73,63 @@ class Empleado extends Usuario
         return $estado;
     }
 
-    public static function ObtenerListaPorSectorBD($unSector)
+    public static function ObtenerListaPorRolBD($unRol)
     {
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeEmpleados = null;
 
-        if(isset($objAccesoDatos))
+        if(isset($objAccesoDatos) && isset($unRol))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Select * From Empleado as e where e.idSector = :idDeSector");
-            $consulta->bindValue(':idDeSector',$unSector,PDO::PARAM_INT);
+            $consulta = $objAccesoDatos->RealizarConsulta("Select * From Empleado as e where e.idDeRolDeTrabajo = :idDeRol");
+            $consulta->bindValue(':idDeRol',$unRol->GetId(),PDO::PARAM_INT);
             $consulta->execute();
-            $listaDeEmpleados = $consulta->fetchAll(Pdo::FETCH_CLASS,__CLASS__,array('mail','clave','nombre','idDeSector'));
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+           
+            $listaDeEmpleados = Empleado::CrearLista($data);
         }
         
 
         return $listaDeEmpleados;
     }
 
-   
+    private static function CrearLista($data)
+    {
+        $listaDeEmpleados = null;
+        if(isset($data))
+        {
+            $listaDeEmpleados = [];
+
+            foreach($data as $unArray)
+            {
+               
+                $unEmpleado = Empleado::CrearUnEmpleadoPorArrayAsosiativo($unArray);
+              
+                if(isset($unEmpleado))
+                {
+                    array_push($listaDeEmpleados,$unEmpleado);
+                }
+            }
+        }
+
+        return   $listaDeEmpleados;
+    }
+    private static function CrearUnEmpleadoPorArrayAsosiativo($unArrayAsosiativo)
+    {
+        $unEmpleado = null;
+
+        $unUsuario = Usuario::ObtenerUnUsuarioPorIdBD($unArrayAsosiativo['idDeUsuario']);
+     
+        if(isset($unArrayAsosiativo) && isset($unUsuario))
+        {
+            $unEmpleado = new Empleado($unUsuario->GetMail(),$unUsuario->GetClave(),$unArrayAsosiativo['nombre'],$unArrayAsosiativo['idDeRolDeTrabajo']);
+            $unEmpleado->SetId($unArrayAsosiativo['id']);
+            $unEmpleado->SetRolDeTrabajo($unArrayAsosiativo['idDeRolDeTrabajo']);
+            $unEmpleado->SetFechaDeRegistro($unUsuario->GetFechaDeRegistro());
+        }
+        
+        return $unEmpleado ;
+    }
+
 
     public static function BuscarEmpleadoPorId($listaDeEmpleados,$id)
     {
@@ -114,6 +162,26 @@ class Empleado extends Usuario
 
         return $index;
     }
+
+    
+    public static function ToStringList($listaDeEmpleados)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeEmpleados) )
+        {
+            $strLista  = "Empleados".'<br>';
+         
+            foreach($listaDeEmpleados as $unEmpleado)
+            {
+                $strLista .= $unEmpleado->ToString().'<br><br>';
+            }
+        }
+
+        return   $strLista;
+    }
+
+   
 
    
 
@@ -158,12 +226,6 @@ class Empleado extends Usuario
     {
         return  $this->nombre;
     }
-
-    private static function ObtenerIdAutoIncremental()
-    {
-        return rand(1,10000);
-    }
-
     //  public static function EscribirJson($listaDeEmpleado,$claveDeArchivo)
     //  {
     //      $estado = false; 

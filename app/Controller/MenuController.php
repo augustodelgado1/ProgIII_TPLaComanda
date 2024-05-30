@@ -2,24 +2,24 @@
 
 <?php
 
-require_once './Clases/Empleado.php';
+require_once './Clases/Menu.php';
 require_once './Clases/RolDeTrabajo.php';
 
-class EmpleadoController 
+class MenuController 
 {
   
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Empleado';
-        $unRolDeTrabajo = RolDeTrabajo::BuscarRolDeTrabajoPorNombreBD($data['rolDeTrabajo']) ;   
+        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Menu';
+        $categotia = Categoria::BuscarPorNombreBD($data['categotia']) ;   
         if(isset($data))
         {
             $mensaje = 'no se pudo dar de alta';
 
-            if(Empleado::DarDeAltaUnEmpleado($data['email'],$data['clave'],$data['nombre'],$unRolDeTrabajo))
+            if(Menu::DarDeAltaUnMenu($data['email'],$data['clave'],$data['nombre'],$unRolDeTrabajo))
             {
-                $mensaje = 'El Empleado se dio de alta';
+                $mensaje = 'El Menu se dio de alta';
             }
         }
 
@@ -34,15 +34,15 @@ class EmpleadoController
     {
         $data = $request->getQueryParams();
         
-        $mensaje = 'Hubo un error  al intentar listar los empleados';
+        $mensaje = 'Hubo un error  al intentar listar los Menus';
         $unRolDeTrabajo = RolDeTrabajo::BuscarRolDeTrabajoPorNombreBD($data['rolDeTrabajo']) ;       
         
-        $listaDeEmpleados = Empleado::ObtenerListaPorRolBD($unRolDeTrabajo);
+        $listaDeMenus = Menu::ObtenerListaPorRolBD($unRolDeTrabajo);
 
 
-        if(isset($listaDeEmpleados))
+        if(isset($listaDeMenus))
         {
-            $mensaje = Empleado::ToStringList($listaDeEmpleados);
+            $mensaje = Menu::ToStringList($listaDeMenus);
         }
 
         $response->getBody()->write($mensaje);

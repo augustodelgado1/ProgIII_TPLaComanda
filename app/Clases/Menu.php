@@ -3,70 +3,79 @@
 <?php
 
 require_once './db/AccesoDatos.php';
+require_once 'Sector.php';
 
-class Socio extends Usuario
+class Menu 
 {
     private $id;
     private $nombre;
+    private $idDeCategoria;
+    private $tiempoDePreparacion;
+    private $precio;
 
    
-    public function __construct($mail,$clave,$nombre) {
-        
-        parent::__construct($mail,$clave,"Socio");
+    public function __construct($id,$nombre,$idDeCategoria) {
+        $this->id = $id;
         $this->nombre = $nombre;
+        $this->idDeCategoria = $idDeCategoria;
     }
-
-    public static function DarDeAltaUnSocio($mail,$clave,$nombre)
+    private function SetSector($idDeCategoria)
     {
-        $estado = false;
-        $unSocio = new Socio($mail,$clave,$nombre);
-
-        if(empty($unSocio->nombre) == false )
+        $unSector =  Sector::BuscarSectorPorIdBD($idDeCategoria);
+        $estado  = false;
+        if(isset( $unSector))
         {
-            $estado = $unSocio->AgregarBD();
+            $this->idDeCategoria = $idDeCategoria;
         }
 
         return $estado;
     }
-
-    protected function AgregarBD()
+   
+    public static function BuscarMenuPorIdBD($id)
     {
-        $estado = false;
-        $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
-        $idDeUsuario = parent::AgregarBD();
-        if(isset($objAccesoDatos) && isset($idDeUsuario))
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $Menu = null;
+
+        if(isset($unObjetoAccesoDato))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Socio (idDeUsuario,nombre,idDeSector,estado) values (:idDeUsuario,:nombre,:idDeSector,:estado)");
-            $consulta->bindValue(':idDeUsuario',$idDeUsuario,PDO::PARAM_INT);
-            $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
-            $estado = $consulta->execute();
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Menu as r where r.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_STR);
+            $consulta->execute();
+            $Menu = $consulta->fetch(PDo::FETCH_ASSOC);
+            $Menu =  new Menu($Menu['id'],$Menu['nombre'],$Menu['idDeCategoria']);
         }
 
-        return $estado;
+        return $Menu;
     }
 
-    public static function BuscarSocioPorId($listaDeSocios,$id)
+    public static function BuscarMenuPorNombreBD($nombre)
     {
-        $unaSocioABuscar = null; 
-        $index = Socio::ObtenerIndicePorId($listaDeSocios,$id);
-        if($index > 0 )
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unSector = null;
+
+        if(isset($unObjetoAccesoDato))
         {
-            $unaSocioABuscar = $listaDeSocios[$index];
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Menu as r where r.nombre = :nombre");
+            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta->execute();
+            $unSector = $consulta->fetch(PDO::FETCH_ASSOC);
+            $unSector =  new Menu($unSector['id'],$unSector['nombre'],$unSector['idDeCategoria']);
+         
         }
 
-        return  $unaSocioABuscar;
+        return  $unSector;
     }
-
-     public static function ObtenerIndicePorId($listaDeSocios,$id)
+  
+     public static function ObtenerIndicePorId($listaDeMenus,$id)
     {
         $index = -1;
        
-        if(isset($listaDeSocios)  && isset($id))
+        if(isset($listaDeMenus)  && isset($id))
         {
-            $leght = count($listaDeSocios); 
+            $leght = count($listaDeMenus); 
             for ($i=0; $i < $leght; $i++) { 
          
-                if($listaDeSocios[$i]->id == $id)
+                if($listaDeMenus[$i]->id == $id)
                 {
                     $index = $i;
                     break;
@@ -77,15 +86,13 @@ class Socio extends Usuario
         return $index;
     }
 
-   
-
-    public function Equals($unSocio)
+    public function Equals($unMenu)
     {
         $estado = false;
  
-        if(isset($unSocio))
+        if(isset($unMenu))
         {
-            $estado =  $unSocio->id === $this->id;
+            $estado =  $unMenu->id === $this->id;
         }
         return  $estado ;
     }
@@ -103,65 +110,58 @@ class Socio extends Usuario
         return  $estado ;
     }
 
-    public function SetNombre($nombre)
-    {
-        $estado = false;
-        if(isset($nombre) )
-        {
-            $this->nombre = $nombre;
-            $estado = true;
-        }
-
-        return  $estado ;
-    }
+   
 
     //Getters
+
+    public function GetId()
+    {
+        return  $this->id;
+    }
     public function GetNombre()
     {
         return  $this->nombre;
     }
 
-    private static function ObtenerIdAutoIncremental()
-    {
-        return rand(1,10000);
-    }
+   
+    
 
-    //  public static function EscribirJson($listaDeSocio,$claveDeArchivo)
+    //  public static function EscribirJson($listaDeMenu,$claveDeArchivo)
     //  {
     //      $estado = false; 
  
-    //      if(isset($listaDeSocio))
+    //      if(isset($listaDeMenu))
     //      {
-    //          $estado =  Json::EscribirEnArrayJson($listaDeSocio,$claveDeArchivo,JSON_PRETTY_PRINT);
+    //          $estado =  Json::EscribirEnArrayJson($listaDeMenu,$claveDeArchivo,JSON_PRETTY_PRINT);
     //      }
     //      return  $estado;
     //  }
  
     //  public static function LeerJson($claveDeArchivo)
     //  {
-    //      return Socio::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
+    //      return Menu::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
     //  }
  
     //  private static function DeserializarListaJson($listaDeArrayAsosiativos)
     //  {
-    //      $listaDeSocio = null; 
-    //      $unSocio = null;
+    //      $listaDeMenu = null; 
+    //      $unMenu = null;
     //      if(isset($listaDeArrayAsosiativos))
     //      {
-    //          $listaDeSocio = [];
+    //          $listaDeMenu = [];
  
     //          foreach($listaDeArrayAsosiativos as $unArrayAsosiativo)
     //          {
-    //              $unSocio = Socio::DeserializarUnSocioPorArrayAsosiativo($unArrayAsosiativo);
-    //              if(isset($unSocio))
+    //              $unMenu = Menu::DeserializarUnMenuPorArrayAsosiativo($unArrayAsosiativo);
+    //              if(isset($unMenu))
     //              {
-    //                  array_push($listaDeSocio,$unSocio);
+    //                  array_push($listaDeMenu,$unMenu);
     //              }
                  
     //          }
     //      }
  
-    //      return  $listaDeSocio ;
+    //      return  $listaDeMenu ;
     //  }
 
     
@@ -190,10 +190,10 @@ class Socio extends Usuario
 
    
 
-    // public static function CompararPorclave($unSocio,$otroSocio)
+    // public static function CompararPorclave($unMenu,$otroMenu)
     // {
     //     $retorno = 0;
-    //     $comparacion = strcmp($unSocio->clave,$otroSocio->clave);
+    //     $comparacion = strcmp($unMenu->clave,$otroMenu->clave);
 
     //     if( $comparacion  > 0)
     //     {
@@ -209,32 +209,32 @@ class Socio extends Usuario
     //     return $retorno ;
     // }
 
-    // public static function BuscarSocioPorId($listaDeSocio,$id)
+    // public static function BuscarMenuPorId($listaDeMenu,$id)
     // {
-    //     $unaSocioABuscar = null; 
+    //     $unaMenuABuscar = null; 
 
-    //     if(isset($listaDeSocio) )
+    //     if(isset($listaDeMenu) )
     //     {
-    //         foreach($listaDeSocio as $unaSocio)
+    //         foreach($listaDeMenu as $unaMenu)
     //         {
-    //             if($unaSocio->id == $id)
+    //             if($unaMenu->id == $id)
     //             {
-    //                 $unaSocioABuscar = $unaSocio; 
+    //                 $unaMenuABuscar = $unaMenu; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaSocioABuscar;
+    //     return  $unaMenuABuscar;
     // }
 
-    // public function __construct($mail,$unProducto,$clave,$unSocio,$ruta = null,$claveDeLaImagen = null) {
+    // public function __construct($mail,$unProducto,$clave,$unMenu,$ruta = null,$claveDeLaImagen = null) {
     //     $this->clave = $clave;
-    //     $this->unSocio = $unSocio;
+    //     $this->unMenu = $unMenu;
     //     $this->mail = $mail;
     //     $this->unProducto = $unProducto;
     //     $this->fechaDeRegistro = date("Y-m-d");
-    //     $this->SetId(Socio::ObtenerIdAutoIncremental());
+    //     $this->SetId(Menu::ObtenerIdAutoIncremental());
     //     $this->SetImagen($ruta,$claveDeLaImagen);
     // }
     
@@ -259,35 +259,35 @@ class Socio extends Usuario
 
    
 
-    // public static function BuscarSocioPorId($listaDeSocios,$id)
+    // public static function BuscarMenuPorId($listaDeMenus,$id)
     // {
-    //     $unaSocioABuscar = null; 
+    //     $unaMenuABuscar = null; 
 
-    //     if(isset($listaDeSocios)  
+    //     if(isset($listaDeMenus)  
     //     && isset($id) )
     //     {
-    //         foreach($listaDeSocios as $unaSocio)
+    //         foreach($listaDeMenus as $unaMenu)
     //         {
-    //             if($unaSocio->id == $id)
+    //             if($unaMenu->id == $id)
     //             {
-    //                 $unaSocioABuscar = $unaSocio; 
+    //                 $unaMenuABuscar = $unaMenu; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaSocioABuscar;
+    //     return  $unaMenuABuscar;
     // }
   
-    // public static function ToStringList($listaDeSocios)
+    // public static function ToStringList($listaDeMenus)
     // {
     //     $strLista = null; 
 
-    //     if(isset($listaDeSocios) )
+    //     if(isset($listaDeMenus) )
     //     {
-    //         foreach($listaDeSocios as $unaSocio)
+    //         foreach($listaDeMenus as $unaMenu)
     //         {
-    //             $strLista = $unaSocio->ToString().'<br>';
+    //             $strLista = $unaMenu->ToString().'<br>';
     //         }
     //     }
 
@@ -319,18 +319,18 @@ class Socio extends Usuario
 
      //  //Contar
  
-    //  public static function ContarPorUnaFecha($listaDeSocio,$fecha)
+    //  public static function ContarPorUnaFecha($listaDeMenu,$fecha)
     //  {
     //      $filtraPorUnaFecha = null;
     //      $cantidad = -1;
  
-    //      if(isset($listaDeSocio) && isset($fecha))
+    //      if(isset($listaDeMenu) && isset($fecha))
     //      {
     //          $cantidad = 0;
  
-    //          foreach($listaDeSocio as $unaSocio)
+    //          foreach($listaDeMenu as $unaMenu)
     //          {
-    //              if($unaSocio::$fechaDeSocio == $fecha)
+    //              if($unaMenu::$fechaDeMenu == $fecha)
     //              {
     //                  $cantidad++;
     //              }

@@ -4,35 +4,35 @@
 
 require_once './db/AccesoDatos.php';
 
-class Sector 
+class Categoria 
 {
     private $id;
     private $nombre;
+    private $idDeSector;
    
-    public function __construct($nombre) {
+    public function __construct($nombre,$sector) {
         $this->SetNombre($nombre);
+        $this->idDeSector = $sector;
     }
 
-    public static function DarDeAltaUnSector($nombre)
+    private function SetSector($idDeSector)
     {
-        $estado = false;
-        $unSector = new Sector($nombre);
-      
-        if(empty($unSector->nombre) == false )
+        $unSector =  Sector::BuscarSectorPorIdBD($idDeSector);
+        $estado  = false;
+        if(isset( $unSector))
         {
-            $estado = $unSector->AgregarBD();
+            $this->idDeSector = $unSector;
         }
 
         return $estado;
     }
-
     private function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Sector (nombre) values (:nombre)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Categoria (nombre) values (:nombre)");
             $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
             $estado = $consulta->execute();
         }
@@ -40,42 +40,70 @@ class Sector
         return $estado;
     }
 
-    public static function BuscarSectorPorId($listaDeSectors,$id)
+    public static function BuscarCategoriaPorId($listaDeCategorias,$id)
     {
-        $unaSectorABuscar = null; 
-        $index = Sector::ObtenerIndicePorId($listaDeSectors,$id);
+        $unaCategoriaABuscar = null; 
+        $index = Categoria::ObtenerIndicePorId($listaDeCategorias,$id);
         if($index > 0 )
         {
-            $unaSectorABuscar = $listaDeSectors[$index];
+            $unaCategoriaABuscar = $listaDeCategorias[$index];
         }
 
-        return  $unaSectorABuscar;
+        return  $unaCategoriaABuscar;
     }
-    public static function BuscarSectorPorIdBD($idDeSector)
+    public static function BuscarCategoriaPorIdBD($idDeCategoria)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unSector = null;
+        $unCategoria = null;
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM sector as s where s.id == $idDeSector");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Categoria as s where s.id == $idDeCategoria");
             $consulta->execute();
-            $unSector = $consulta->fetchObject(__CLASS__,array('nombre'));
+            $unCategoria = $consulta->fetchObject(__CLASS__,array('nombre'));
         }
 
-        return  $unSector;
+        return  $unCategoria;
+    }
+    private static function CrearUnaCategoria($unArrayAsosiativo)
+    {
+        $unCategoria = null;
+        
+        if(isset($unArrayAsosiativo) && isset($unUsuario))
+        {
+            $unCategoria = new Categoria($unArrayAsosiativo['nombre'],$unArrayAsosiativo['idDeSector']);
+            $unCategoria->SetId($unArrayAsosiativo['id']);
+            $unCategoria->SetSector($unArrayAsosiativo['idDeSector']);
+        }
+        
+        return $unCategoria ;
+    }
+    public static function BuscarPorNombreBD($nombre)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unCategoria = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Categoria as c where c.nombre = :nombre");
+            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta->execute();
+            $unCategoria = Categoria::CrearUnaCategoria($consulta->fetch(PDO::FETCH_ASSOC));
+        }
+
+        return  $unCategoria;
     }
 
-     public static function ObtenerIndicePorId($listaDeSectors,$id)
+     public static function ObtenerIndicePorId($listaDeCategorias,$id)
     {
         $index = -1;
        
-        if(isset($listaDeSectors)  && isset($id))
+        if(isset($listaDeCategorias)  && isset($id))
         {
-            $leght = count($listaDeSectors); 
+            $leght = count($listaDeCategorias); 
             for ($i=0; $i < $leght; $i++) { 
          
-                if($listaDeSectors[$i]->id == $id)
+                if($listaDeCategorias[$i]->id == $id)
                 {
                     $index = $i;
                     break;
@@ -88,13 +116,13 @@ class Sector
 
    
 
-    public function Equals($unSector)
+    public function Equals($unCategoria)
     {
         $estado = false;
  
-        if(isset($unSector))
+        if(isset($unCategoria))
         {
-            $estado =  $unSector->id === $this->id;
+            $estado =  $unCategoria->id === $this->id;
         }
         return  $estado ;
     }
@@ -135,42 +163,42 @@ class Sector
         return rand(1,10000);
     }
 
-    //  public static function EscribirJson($listaDeSector,$claveDeArchivo)
+    //  public static function EscribirJson($listaDeCategoria,$claveDeArchivo)
     //  {
     //      $estado = false; 
  
-    //      if(isset($listaDeSector))
+    //      if(isset($listaDeCategoria))
     //      {
-    //          $estado =  Json::EscribirEnArrayJson($listaDeSector,$claveDeArchivo,JSON_PRETTY_PRINT);
+    //          $estado =  Json::EscribirEnArrayJson($listaDeCategoria,$claveDeArchivo,JSON_PRETTY_PRINT);
     //      }
     //      return  $estado;
     //  }
  
     //  public static function LeerJson($claveDeArchivo)
     //  {
-    //      return Sector::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
+    //      return Categoria::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
     //  }
  
     //  private static function DeserializarListaJson($listaDeArrayAsosiativos)
     //  {
-    //      $listaDeSector = null; 
-    //      $unSector = null;
+    //      $listaDeCategoria = null; 
+    //      $unCategoria = null;
     //      if(isset($listaDeArrayAsosiativos))
     //      {
-    //          $listaDeSector = [];
+    //          $listaDeCategoria = [];
  
     //          foreach($listaDeArrayAsosiativos as $unArrayAsosiativo)
     //          {
-    //              $unSector = Sector::DeserializarUnSectorPorArrayAsosiativo($unArrayAsosiativo);
-    //              if(isset($unSector))
+    //              $unCategoria = Categoria::DeserializarUnCategoriaPorArrayAsosiativo($unArrayAsosiativo);
+    //              if(isset($unCategoria))
     //              {
-    //                  array_push($listaDeSector,$unSector);
+    //                  array_push($listaDeCategoria,$unCategoria);
     //              }
                  
     //          }
     //      }
  
-    //      return  $listaDeSector ;
+    //      return  $listaDeCategoria ;
     //  }
 
     
@@ -199,10 +227,10 @@ class Sector
 
    
 
-    // public static function CompararPorclave($unSector,$otroSector)
+    // public static function CompararPorclave($unCategoria,$otroCategoria)
     // {
     //     $retorno = 0;
-    //     $comparacion = strcmp($unSector->clave,$otroSector->clave);
+    //     $comparacion = strcmp($unCategoria->clave,$otroCategoria->clave);
 
     //     if( $comparacion  > 0)
     //     {
@@ -218,32 +246,32 @@ class Sector
     //     return $retorno ;
     // }
 
-    // public static function BuscarSectorPorId($listaDeSector,$id)
+    // public static function BuscarCategoriaPorId($listaDeCategoria,$id)
     // {
-    //     $unaSectorABuscar = null; 
+    //     $unaCategoriaABuscar = null; 
 
-    //     if(isset($listaDeSector) )
+    //     if(isset($listaDeCategoria) )
     //     {
-    //         foreach($listaDeSector as $unaSector)
+    //         foreach($listaDeCategoria as $unaCategoria)
     //         {
-    //             if($unaSector->id == $id)
+    //             if($unaCategoria->id == $id)
     //             {
-    //                 $unaSectorABuscar = $unaSector; 
+    //                 $unaCategoriaABuscar = $unaCategoria; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaSectorABuscar;
+    //     return  $unaCategoriaABuscar;
     // }
 
-    // public function __construct($mail,$unProducto,$clave,$unSector,$ruta = null,$claveDeLaImagen = null) {
+    // public function __construct($mail,$unProducto,$clave,$unCategoria,$ruta = null,$claveDeLaImagen = null) {
     //     $this->clave = $clave;
-    //     $this->unSector = $unSector;
+    //     $this->unCategoria = $unCategoria;
     //     $this->mail = $mail;
     //     $this->unProducto = $unProducto;
     //     $this->fechaDeRegistro = date("Y-m-d");
-    //     $this->SetId(Sector::ObtenerIdAutoIncremental());
+    //     $this->SetId(Categoria::ObtenerIdAutoIncremental());
     //     $this->SetImagen($ruta,$claveDeLaImagen);
     // }
     
@@ -268,35 +296,35 @@ class Sector
 
    
 
-    // public static function BuscarSectorPorId($listaDeSectors,$id)
+    // public static function BuscarCategoriaPorId($listaDeCategorias,$id)
     // {
-    //     $unaSectorABuscar = null; 
+    //     $unaCategoriaABuscar = null; 
 
-    //     if(isset($listaDeSectors)  
+    //     if(isset($listaDeCategorias)  
     //     && isset($id) )
     //     {
-    //         foreach($listaDeSectors as $unaSector)
+    //         foreach($listaDeCategorias as $unaCategoria)
     //         {
-    //             if($unaSector->id == $id)
+    //             if($unaCategoria->id == $id)
     //             {
-    //                 $unaSectorABuscar = $unaSector; 
+    //                 $unaCategoriaABuscar = $unaCategoria; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaSectorABuscar;
+    //     return  $unaCategoriaABuscar;
     // }
   
-    // public static function ToStringList($listaDeSectors)
+    // public static function ToStringList($listaDeCategorias)
     // {
     //     $strLista = null; 
 
-    //     if(isset($listaDeSectors) )
+    //     if(isset($listaDeCategorias) )
     //     {
-    //         foreach($listaDeSectors as $unaSector)
+    //         foreach($listaDeCategorias as $unaCategoria)
     //         {
-    //             $strLista = $unaSector->ToString().'<br>';
+    //             $strLista = $unaCategoria->ToString().'<br>';
     //         }
     //     }
 
@@ -328,18 +356,18 @@ class Sector
 
      //  //Contar
  
-    //  public static function ContarPorUnaFecha($listaDeSector,$fecha)
+    //  public static function ContarPorUnaFecha($listaDeCategoria,$fecha)
     //  {
     //      $filtraPorUnaFecha = null;
     //      $cantidad = -1;
  
-    //      if(isset($listaDeSector) && isset($fecha))
+    //      if(isset($listaDeCategoria) && isset($fecha))
     //      {
     //          $cantidad = 0;
  
-    //          foreach($listaDeSector as $unaSector)
+    //          foreach($listaDeCategoria as $unaCategoria)
     //          {
-    //              if($unaSector::$fechaDeSector == $fecha)
+    //              if($unaCategoria::$fechaDeCategoria == $fecha)
     //              {
     //                  $cantidad++;
     //              }

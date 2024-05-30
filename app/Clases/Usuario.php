@@ -17,7 +17,12 @@ require_once './db/AccesoDatos.php';
         $this->SetEmail($mail);
         $this->SetClave($clave);
         $this->rol = $rol;
-        $this->fechaDeRegistro = new DateTime('now');
+        $this->fechaDeRegistro = new DateTime('now') ;
+    }
+
+    protected function GetClave()
+    {
+        return $this->clave;
     }
 
     public static function DarDeAltaUnUsuario($mail,$clave)
@@ -27,7 +32,6 @@ require_once './db/AccesoDatos.php';
 
         if(empty($unUsuario->mail) == false && empty($unUsuario->clave) == false )
         {
-            $unUsuario->fechaDeRegistro = new DateTime('now');
             $estado = $unUsuario->AgregarBD();
         }
 
@@ -41,11 +45,13 @@ require_once './db/AccesoDatos.php';
 
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (EMAIL,CLAVE,FECHA_DE_REGISTRO) values (:email,:clave,:fechaDeRegistro)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,rol) values (:email,:clave,:fechaDeRegistro,:rol)");
             $consulta->bindValue(':email',$this->mail,PDO::PARAM_STR);
             $consulta->bindValue(':clave',$this->clave,PDO::PARAM_STR);
+            $consulta->bindValue(':rol',$this->rol,PDO::PARAM_STR);
             $consulta->bindValue(':fechaDeRegistro',$this->fechaDeRegistro->format('y-m-d H:i:s'),PDO::PARAM_STR);
             $consulta->execute();
+            
             $idDeUsuario =  $objAccesoDatos->ObtenerUltimoID();
         }
         
@@ -68,23 +74,51 @@ require_once './db/AccesoDatos.php';
         return $listaDeUsuarios;
     }
 
-    public static function ObtenerUnUsuarioBD($email,$clave)
+    protected static function ObtenerUnUsuarioPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unUsuario = null;
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM usuario as u where u.clave = :clave and u.mail = :mail");
-            $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
-            $consulta->bindValue(':mail',$email,PDO::PARAM_STR);
+            
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
-            $unUsuario = $consulta->fetchObject(__CLASS__,array('mail','clave'));
+           
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+           
+            $unUsuario = Usuario::CrearUnUsuarioPorArrayAsosiativo($data);
         }
 
         return  $unUsuario;
     }
 
+    private static function CrearUnUsuarioPorArrayAsosiativo($unArrayAsosiativo)
+    {
+        $unUsuario = null; 
+        
+        if(isset($unArrayAsosiativo))
+        {
+            $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],
+            $unArrayAsosiativo['rol']);
+            $unUsuario->SetId($unArrayAsosiativo['id']);
+            $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
+        }
+
+        return  $unUsuario;
+    }
+    protected function SetFechaDeRegistro($fechaDeRegistro)
+    {
+        $estado = false;
+        if(isset($fechaDeRegistro))
+        {
+            $this->fechaDeRegistro = $fechaDeRegistro;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
     
 
     public static function BuscarUsuarioPorId($listaDeUsuarios,$id)
@@ -121,9 +155,9 @@ require_once './db/AccesoDatos.php';
 
     public function ToString()
     {
-        return "clave: ".$this->clave.'<br>'
-        ."mail: ".$this->mail.'<br>'
-        ."id: ". $this->id;
+        
+        return  "mail: ".$this->mail.'<br>'.
+        "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>';
     }
 
     public function Equals($unUsuario)
@@ -183,6 +217,10 @@ require_once './db/AccesoDatos.php';
     protected function GetId()
     {
         return  $this->id;
+    }
+    protected function GetFechaDeRegistro()
+    {
+        return  $this->fechaDeRegistro;
     }
 
     private static function ObtenerIdAutoIncremental()
