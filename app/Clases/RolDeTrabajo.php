@@ -32,36 +32,69 @@ class RolDeTrabajo
     public static function BuscarRolDeTrabajoPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $rolDeTrabajo = null;
+        $unRol = null;
 
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM RolDeTrabajo as r where r.id = :id");
-            $consulta->bindValue(':id',$id,PDO::PARAM_STR);
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
-            $rolDeTrabajo = $consulta->fetch(PDo::FETCH_ASSOC);
-            $rolDeTrabajo =  new RolDeTrabajo($rolDeTrabajo['id'],$rolDeTrabajo['trabajo'],$rolDeTrabajo['idDeSector']);
+            $unRol = RolDeTrabajo::CrearUnRolDeTrabajo($consulta->fetch(PDO::FETCH_ASSOC));
         }
 
-        return $rolDeTrabajo;
+        return $unRol;
     }
 
     public static function BuscarRolDeTrabajoPorNombreBD($nombre)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unSector = null;
+        $unRol = null;
 
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM RolDeTrabajo as r where r.trabajo = :trabajo");
             $consulta->bindValue(':trabajo',$nombre,PDO::PARAM_STR);
             $consulta->execute();
-            $unSector = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unSector =  new RolDeTrabajo($unSector['id'],$unSector['trabajo'],$unSector['idDeSector']);
-         
+            $unRol = RolDeTrabajo::CrearUnRolDeTrabajo($consulta->fetch(PDO::FETCH_ASSOC));
         }
 
-        return  $unSector;
+        return  $unRol;
+    }
+
+    private static function CrearUnRolDeTrabajo($unArrayAsosiativo)
+    {
+        $unRolDeTrabajo = null;
+        
+        if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
+        {
+            $unRolDeTrabajo = new RolDeTrabajo($unArrayAsosiativo['id'],
+            $unArrayAsosiativo['trabajo'],$unArrayAsosiativo['idDeSector']);
+            $unRolDeTrabajo->SetId($unArrayAsosiativo['id']);
+            $unRolDeTrabajo->SetSector($unArrayAsosiativo['idDeSector']);
+        }
+        
+        return $unRolDeTrabajo ;
+    }
+
+    private static function CrearLista($data)
+    {
+        $listaDeRoles = null;
+        if(isset($data))
+        {
+            $listaDeRoles = [];
+
+            foreach($data as $unArray)
+            {
+                $unRolDeTrabajo = RolDeTrabajo::CrearUnRolDeTrabajo($unArray);
+                
+                if(isset($unRolDeTrabajo))
+                {
+                    array_push($listaDeRoles,$unRolDeTrabajo);
+                }
+            }
+        }
+
+        return   $listaDeRoles;
     }
   
      public static function ObtenerIndicePorId($listaDeRolDeTrabajos,$id)

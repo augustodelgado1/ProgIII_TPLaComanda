@@ -29,6 +29,31 @@ class SectorController
         return $response;
     }
 
+    public static function Listar($request, $response, array $args)
+    {
+        // $data = $request->getHeaders();
+        $mensaje = 'Hubo un error  al intentar listar los Mesas';  
+        $listaDeSectores = Sector::ListarBD();
+
+      
+
+        if(isset($listaDeSectores))
+        {
+            $mensaje = "La lista esta vacia";
+            if(count($listaDeSectores) > 0)
+            {
+                $mensaje = Sector::ToStringList($listaDeSectores);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+
+
    
 }
 

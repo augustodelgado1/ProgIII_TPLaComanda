@@ -3,8 +3,8 @@
 <?php
 
 require_once './db/AccesoDatos.php';
-
-class Categoria 
+require_once 'Sector.php';
+class TipoDeProducto 
 {
     private $id;
     private $nombre;
@@ -14,6 +14,20 @@ class Categoria
         $this->SetNombre($nombre);
         $this->idDeSector = $sector;
     }
+
+    public static function DarDeAlta($nombre,$setor)
+    {
+        $estado = false;
+        $unaTipoDeProducto = new TipoDeProducto($nombre,$setor);
+      
+        if(empty($unaTipoDeProducto->nombre) == false)
+        {
+            $estado = $unaTipoDeProducto->AgregarBD();
+        }
+
+        return $estado;
+    }
+
 
     private function SetSector($idDeSector)
     {
@@ -32,78 +46,74 @@ class Categoria
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Categoria (nombre) values (:nombre)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into TipoDeProducto (nombre,idDeSector) values (:nombre,:idDeSector)");
             $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
 
         return $estado;
     }
 
-    public static function BuscarCategoriaPorId($listaDeCategorias,$id)
-    {
-        $unaCategoriaABuscar = null; 
-        $index = Categoria::ObtenerIndicePorId($listaDeCategorias,$id);
-        if($index > 0 )
-        {
-            $unaCategoriaABuscar = $listaDeCategorias[$index];
-        }
-
-        return  $unaCategoriaABuscar;
-    }
-    public static function BuscarCategoriaPorIdBD($idDeCategoria)
+    public static function BuscarTipoDeProductoPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unCategoria = null;
+        $unTipoDeProducto = null;
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Categoria as s where s.id == $idDeCategoria");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as c where c.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_STR);
             $consulta->execute();
-            $unCategoria = $consulta->fetchObject(__CLASS__,array('nombre'));
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $unTipoDeProducto = TipoDeProducto::CrearUnTipoDeProducto($data);
         }
 
-        return  $unCategoria;
+        return $unTipoDeProducto;
     }
-    private static function CrearUnaCategoria($unArrayAsosiativo)
+
+    private static function CrearUnTipoDeProducto($unArrayAsosiativo)
     {
-        $unCategoria = null;
+        $unTipoDeProducto = null;
         
-        if(isset($unArrayAsosiativo) && isset($unUsuario))
+        if(isset($unArrayAsosiativo))
         {
-            $unCategoria = new Categoria($unArrayAsosiativo['nombre'],$unArrayAsosiativo['idDeSector']);
-            $unCategoria->SetId($unArrayAsosiativo['id']);
-            $unCategoria->SetSector($unArrayAsosiativo['idDeSector']);
+            $unTipoDeProducto = new TipoDeProducto($unArrayAsosiativo['nombre'],$unArrayAsosiativo['idDeSector']);
+            $unTipoDeProducto->SetId($unArrayAsosiativo['id']);
+            $unTipoDeProducto->SetSector($unArrayAsosiativo['idDeSector']);
         }
         
-        return $unCategoria ;
+        return $unTipoDeProducto ;
     }
+
+
     public static function BuscarPorNombreBD($nombre)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unCategoria = null;
+        $unTipoDeProducto = null;
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Categoria as c where c.nombre = :nombre");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as t where t.nombre = :nombre");
             $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
             $consulta->execute();
-            $unCategoria = Categoria::CrearUnaCategoria($consulta->fetch(PDO::FETCH_ASSOC));
+            $unTipoDeProducto = TipoDeProducto::CrearUnTipoDeProducto($consulta->fetch(PDO::FETCH_ASSOC));
+       
         }
 
-        return  $unCategoria;
+        return  $unTipoDeProducto;
     }
 
-     public static function ObtenerIndicePorId($listaDeCategorias,$id)
+     public static function ObtenerIndicePorId($listaDeTipoDeProductos,$id)
     {
         $index = -1;
        
-        if(isset($listaDeCategorias)  && isset($id))
+        if(isset($listaDeTipoDeProductos)  && isset($id))
         {
-            $leght = count($listaDeCategorias); 
+            $leght = count($listaDeTipoDeProductos); 
             for ($i=0; $i < $leght; $i++) { 
          
-                if($listaDeCategorias[$i]->id == $id)
+                if($listaDeTipoDeProductos[$i]->id == $id)
                 {
                     $index = $i;
                     break;
@@ -116,13 +126,13 @@ class Categoria
 
    
 
-    public function Equals($unCategoria)
+    public function Equals($unTipoDeProducto)
     {
         $estado = false;
  
-        if(isset($unCategoria))
+        if(isset($unTipoDeProducto))
         {
-            $estado =  $unCategoria->id === $this->id;
+            $estado =  $unTipoDeProducto->id === $this->id;
         }
         return  $estado ;
     }
@@ -151,54 +161,79 @@ class Categoria
 
         return  $estado ;
     }
-
+  
     //Getters
     public function GetNombre()
     {
         return  $this->nombre;
     }
 
-    private static function ObtenerIdAutoIncremental()
+    public function GetId()
     {
-        return rand(1,10000);
+        return  $this->id;
     }
 
-    //  public static function EscribirJson($listaDeCategoria,$claveDeArchivo)
+    
+
+    #Mostrar
+    public static function ToStringList($listaDeTipoDeProductos)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeTipoDeProductos) )
+        {
+            $strLista = "TipoDeProductos".'<br>';
+            foreach($listaDeTipoDeProductos as $unSector)
+            {
+                $strLista .= $unSector->ToString().'<br>';
+            }
+        }
+
+        return   $strLista;
+    }
+
+    public function ToString()
+    {
+        return "nombre: ".$this->nombre.'<br>';
+       }
+        
+
+    //  public static function EscribirJson($listaDeTipoDeProducto,$claveDeArchivo)
     //  {
     //      $estado = false; 
  
-    //      if(isset($listaDeCategoria))
+    //      if(isset($listaDeTipoDeProducto))
     //      {
-    //          $estado =  Json::EscribirEnArrayJson($listaDeCategoria,$claveDeArchivo,JSON_PRETTY_PRINT);
+    //          $estado =  Json::EscribirEnArrayJson($listaDeTipoDeProducto,$claveDeArchivo,JSON_PRETTY_PRINT);
     //      }
     //      return  $estado;
     //  }
  
     //  public static function LeerJson($claveDeArchivo)
     //  {
-    //      return Categoria::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
+    //      return TipoDeProducto::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
     //  }
  
     //  private static function DeserializarListaJson($listaDeArrayAsosiativos)
     //  {
-    //      $listaDeCategoria = null; 
-    //      $unCategoria = null;
+    //      $listaDeTipoDeProducto = null; 
+    //      $unTipoDeProducto = null;
     //      if(isset($listaDeArrayAsosiativos))
     //      {
-    //          $listaDeCategoria = [];
+    //          $listaDeTipoDeProducto = [];
  
     //          foreach($listaDeArrayAsosiativos as $unArrayAsosiativo)
     //          {
-    //              $unCategoria = Categoria::DeserializarUnCategoriaPorArrayAsosiativo($unArrayAsosiativo);
-    //              if(isset($unCategoria))
+    //              $unTipoDeProducto = TipoDeProducto::DeserializarUnTipoDeProductoPorArrayAsosiativo($unArrayAsosiativo);
+    //              if(isset($unTipoDeProducto))
     //              {
-    //                  array_push($listaDeCategoria,$unCategoria);
+    //                  array_push($listaDeTipoDeProducto,$unTipoDeProducto);
     //              }
                  
     //          }
     //      }
  
-    //      return  $listaDeCategoria ;
+    //      return  $listaDeTipoDeProducto ;
     //  }
 
     
@@ -227,10 +262,10 @@ class Categoria
 
    
 
-    // public static function CompararPorclave($unCategoria,$otroCategoria)
+    // public static function CompararPorclave($unTipoDeProducto,$otroTipoDeProducto)
     // {
     //     $retorno = 0;
-    //     $comparacion = strcmp($unCategoria->clave,$otroCategoria->clave);
+    //     $comparacion = strcmp($unTipoDeProducto->clave,$otroTipoDeProducto->clave);
 
     //     if( $comparacion  > 0)
     //     {
@@ -246,32 +281,32 @@ class Categoria
     //     return $retorno ;
     // }
 
-    // public static function BuscarCategoriaPorId($listaDeCategoria,$id)
+    // public static function BuscarTipoDeProductoPorId($listaDeTipoDeProducto,$id)
     // {
-    //     $unaCategoriaABuscar = null; 
+    //     $unaTipoDeProductoABuscar = null; 
 
-    //     if(isset($listaDeCategoria) )
+    //     if(isset($listaDeTipoDeProducto) )
     //     {
-    //         foreach($listaDeCategoria as $unaCategoria)
+    //         foreach($listaDeTipoDeProducto as $unaTipoDeProducto)
     //         {
-    //             if($unaCategoria->id == $id)
+    //             if($unaTipoDeProducto->id == $id)
     //             {
-    //                 $unaCategoriaABuscar = $unaCategoria; 
+    //                 $unaTipoDeProductoABuscar = $unaTipoDeProducto; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaCategoriaABuscar;
+    //     return  $unaTipoDeProductoABuscar;
     // }
 
-    // public function __construct($mail,$unProducto,$clave,$unCategoria,$ruta = null,$claveDeLaImagen = null) {
+    // public function __construct($mail,$unProducto,$clave,$unTipoDeProducto,$ruta = null,$claveDeLaImagen = null) {
     //     $this->clave = $clave;
-    //     $this->unCategoria = $unCategoria;
+    //     $this->unTipoDeProducto = $unTipoDeProducto;
     //     $this->mail = $mail;
     //     $this->unProducto = $unProducto;
     //     $this->fechaDeRegistro = date("Y-m-d");
-    //     $this->SetId(Categoria::ObtenerIdAutoIncremental());
+    //     $this->SetId(TipoDeProducto::ObtenerIdAutoIncremental());
     //     $this->SetImagen($ruta,$claveDeLaImagen);
     // }
     
@@ -296,35 +331,35 @@ class Categoria
 
    
 
-    // public static function BuscarCategoriaPorId($listaDeCategorias,$id)
+    // public static function BuscarTipoDeProductoPorId($listaDeTipoDeProductos,$id)
     // {
-    //     $unaCategoriaABuscar = null; 
+    //     $unaTipoDeProductoABuscar = null; 
 
-    //     if(isset($listaDeCategorias)  
+    //     if(isset($listaDeTipoDeProductos)  
     //     && isset($id) )
     //     {
-    //         foreach($listaDeCategorias as $unaCategoria)
+    //         foreach($listaDeTipoDeProductos as $unaTipoDeProducto)
     //         {
-    //             if($unaCategoria->id == $id)
+    //             if($unaTipoDeProducto->id == $id)
     //             {
-    //                 $unaCategoriaABuscar = $unaCategoria; 
+    //                 $unaTipoDeProductoABuscar = $unaTipoDeProducto; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaCategoriaABuscar;
+    //     return  $unaTipoDeProductoABuscar;
     // }
   
-    // public static function ToStringList($listaDeCategorias)
+    // public static function ToStringList($listaDeTipoDeProductos)
     // {
     //     $strLista = null; 
 
-    //     if(isset($listaDeCategorias) )
+    //     if(isset($listaDeTipoDeProductos) )
     //     {
-    //         foreach($listaDeCategorias as $unaCategoria)
+    //         foreach($listaDeTipoDeProductos as $unaTipoDeProducto)
     //         {
-    //             $strLista = $unaCategoria->ToString().'<br>';
+    //             $strLista = $unaTipoDeProducto->ToString().'<br>';
     //         }
     //     }
 
@@ -356,18 +391,18 @@ class Categoria
 
      //  //Contar
  
-    //  public static function ContarPorUnaFecha($listaDeCategoria,$fecha)
+    //  public static function ContarPorUnaFecha($listaDeTipoDeProducto,$fecha)
     //  {
     //      $filtraPorUnaFecha = null;
     //      $cantidad = -1;
  
-    //      if(isset($listaDeCategoria) && isset($fecha))
+    //      if(isset($listaDeTipoDeProducto) && isset($fecha))
     //      {
     //          $cantidad = 0;
  
-    //          foreach($listaDeCategoria as $unaCategoria)
+    //          foreach($listaDeTipoDeProducto as $unaTipoDeProducto)
     //          {
-    //              if($unaCategoria::$fechaDeCategoria == $fecha)
+    //              if($unaTipoDeProducto::$fechaDeTipoDeProducto == $fecha)
     //              {
     //                  $cantidad++;
     //              }

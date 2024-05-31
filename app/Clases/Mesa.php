@@ -13,12 +13,10 @@ class Mesa
 
     public function ToString()
     {
-       
         return 
         "Codigo: ".strtoupper($this->codigo).'<br>'
         ."Estado: ".$this->estado.'<br>';
     }
-
    
     // private function __construct() 
     // {
@@ -31,7 +29,7 @@ class Mesa
     {
         $estado = false;
         $unaMesa = new Mesa();
-        // $unaMesa->numeroDeMesa = rand(100,1000);
+        
         $unaMesa->codigo = Mesa::CrearUnCodigoAlfaNumerico(5);
         $unaMesa->estado = 'cerrada';
      
@@ -60,12 +58,11 @@ class Mesa
     }
     public static function CrearUnCodigoAlfaNumerico($cantidadDeCaracteres)
     {
-        $caraceteres =  array_merge(range('a','z'),range(0,9));
         $codigoAlfaNumerico = null;
        
-     
         if($cantidadDeCaracteres > 0)
         {
+            $caraceteres =  array_merge(range('a','z'),range(0,9));
             $len = count($caraceteres);
 
             $codigoAlfaNumerico = "";
@@ -73,7 +70,6 @@ class Mesa
             for ($i=0; $i < $cantidadDeCaracteres; $i++) { 
 
                 $codigoAlfaNumerico .= $caraceteres[rand(0,$len-1)];
-
             }
         }
 
@@ -97,6 +93,22 @@ class Mesa
 
         return  $unMesa;
     }
+    public static function BuscarMesaPorIdBD($idDeMesa)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unMesa = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Mesa as m where m.id = :idDeMesa");
+            $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $unMesa =  Mesa::CrearUnaMesa($data);
+        }
+
+        return  $unMesa;
+    }
 
     private static function CrearUnaMesa($data)
     {
@@ -108,8 +120,6 @@ class Mesa
             $unaMesa->SetId($data['id']);
             $unaMesa->SetCodigo($data['codigo']);
             $unaMesa->SetEstado($data['estado']);
-
-      
         }
 
         return  $unaMesa;
@@ -125,7 +135,6 @@ class Mesa
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Mesa");
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-     
             $listaDeMesas = Mesa::CrearLista($data);
         }
 

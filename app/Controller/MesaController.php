@@ -4,18 +4,17 @@
 
 require_once './Clases/Mesa.php';
 
-class MesaController extends Mesa
+class MesaController 
 {
   
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Mesa';
-         $codigoDeMesa =  Mesa::Alta();
+        $codigoDeMesa =  Mesa::Alta();
         if(isset($codigoDeMesa ) &&  $codigoDeMesa !== false)
         {
-            $unaMesa = Mesa::BuscarMesaPorCodigoBD($codigoDeMesa);
-            $mensaje = 'la Mesa se dio de alta:'.'<br>'. $unaMesa->ToString();
+            $mensaje = 'la Mesa se dio de alta';
         }
         
         $response->getBody()->write($mensaje);

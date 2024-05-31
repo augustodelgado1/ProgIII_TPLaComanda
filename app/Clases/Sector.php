@@ -9,7 +9,8 @@ class Sector
     private $id;
     private $nombre;
    
-    public function __construct($nombre) {
+    public function __construct($nombre) 
+    {
         $this->SetNombre($nombre);
     }
 
@@ -26,6 +27,7 @@ class Sector
         return $estado;
     }
 
+    #BaseDeDatos
     private function AgregarBD()
     {
         $estado = false;
@@ -40,6 +42,96 @@ class Sector
         return $estado;
     }
 
+    
+    public static function BuscarSectorPorIdBD($idDeSector)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unSector = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM sector as s where s.id = :idDeSector");
+            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_STR);
+            $consulta->execute();
+            $unSector = Sector::CrearUnSector($consulta->fetch(PDO::FETCH_ASSOC));
+        }
+
+        return  $unSector;
+    }
+
+    public static function BuscarPorNombreBD($nombre)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unSector = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Sector as s where s.nombre = :nombre");
+            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta->execute();
+            $unSector = Sector::CrearUnSector($consulta->fetch(PDO::FETCH_ASSOC));
+        }
+
+        return  $unSector;
+    }
+
+    public static function ListarBD()
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeSectores= null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Sector");
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            
+            
+            $listaDeSectores = Sector::CrearLista($data);
+        }
+
+        return  $listaDeSectores;
+    }
+
+    #end
+
+
+    private static function CrearUnSector($unArrayAsosiativo)
+    {
+        $unSector = null;
+        
+        if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
+        {
+           
+            $unSector = new Sector($unArrayAsosiativo['nombre']);
+            $unSector->SetId($unArrayAsosiativo['id']);
+        }
+        
+        return $unSector ;
+    }
+
+    private static function CrearLista($data)
+    {
+        $listaDeSectores = null;
+        if(isset($data))
+        {
+            $listaDeSectores = [];
+
+            foreach($data as $unArray)
+            {
+                $unSector = Sector::CrearUnSector($unArray);
+                
+                
+                if(isset($unSector))
+                {
+                    array_push($listaDeSectores,$unSector);
+                }
+            }
+        }
+
+        return   $listaDeSectores;
+    }
+
     public static function BuscarSectorPorId($listaDeSectors,$id)
     {
         $unaSectorABuscar = null; 
@@ -50,20 +142,6 @@ class Sector
         }
 
         return  $unaSectorABuscar;
-    }
-    public static function BuscarSectorPorIdBD($idDeSector)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unSector = null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM sector as s where s.id == $idDeSector");
-            $consulta->execute();
-            $unSector = $consulta->fetchObject(__CLASS__,array('nombre'));
-        }
-
-        return  $unSector;
     }
 
      public static function ObtenerIndicePorId($listaDeSectors,$id)
@@ -86,8 +164,6 @@ class Sector
         return $index;
     }
 
-   
-
     public function Equals($unSector)
     {
         $estado = false;
@@ -99,7 +175,7 @@ class Sector
         return  $estado ;
     }
 
-    //Setters
+    #Setters
     private function SetId($id)
     {
         $estado = false;
@@ -124,15 +200,37 @@ class Sector
         return  $estado ;
     }
 
-    //Getters
+    #Getters
     public function GetNombre()
     {
         return  $this->nombre;
     }
 
-    private static function ObtenerIdAutoIncremental()
+    public function GetId()
     {
-        return rand(1,10000);
+        return  $this->id;
+    }
+
+    #Mostrar
+     public static function ToStringList($listaDeSectores)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeSectores) )
+        {
+            $strLista = "Sectores".'<br>';
+            foreach($listaDeSectores as $unSector)
+            {
+                $strLista .= $unSector->ToString().'<br>';
+            }
+        }
+
+        return   $strLista;
+    }
+
+    public function ToString()
+    {
+        return "nombre: ".$this->nombre.'<br>';
     }
 
     //  public static function EscribirJson($listaDeSector,$claveDeArchivo)

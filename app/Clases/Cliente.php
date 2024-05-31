@@ -45,6 +45,60 @@ class Cliente extends Usuario
         return $estado;
     }
 
+    public static function BuscarClientePorIdBD($idDeCliente)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unCliente = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cliente as c where c.id = :idDeCliente");
+            $consulta->bindValue(':idDeCliente',$idDeCliente,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $unCliente =  Cliente::CrearUnCliente($data);
+        }
+
+        return  $unCliente;
+    }
+
+    private static function CrearLista($data)
+    {
+        $listaDeClientes = null;
+        if(isset($data))
+        {
+            $listaDeClientes = [];
+
+            foreach($data as $unArray)
+            {
+               
+                $unCliente = Cliente::CrearUnCliente($unArray);
+              
+                if(isset($unCliente))
+                {
+                    array_push($listaDeClientes,$unCliente);
+                }
+            }
+        }
+
+        return   $listaDeClientes;
+    }
+    private static function CrearUnCliente($unArrayAsosiativo)
+    {
+        $unEmpleado = null;
+
+        $unUsuario = Usuario::ObtenerUnUsuarioPorIdBD($unArrayAsosiativo['idDeUsuario']);
+     
+        if(isset($unArrayAsosiativo) && isset($unUsuario))
+        {
+            $unCliente = new Cliente($unUsuario->GetMail(),$unUsuario->GetClave(),$unArrayAsosiativo['nombre']);
+            $unCliente->SetId($unArrayAsosiativo['id']);
+            $unCliente->SetFechaDeRegistro($unUsuario->GetFechaDeRegistro());
+        }
+        
+        return $unEmpleado ;
+    }
+
     public static function BuscarClientePorId($listaDeClientes,$id)
     {
         $unaClienteABuscar = null; 
