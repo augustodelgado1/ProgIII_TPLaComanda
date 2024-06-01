@@ -3,7 +3,7 @@
 <?php
 
 require_once './Clases/Empleado.php';
-require_once './Clases/RolDeTrabajo.php';
+require_once './Clases/Cargo.php';
 
 class EmpleadoController 
 {
@@ -12,12 +12,12 @@ class EmpleadoController
     {
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Empleado';
-        $unRolDeTrabajo = RolDeTrabajo::BuscarRolDeTrabajoPorNombreBD($data['rolDeTrabajo']) ;   
+        $unCargo = Cargo::BuscarCargoPorDescripcionBD($data['cargo']) ;   
         if(isset($data))
         {
             $mensaje = 'no se pudo dar de alta';
 
-            if(Empleado::DarDeAltaUnEmpleado($data['email'],$data['clave'],$data['nombre'],$unRolDeTrabajo))
+            if(Empleado::DarDeAltaUnEmpleado($data['email'],$data['clave'],$data['nombre'],$data['apellido'],$unCargo))
             {
                 $mensaje = 'El Empleado se dio de alta';
             }
@@ -35,9 +35,9 @@ class EmpleadoController
         $data = $request->getQueryParams();
         
         $mensaje = 'Hubo un error  al intentar listar los empleados';
-        $unRolDeTrabajo = RolDeTrabajo::BuscarRolDeTrabajoPorNombreBD($data['rolDeTrabajo']) ;       
+        $unCargo= Cargo::BuscarCargoPorDescripcionBD($data['cargo']) ;       
         
-        $listaDeEmpleados = Empleado::ObtenerListaPorRolBD($unRolDeTrabajo);
+        $listaDeEmpleados = Empleado::ObtenerListaPorCargoBD($unCargo);
 
 
         if(isset($listaDeEmpleados))

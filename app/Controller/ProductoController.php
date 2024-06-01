@@ -5,7 +5,7 @@
 require_once './Clases/Producto.php';
 require_once './Clases/TipoDeProducto.php';
 require_once './Clases/Orden.php';
-require_once './Clases/TipoDeProducto.php';
+
 
 class ProductoController 
 {

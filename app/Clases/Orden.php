@@ -11,19 +11,18 @@ require_once './Clases/Cliente.php';
 class Orden 
 {
     private $id;
-    private $numeroDeOrden;
+    private $codigo;
     private $unCliente;
     private $unaMesa;
     private $fechaDeOrden;
     private $rutaDeLaImagen;
-
     private $nombreDeLaImagen;
     private $costoTotal;
 
    
     public function __construct($unaMesa,$unCliente,$rutaDeLaImagen = null,$nombreDeLaImagen = null) 
     {
-        $this->numeroDeOrden = rand(100,10000);
+        $this->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
         Orden::SetImagen($rutaDeLaImagen,$nombreDeLaImagen);
         $this->fechaDeOrden = new DateTime('now');
     }
@@ -34,7 +33,7 @@ class Orden
         $unaOrden = new Orden($unaMesa,$unCliente);
         $unaOrden->unaMesa = $unaMesa;
         $unaOrden->unCliente = $unCliente;
-        $unaOrden->numeroDeOrden = rand(100,10000);
+        $unaOrden->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
         $unaOrden->fechaDeOrden = new DateTime('now');
         if(empty($unaOrden->unaMesa) == false )
         {
@@ -43,13 +42,10 @@ class Orden
 
         return $estado;
     }
-
-
-
     private function CalcularCostoTotal()
     {
         $this->costoTotal = 0;
-        $listaDePedidos = Pedido::FiltrarPedidosPorIdDeOrdenBD($this->id);
+        $listaDePedidos = $this->ObtenerListaDePedidos();
         if(isset($listaDePedidos))
         {
             foreach ($listaDePedidos as $unPedido) {
@@ -60,6 +56,11 @@ class Orden
                 }
             }
         }
+    }
+
+    public function ObtenerListaDePedidos()
+    {
+        return  Pedido::FiltrarPedidosPorIdDeOrdenBD($this->id);
     }
 
     #Imagen
@@ -98,9 +99,9 @@ class Orden
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Orden (numeroDeOrden,idDeCliente,idDeMesa,fechaDeOrden,costoTotal) 
-            values (:numeroDeOrden,:idDeCliente,:idDeMesa,:fechaDeOrden,:costoTotal)");
-            $consulta->bindValue(':numeroDeOrden',$this->numeroDeOrden,PDO::PARAM_INT);
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Orden (codigo,idDeCliente,idDeMesa,fechaDeOrden,costoTotal) 
+            values (:codigo,:idDeCliente,:idDeMesa,:fechaDeOrden,:costoTotal)");
+            $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_INT);
             $consulta->bindValue(':idDeCliente',$this->unCliente->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':idDeMesa',$this->unaMesa->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':fechaDeOrden',$this->fechaDeOrden->format("y-m-d"),PDO::PARAM_STR);
@@ -128,15 +129,15 @@ class Orden
         return  $unaOrden;
     }
 
-    public static function BuscarPorNumeroDeOrdenBD($numeroDeOrden)
+    public static function BuscarPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unaOrden = null;
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as p where p.numeroDeOrden = :numeroDeOrden");
-            $consulta->bindValue(':numeroDeOrden',$numeroDeOrden,PDO::PARAM_INT);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as p where p.codigo = :codigo");
+            $consulta->bindValue(':codigo',$codigo,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $unaOrden =  Orden::CrearUnaOrden($data);
@@ -171,7 +172,7 @@ class Orden
         {
             $unaOrden = new Orden($unArrayAsosiativo['idMesa'],$unArrayAsosiativo['idCliente']);
             $unaOrden->SetId($unArrayAsosiativo['id']);
-            $unaOrden->SetNumeroDeOrden($unArrayAsosiativo['numeroDeOrden']);
+            $unaOrden->Setcodigo($unArrayAsosiativo['codigo']);
             $unaOrden->SetMesa($unArrayAsosiativo['idMesa']);
             $unaOrden->SetCliente($unArrayAsosiativo['idCliente']);
             $unaOrden->SetFechaDeOrden($unArrayAsosiativo['fechaDeLaOrden']);
@@ -261,12 +262,12 @@ class Orden
 
     
 
-    public function SetNumeroDeOrden($numeroDeOrden)
+    public function Setcodigo($codigo)
     {
         $estado = false;
-        if(isset($numeroDeOrden) )
+        if(isset($codigo) )
         {
-            $this->numeroDeOrden = $numeroDeOrden;
+            $this->codigo = $codigo;
             $estado = true;
         }
 
@@ -321,13 +322,13 @@ class Orden
     }
 
     #Getters
-    public function GetNumeroDeOrden()
+    public function Getcodigo()
     {
-        return  $this->numeroDeOrden;
+        return  $this->codigo;
     }
     public function GetNombreDelCliente()
     {
-        return  $this->numeroDeOrden;
+        return  $this->unCliente->GetNombreCompleto();
     }
 
     public function GetId()
@@ -354,7 +355,7 @@ class Orden
 
     public function ToString()
     {
-        return "numeroDeOrden: ".$this->numeroDeOrden.'<br>';
+        return "codigo: ".$this->codigo.'<br>';
     }
 
     //  public static function EscribirJson($listaDeOrden,$claveDeArchivo)

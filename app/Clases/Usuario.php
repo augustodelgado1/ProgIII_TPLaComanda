@@ -3,6 +3,7 @@
 <?php
 
 require_once './db/AccesoDatos.php';
+require_once 'Rol.php';
 
  class Usuario 
 {
@@ -10,27 +11,26 @@ require_once './db/AccesoDatos.php';
     private $mail;
     private $clave;
     private $rol;
+    private $nombre;
+    private $apellido;
     private $fechaDeRegistro;
 
    
-    public function __construct($mail,$clave,$rol = null) {
+    public function __construct($mail,$clave,$nombre,$apellido,$rol = null) {
         $this->SetEmail($mail);
         $this->SetClave($clave);
-        $this->rol = $rol;
+        $this->SetNombre($nombre);
+        $this->SetApellido($apellido);
+        $this->SetRol($rol);
         $this->fechaDeRegistro = new DateTime('now') ;
     }
 
-    protected function GetClave()
-    {
-        return $this->clave;
-    }
-
-    public static function DarDeAltaUnUsuario($mail,$clave)
+    public static function DarDeAlta($mail,$clave,$nombre,$apellido)
     {
         $estado = false;
-        $unUsuario = new Usuario($mail,$clave);
+        $unUsuario = new Usuario($mail,$clave,$nombre,$apellido);
 
-        if(empty($unUsuario->mail) == false && empty($unUsuario->clave) == false )
+        if(empty($unUsuario->nombre) == false && empty($unUsuario->apellido) == false)
         {
             $estado = $unUsuario->AgregarBD();
         }
@@ -38,6 +38,41 @@ require_once './db/AccesoDatos.php';
         return $estado;
     }
 
+    protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
+    {
+        $unUsuario  = null;
+        if(isset($unArrayAsosiativo))
+        {
+            $unUsuario = new Usuario($unArrayAsosiativo['mail'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
+            $unArrayAsosiativo['apellido'],  $unArrayAsosiativo['rol']);
+            $unUsuario->SetId($unArrayAsosiativo['id']);
+            $unUsuario->SetFechaDeRegistro($unArrayAsosiativo['fechaDeRegistro']);
+        }
+       
+        return $unUsuario;
+    }
+
+    protected static function CrearLista($data)
+    {
+        $listaDeUsuarios = null;
+        if(isset($data))
+        {
+            $listaDeUsuarios = [];
+
+            foreach($data as $unArray)
+            {
+               
+                $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($unArray);
+              
+                if(isset($unUsuario))
+                {
+                    array_push($listaDeUsuarios,$unUsuario);
+                }
+            }
+        }
+
+        return   $listaDeUsuarios;
+    }
     protected function AgregarBD()
     {
         $idDeUsuario = null;
@@ -45,10 +80,12 @@ require_once './db/AccesoDatos.php';
 
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,rol) values (:email,:clave,:fechaDeRegistro,:rol)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,nombre,apellido,rol) values (:email,:clave,:fechaDeRegistro,:nombre,:apellido,:rol)");
             $consulta->bindValue(':email',$this->mail,PDO::PARAM_STR);
             $consulta->bindValue(':clave',$this->clave,PDO::PARAM_STR);
             $consulta->bindValue(':rol',$this->rol,PDO::PARAM_STR);
+            $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
+            $consulta->bindValue(':apellido',$this->apellido,PDO::PARAM_STR);
             $consulta->bindValue(':fechaDeRegistro',$this->fechaDeRegistro->format('y-m-d H:i:s'),PDO::PARAM_STR);
             $consulta->execute();
             $idDeUsuario =  $objAccesoDatos->ObtenerUltimoID();
@@ -60,23 +97,22 @@ require_once './db/AccesoDatos.php';
     public static function ObtenerListaDeUsuarios()
     {
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDeUsuarios = null;
+        $listaDeUsuario = null;
 
         if(isset($objAccesoDatos))
         {
             $consulta = $objAccesoDatos->RealizarConsulta("Select * From Usuario");
             $consulta->execute();
-            $listaDeUsuarios = Usuario::CrearLista($consulta->fetchAll(Pdo::FETCH_ASSOC));
+            $listaDeUsuario = Usuario::CrearLista($consulta->fetchAll(Pdo::FETCH_ASSOC));
         }
-        
 
-        return $listaDeUsuarios;
+        return $listaDeUsuario;
     }
 
     protected static function ObtenerUnUsuarioPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unUsuario = null;
+        $data= null;
 
         if(isset($unObjetoAccesoDato))
         {
@@ -84,94 +120,66 @@ require_once './db/AccesoDatos.php';
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unUsuario = Usuario::CrearUnUsuarioPorArrayAsosiativo($data);
         }
 
-        return  $unUsuario;
+        return  $data;
     }
 
-    public static function ObtenerUnUsuarioBD($mail,$clave)
-    {
-        $unUsuario = Usuario::BuscarEmailUnUsuarioBD($mail);
-        $otroUsuario = Usuario::BuscarClaveUnUsuarioBD($clave);
-        $estado = null;
-
-        if(isset($unUsuario))
-        {
-            $estado = $unUsuario->Equals($otroUsuario);
-        }
-
-        return  $estado;
-    }
-
+    
     public static function BuscarEmailUnUsuarioBD($mail)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unUsuario = null;
+        $data = null;
 
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.mail = :mail");
             $consulta->bindValue(':mail',$mail,PDO::PARAM_STR);
             $consulta->execute();
-            $unUsuario = Usuario::CrearUnUsuarioPorArrayAsosiativo($consulta->fetch(PDO::FETCH_ASSOC));
+            Usuario::CrearUnoPorArrayAsosiativo($consulta->fetch(PDO::FETCH_ASSOC));
         }
 
-        return  $unUsuario;
+        return  $data;
     }
 
     public static function BuscarClaveUnUsuarioBD($clave)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unUsuario = null;
+        $data = null;
 
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.clave = :clave");
             $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
             $consulta->execute();
-            $unUsuario = Usuario::CrearUnUsuarioPorArrayAsosiativo($consulta->fetch(PDO::FETCH_ASSOC));
+            Usuario::CrearUnoPorArrayAsosiativo($consulta->fetch(PDO::FETCH_ASSOC));
         }
 
-        return  $unUsuario;
+        return  $data;
     }
 
-    private static function CrearUnUsuarioPorArrayAsosiativo($unArrayAsosiativo)
+    public static function CrearUnCodigoAlfaNumerico($cantidadDeCaracteres)
     {
-        $unUsuario = null; 
-        
-        if(isset($unArrayAsosiativo))
+        $codigoAlfaNumerico = null;
+       
+        if($cantidadDeCaracteres > 0)
         {
-            $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],
-            $unArrayAsosiativo['rol']);
-            $unUsuario->SetId($unArrayAsosiativo['id']);
-            $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
-        }
+            $caraceteres =  array_merge(range('a','z'),range(0,9));
+            $len = count($caraceteres);
 
-        return  $unUsuario;
-    }
+            $codigoAlfaNumerico = "";
 
-    private static function CrearLista($data)
-    {
-        $listaDeUsuarios = null;
-        if(isset($data))
-        {
-            $listaDeUsuarios = [];
+            for ($i=0; $i < $cantidadDeCaracteres; $i++) { 
 
-            foreach($data as $unArray)
-            {
-               
-                $unUsuario = Usuario::CrearUnUsuarioPorArrayAsosiativo($unArray);
-              
-                if(isset($unUsuario))
-                {
-                    array_push($listaDeUsuarios,$unUsuario);
-                }
+                $codigoAlfaNumerico .= $caraceteres[rand(0,$len-1)];
             }
         }
 
-        return   $listaDeUsuarios;
+        return  $codigoAlfaNumerico ;
+       
     }
+
+  
     protected function SetFechaDeRegistro($fechaDeRegistro)
     {
         $estado = false;
@@ -187,8 +195,8 @@ require_once './db/AccesoDatos.php';
 
     public function ToString()
     {
-        
         return  "mail: ".$this->mail.'<br>'.
+          "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
         "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>';
     }
 
@@ -241,27 +249,89 @@ require_once './db/AccesoDatos.php';
         return  $estado ;
     }
 
+    protected function SetNombre($nombre)
+    {
+        $estado = false;
+        if(isset($nombre) && Usuario::VerificarQueContengaSoloLetras($nombre))
+        {
+            $this->nombre = $nombre;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+    protected function SetApellido($apellido)
+    {
+        $estado = false;
+        if(isset($apellido) && Usuario::VerificarQueContengaSoloLetras($apellido))
+        {
+            $this->apellido = $apellido;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+
+    private function SetRol($descripcion)
+    {
+        $estado  = false;
+        if(isset( $descripcion) )
+        {
+            $this->rol = $descripcion;
+        }
+
+        return $estado;
+    }
+
     //Getters
     public function GetMail()
     {
         return  $this->mail;
     }
-    protected function GetId()
-    {
-        return  $this->id;
-    }
     protected function GetFechaDeRegistro()
     {
         return  $this->fechaDeRegistro;
     }
-
-    private static function ObtenerIdAutoIncremental()
+    //Getters
+    protected function GetNombre()
     {
-        return rand(1,10000);
+        return  $this->nombre;
     }
 
-    
-    
+    protected function GetApellido()
+    {
+        return  $this->apellido;
+    }
+
+    public function GetRolDeUsuario()
+    {
+        return  $this->rol;
+    }
+    public function GetNombreCompleto()
+    {
+        return  $this->nombre." ".$this->apellido;
+    }
+
+    public static function VerificarQueContengaSoloLetras($string)
+    {
+        $estado = false;
+        $caracteresInvalidos = range('0','9');
+
+        if(isset($string) && strlen($string) > 0)
+        {
+            $estado = true;
+           foreach($caracteresInvalidos  as $unCaracter)
+           {
+                if(str_contains($string,$unCaracter))
+                {
+                    $estado = false;
+                    break;
+                }
+           }
+        }
+
+        return $estado;
+    }
     
     public function jsonSerialize()
     {
@@ -270,6 +340,22 @@ require_once './db/AccesoDatos.php';
             'claveDeUsuario' => $this->clave,
             'mail' => $this->mail,
         );
+    }
+
+    public static function ToStringList($listaDeUsuarios)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeUsuarios) )
+        {
+            $strLista = "Usuarios".'<br>';
+            foreach($listaDeUsuarios as $unUsuario)
+            {
+                $strLista .= $unUsuario->ToString().'<br>';
+            }
+        }
+
+        return   $strLista;
     }
     //  public static function EscribirJson($listaDeUsuario,$claveDeArchivo)
     //  {

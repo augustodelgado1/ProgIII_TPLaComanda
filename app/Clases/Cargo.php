@@ -5,7 +5,7 @@
 require_once './db/AccesoDatos.php';
 require_once 'Sector.php';
 
-class RolDeTrabajo 
+class Cargo 
 {
     private $id;
     private $trabajo;
@@ -29,51 +29,51 @@ class RolDeTrabajo
         return $estado;
     }
    
-    public static function BuscarRolDeTrabajoPorIdBD($id)
+    public static function BuscarCargoPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unRol = null;
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM RolDeTrabajo as r where r.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
-            $unRol = RolDeTrabajo::CrearUnRolDeTrabajo($consulta->fetch(PDO::FETCH_ASSOC));
+            $unRol = Cargo::CrearUnCargo($consulta->fetch(PDO::FETCH_ASSOC));
         }
 
         return $unRol;
     }
 
-    public static function BuscarRolDeTrabajoPorNombreBD($nombre)
+    public static function BuscarCargoPorDescripcionBD($descripcion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unRol = null;
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM RolDeTrabajo as r where r.trabajo = :trabajo");
-            $consulta->bindValue(':trabajo',$nombre,PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.descripcion = :descripcion");
+            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->execute();
-            $unRol = RolDeTrabajo::CrearUnRolDeTrabajo($consulta->fetch(PDO::FETCH_ASSOC));
+            $unRol = Cargo::CrearUnCargo($consulta->fetch(PDO::FETCH_ASSOC));
         }
 
         return  $unRol;
     }
 
-    private static function CrearUnRolDeTrabajo($unArrayAsosiativo)
+    private static function CrearUnCargo($unArrayAsosiativo)
     {
-        $unRolDeTrabajo = null;
+        $unCargo = null;
         
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            $unRolDeTrabajo = new RolDeTrabajo($unArrayAsosiativo['id'],
-            $unArrayAsosiativo['trabajo'],$unArrayAsosiativo['idDeSector']);
-            $unRolDeTrabajo->SetId($unArrayAsosiativo['id']);
-            $unRolDeTrabajo->SetSector($unArrayAsosiativo['idDeSector']);
+            $unCargo = new Cargo($unArrayAsosiativo['id'],
+            $unArrayAsosiativo['descripcion'],$unArrayAsosiativo['idDeSector']);
+            $unCargo->SetId($unArrayAsosiativo['id']);
+            $unCargo->SetSector($unArrayAsosiativo['idDeSector']);
         }
         
-        return $unRolDeTrabajo ;
+        return $unCargo ;
     }
 
     private static function CrearLista($data)
@@ -85,11 +85,11 @@ class RolDeTrabajo
 
             foreach($data as $unArray)
             {
-                $unRolDeTrabajo = RolDeTrabajo::CrearUnRolDeTrabajo($unArray);
+                $unCargo = Cargo::CrearUnCargo($unArray);
                 
-                if(isset($unRolDeTrabajo))
+                if(isset($unCargo))
                 {
-                    array_push($listaDeRoles,$unRolDeTrabajo);
+                    array_push($listaDeRoles,$unCargo);
                 }
             }
         }
@@ -97,16 +97,16 @@ class RolDeTrabajo
         return   $listaDeRoles;
     }
   
-     public static function ObtenerIndicePorId($listaDeRolDeTrabajos,$id)
+     public static function ObtenerIndicePorId($listaDeCargos,$id)
     {
         $index = -1;
        
-        if(isset($listaDeRolDeTrabajos)  && isset($id))
+        if(isset($listaDeCargos)  && isset($id))
         {
-            $leght = count($listaDeRolDeTrabajos); 
+            $leght = count($listaDeCargos); 
             for ($i=0; $i < $leght; $i++) { 
          
-                if($listaDeRolDeTrabajos[$i]->id == $id)
+                if($listaDeCargos[$i]->id == $id)
                 {
                     $index = $i;
                     break;
@@ -117,13 +117,13 @@ class RolDeTrabajo
         return $index;
     }
 
-    public function Equals($unRolDeTrabajo)
+    public function Equals($unCargo)
     {
         $estado = false;
  
-        if(isset($unRolDeTrabajo))
+        if(isset($unCargo))
         {
-            $estado =  $unRolDeTrabajo->id === $this->id;
+            $estado =  $unCargo->id === $this->id;
         }
         return  $estado ;
     }
@@ -149,7 +149,7 @@ class RolDeTrabajo
     {
         return  $this->id;
     }
-    public function GetNombre()
+    public function GetDescripcion()
     {
         return  $this->trabajo;
     }
@@ -157,42 +157,42 @@ class RolDeTrabajo
    
     
 
-    //  public static function EscribirJson($listaDeRolDeTrabajo,$claveDeArchivo)
+    //  public static function EscribirJson($listaDeCargo,$claveDeArchivo)
     //  {
     //      $estado = false; 
  
-    //      if(isset($listaDeRolDeTrabajo))
+    //      if(isset($listaDeCargo))
     //      {
-    //          $estado =  Json::EscribirEnArrayJson($listaDeRolDeTrabajo,$claveDeArchivo,JSON_PRETTY_PRINT);
+    //          $estado =  Json::EscribirEnArrayJson($listaDeCargo,$claveDeArchivo,JSON_PRETTY_PRINT);
     //      }
     //      return  $estado;
     //  }
  
     //  public static function LeerJson($claveDeArchivo)
     //  {
-    //      return RolDeTrabajo::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
+    //      return Cargo::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
     //  }
  
     //  private static function DeserializarListaJson($listaDeArrayAsosiativos)
     //  {
-    //      $listaDeRolDeTrabajo = null; 
-    //      $unRolDeTrabajo = null;
+    //      $listaDeCargo = null; 
+    //      $unCargo = null;
     //      if(isset($listaDeArrayAsosiativos))
     //      {
-    //          $listaDeRolDeTrabajo = [];
+    //          $listaDeCargo = [];
  
     //          foreach($listaDeArrayAsosiativos as $unArrayAsosiativo)
     //          {
-    //              $unRolDeTrabajo = RolDeTrabajo::DeserializarUnRolDeTrabajoPorArrayAsosiativo($unArrayAsosiativo);
-    //              if(isset($unRolDeTrabajo))
+    //              $unCargo = Cargo::DeserializarUnCargoPorArrayAsosiativo($unArrayAsosiativo);
+    //              if(isset($unCargo))
     //              {
-    //                  array_push($listaDeRolDeTrabajo,$unRolDeTrabajo);
+    //                  array_push($listaDeCargo,$unCargo);
     //              }
                  
     //          }
     //      }
  
-    //      return  $listaDeRolDeTrabajo ;
+    //      return  $listaDeCargo ;
     //  }
 
     
@@ -221,10 +221,10 @@ class RolDeTrabajo
 
    
 
-    // public static function CompararPorclave($unRolDeTrabajo,$otroRolDeTrabajo)
+    // public static function CompararPorclave($unCargo,$otroCargo)
     // {
     //     $retorno = 0;
-    //     $comparacion = strcmp($unRolDeTrabajo->clave,$otroRolDeTrabajo->clave);
+    //     $comparacion = strcmp($unCargo->clave,$otroCargo->clave);
 
     //     if( $comparacion  > 0)
     //     {
@@ -240,32 +240,32 @@ class RolDeTrabajo
     //     return $retorno ;
     // }
 
-    // public static function BuscarRolDeTrabajoPorId($listaDeRolDeTrabajo,$id)
+    // public static function BuscarCargoPorId($listaDeCargo,$id)
     // {
-    //     $unaRolDeTrabajoABuscar = null; 
+    //     $unaCargoABuscar = null; 
 
-    //     if(isset($listaDeRolDeTrabajo) )
+    //     if(isset($listaDeCargo) )
     //     {
-    //         foreach($listaDeRolDeTrabajo as $unaRolDeTrabajo)
+    //         foreach($listaDeCargo as $unaCargo)
     //         {
-    //             if($unaRolDeTrabajo->id == $id)
+    //             if($unaCargo->id == $id)
     //             {
-    //                 $unaRolDeTrabajoABuscar = $unaRolDeTrabajo; 
+    //                 $unaCargoABuscar = $unaCargo; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaRolDeTrabajoABuscar;
+    //     return  $unaCargoABuscar;
     // }
 
-    // public function __construct($mail,$unProducto,$clave,$unRolDeTrabajo,$ruta = null,$claveDeLaImagen = null) {
+    // public function __construct($mail,$unProducto,$clave,$unCargo,$ruta = null,$claveDeLaImagen = null) {
     //     $this->clave = $clave;
-    //     $this->unRolDeTrabajo = $unRolDeTrabajo;
+    //     $this->unCargo = $unCargo;
     //     $this->mail = $mail;
     //     $this->unProducto = $unProducto;
     //     $this->fechaDeRegistro = date("Y-m-d");
-    //     $this->SetId(RolDeTrabajo::ObtenerIdAutoIncremental());
+    //     $this->SetId(Cargo::ObtenerIdAutoIncremental());
     //     $this->SetImagen($ruta,$claveDeLaImagen);
     // }
     
@@ -290,35 +290,35 @@ class RolDeTrabajo
 
    
 
-    // public static function BuscarRolDeTrabajoPorId($listaDeRolDeTrabajos,$id)
+    // public static function BuscarCargoPorId($listaDeCargos,$id)
     // {
-    //     $unaRolDeTrabajoABuscar = null; 
+    //     $unaCargoABuscar = null; 
 
-    //     if(isset($listaDeRolDeTrabajos)  
+    //     if(isset($listaDeCargos)  
     //     && isset($id) )
     //     {
-    //         foreach($listaDeRolDeTrabajos as $unaRolDeTrabajo)
+    //         foreach($listaDeCargos as $unaCargo)
     //         {
-    //             if($unaRolDeTrabajo->id == $id)
+    //             if($unaCargo->id == $id)
     //             {
-    //                 $unaRolDeTrabajoABuscar = $unaRolDeTrabajo; 
+    //                 $unaCargoABuscar = $unaCargo; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaRolDeTrabajoABuscar;
+    //     return  $unaCargoABuscar;
     // }
   
-    // public static function ToStringList($listaDeRolDeTrabajos)
+    // public static function ToStringList($listaDeCargos)
     // {
     //     $strLista = null; 
 
-    //     if(isset($listaDeRolDeTrabajos) )
+    //     if(isset($listaDeCargos) )
     //     {
-    //         foreach($listaDeRolDeTrabajos as $unaRolDeTrabajo)
+    //         foreach($listaDeCargos as $unaCargo)
     //         {
-    //             $strLista = $unaRolDeTrabajo->ToString().'<br>';
+    //             $strLista = $unaCargo->ToString().'<br>';
     //         }
     //     }
 
@@ -350,18 +350,18 @@ class RolDeTrabajo
 
      //  //Contar
  
-    //  public static function ContarPorUnaFecha($listaDeRolDeTrabajo,$fecha)
+    //  public static function ContarPorUnaFecha($listaDeCargo,$fecha)
     //  {
     //      $filtraPorUnaFecha = null;
     //      $cantidad = -1;
  
-    //      if(isset($listaDeRolDeTrabajo) && isset($fecha))
+    //      if(isset($listaDeCargo) && isset($fecha))
     //      {
     //          $cantidad = 0;
  
-    //          foreach($listaDeRolDeTrabajo as $unaRolDeTrabajo)
+    //          foreach($listaDeCargo as $unaCargo)
     //          {
-    //              if($unaRolDeTrabajo::$fechaDeRolDeTrabajo == $fecha)
+    //              if($unaCargo::$fechaDeCargo == $fecha)
     //              {
     //                  $cantidad++;
     //              }

@@ -330,7 +330,6 @@ class Pedido
     public function ToString()
     {
         return 
-        "Numero De Pedido: ".$this->numeroDePedido.'<br>'.
         "tiempo De Preparacion: ".$this->tiempoDePreparacion.'<br>'.
         "Cliente que lo pidio: ".$this->orden->GetNombreDelCliente().'<br>'.
         "Producto Pedido: ".$this->unProducto->ToString().'<br>'.

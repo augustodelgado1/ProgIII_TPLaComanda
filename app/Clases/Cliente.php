@@ -7,25 +7,20 @@ require_once './db/AccesoDatos.php';
 class Cliente extends Usuario
 {
     private $id;
-    private $nombre;
-
-   
-    public function __construct($mail,$clave,$nombre) {
+    
+    public function __construct($mail,$clave,$nombre,$apellido) {
         
-        parent::__construct($mail,$clave,"Cliente");
-        $this->nombre = $nombre;
+        parent::__construct($mail,$clave,$nombre,$apellido,"Cliente");
     }
 
-    public static function DarDeAltaUnCliente($mail,$clave,$nombre)
+    public static function DarDeAlta($mail,$clave,$nombre,$apellido)
     {
+        $unCliente = new Cliente($mail,$clave,$nombre,$apellido);
         $estado = false;
-        $unCliente = new Cliente($mail,$clave,$nombre);
-
-        if(empty($unCliente->nombre) == false )
+        if(isset($unCliente))
         {
             $estado = $unCliente->AgregarBD();
         }
-
         return $estado;
     }
 
@@ -36,9 +31,8 @@ class Cliente extends Usuario
         $idDeUsuario = parent::AgregarBD();
         if(isset($objAccesoDatos) && isset($idDeUsuario))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Cliente (idDeUsuario,nombre) values (:idDeUsuario,:nombre)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Cliente (idDeUsuario) values (:idDeUsuario)");
             $consulta->bindValue(':idDeUsuario',$idDeUsuario,PDO::PARAM_INT);
-            $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
             $estado = $consulta->execute();
         }
 
@@ -56,13 +50,29 @@ class Cliente extends Usuario
             $consulta->bindValue(':idDeCliente',$idDeCliente,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unCliente =  Cliente::CrearUnCliente($data);
+            $unCliente =  Cliente::CrearUnoPorArrayAsosiativo($data);
         }
 
         return  $unCliente;
     }
 
-    private static function CrearLista($data)
+    public static function ObternerListaBD()
+    {
+        $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeClientes = null;
+
+        if(isset($objAccesoDatos))
+        {
+            $consulta = $objAccesoDatos->RealizarConsulta("Select * From Cliente");
+            $consulta->execute();
+            $listaDeClientes = Cliente::CrearLista($consulta->fetchAll(Pdo::FETCH_ASSOC));
+        }
+        
+
+        return $listaDeClientes;
+    }
+
+    protected static function CrearLista($data)
     {
         $listaDeClientes = null;
         if(isset($data))
@@ -71,8 +81,7 @@ class Cliente extends Usuario
 
             foreach($data as $unArray)
             {
-               
-                $unCliente = Cliente::CrearUnCliente($unArray);
+                $unCliente = Cliente::CrearUnoPorArrayAsosiativo($unArray);
               
                 if(isset($unCliente))
                 {
@@ -83,17 +92,18 @@ class Cliente extends Usuario
 
         return   $listaDeClientes;
     }
-    private static function CrearUnCliente($unArrayAsosiativo)
+    protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
     {
         $unEmpleado = null;
 
-        $unUsuario = Usuario::ObtenerUnUsuarioPorIdBD($unArrayAsosiativo['idDeUsuario']);
+        $dataUsuario = Usuario::ObtenerUnUsuarioPorIdBD($unArrayAsosiativo['idDeUsuario']);
      
-        if(isset($unArrayAsosiativo) && isset($unUsuario))
+        if(isset($unArrayAsosiativo) && isset($dataUsuario))
         {
-            $unCliente = new Cliente($unUsuario->GetMail(),$unUsuario->GetClave(),$unArrayAsosiativo['nombre']);
+            $unCliente = new Cliente($dataUsuario['mail'],$dataUsuario['clave'],$dataUsuario['nombre'],
+            $dataUsuario['apellido']);
             $unCliente->SetId($unArrayAsosiativo['id']);
-            $unCliente->SetFechaDeRegistro($unUsuario->GetFechaDeRegistro());
+            $unCliente->SetFechaDeRegistro($dataUsuario['fechaDeRegistro']);
         }
         
         return $unEmpleado ;
@@ -130,16 +140,14 @@ class Cliente extends Usuario
 
         return $index;
     }
-
-   
-
     public function Equals($unCliente)
     {
         $estado = false;
  
         if(isset($unCliente))
         {
-            $estado =  $unCliente->id === $this->id;
+            $estado =  $unCliente->id === $this->id 
+                       && parent::Equals($unCliente);
         }
         return  $estado ;
     }
@@ -156,28 +164,27 @@ class Cliente extends Usuario
 
         return  $estado ;
     }
-
-    public function SetNombre($nombre)
+   
+    #Mostrar
+    public static function ToStringList($listaDeClientes)
     {
-        $estado = false;
-        if(isset($nombre) )
+        $strLista = null; 
+
+        if(isset($listaDeClientes) )
         {
-            $this->nombre = $nombre;
-            $estado = true;
+            $strLista = "Clientes".'<br>';
+            foreach($listaDeClientes as $unCliente)
+            {
+                $strLista .= $unCliente->ToString().'<br>';
+            }
         }
 
-        return  $estado ;
+        return   $strLista;
     }
 
-    //Getters
-    public function GetNombre()
+    public function ToString()
     {
-        return  $this->nombre;
-    }
-
-    private static function ObtenerIdAutoIncremental()
-    {
-        return rand(1,10000);
+        return parent::ToString();
     }
 
     //  public static function EscribirJson($listaDeCliente,$claveDeArchivo)

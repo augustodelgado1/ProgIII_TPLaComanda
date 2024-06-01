@@ -7,6 +7,7 @@ require_once './Controller/SectorController.php';
 require_once './Controller/MesaController.php';
 require_once './Controller/ProductoController.php';
 require_once './Controller/TipoDeProductoController.php';
+require_once './Controller/ClienteController.php';
 require_once './Clases/Mesa.php';
 
 Use Slim\Factory\AppFactory;
@@ -42,7 +43,7 @@ $app->group('/sector', function (RouteCollectorProxy $grupoDeRutas)
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->get('[/]',\SectorController::class.':Listar');
-
+	$grupoDeRutas->post('[/]',\SectorController::class.':CargarUno');
 });
 
 $app->group('/empleados', function (RouteCollectorProxy $grupoDeRutas) 
@@ -50,6 +51,13 @@ $app->group('/empleados', function (RouteCollectorProxy $grupoDeRutas)
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\EmpleadoController::class.':CargarUno');
 	$grupoDeRutas->get('/{rol}',\EmpleadoController::class.':ListarPorRolDeTrabajo');
+});
+
+$app->group('/cliente', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	$grupoDeRutas->post('[/]',\ClienteController::class.':CargarUno');
+	
 });
 
 
@@ -66,6 +74,7 @@ $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas)
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\EmpleadoController::class.':CargarUno');
 	$grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	$grupoDeRutas->get('/{pendientes}',\EmpleadoController::class.':ListarPendientes');
 });
 
 $app->group('/tipoDeProducto', function (RouteCollectorProxy $grupoDeRutas) 
@@ -78,8 +87,8 @@ $app->group('/tipoDeProducto', function (RouteCollectorProxy $grupoDeRutas)
 $app->group('/orden', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->post('[/]',\EmpleadoController::class.':CargarUno');
-	$grupoDeRutas->get('/{rol}',\EmpleadoController::class.':ListarPorRolDeTrabajo');
+	$grupoDeRutas->post('[/]',\OrdenController::class.':CargarUno');
+	$grupoDeRutas->get('/{pedidos}',\OrdenController::class.':ListarPedidos');
 });
 
 

@@ -10,12 +10,9 @@ class Producto
     private $id;
     private $nombre;
     private $tipoDeProducto;
-    private $idDeTipo;
     private $precio;
 
    
-
-    
    
     public function __construct($nombre,$precio,$tipoDeProducto) 
     {
@@ -46,7 +43,6 @@ class Producto
             $consulta->bindValue(':tipoDeProducto',$this->tipoDeProducto->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':precio',$this->precio);
             $estado = $consulta->execute();
-          
         }
 
         return $estado;
@@ -244,7 +240,7 @@ class Producto
     {
         $estado = false;
        
-        if(isset($nombre) && Producto::VerificarQueContengaSoloLetras($nombre))
+        if(isset($nombre) && Usuario::VerificarQueContengaSoloLetras($nombre))
         {
             $this->nombre = $nombre;
             $estado = true;
@@ -253,26 +249,7 @@ class Producto
         return  $estado ;
     }
 
-    public static function VerificarQueContengaSoloLetras($string)
-    {
-        $estado = false;
-        $caracteresInvalidos = range('0','9');
-
-        if(isset($string) && strlen($string) > 0)
-        {
-            $estado = true;
-           foreach($caracteresInvalidos  as $unCaracter)
-           {
-                if(str_contains($string,$unCaracter))
-                {
-                    $estado = false;
-                    break;
-                }
-           }
-        }
-
-        return $estado;
-    }
+  
     private function SetPrecio($precio)
     {
         $estado = false;

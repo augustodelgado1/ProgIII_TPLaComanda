@@ -18,7 +18,7 @@ class PedidoController
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Pedido';
         $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($data['unTipoDeProducto']) ; 
         $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
-        $unaOrden = Orden::BuscarPorNumeroDeOrdenBD($data['numeroDeOrden']) ;     
+        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']) ;     
 
             
         if(isset($unProducto ) && isset($unaOrden) &&  $unProducto !== false)

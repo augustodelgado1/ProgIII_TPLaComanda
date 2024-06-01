@@ -4,6 +4,7 @@
 
 require_once './db/AccesoDatos.php';
 require_once 'Sector.php';
+require_once 'Usuario.php';
 
 class Mesa 
 {
@@ -30,7 +31,7 @@ class Mesa
         $estado = false;
         $unaMesa = new Mesa();
         
-        $unaMesa->codigo = Mesa::CrearUnCodigoAlfaNumerico(5);
+        $unaMesa->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
         $unaMesa->estado = 'cerrada';
      
 
@@ -56,26 +57,7 @@ class Mesa
 
         return $estado;
     }
-    public static function CrearUnCodigoAlfaNumerico($cantidadDeCaracteres)
-    {
-        $codigoAlfaNumerico = null;
-       
-        if($cantidadDeCaracteres > 0)
-        {
-            $caraceteres =  array_merge(range('a','z'),range(0,9));
-            $len = count($caraceteres);
-
-            $codigoAlfaNumerico = "";
-
-            for ($i=0; $i < $cantidadDeCaracteres; $i++) { 
-
-                $codigoAlfaNumerico .= $caraceteres[rand(0,$len-1)];
-            }
-        }
-
-        return  $codigoAlfaNumerico ;
-       
-    }
+   
 
     public static function BuscarMesaPorCodigoBD($codigo)
     {

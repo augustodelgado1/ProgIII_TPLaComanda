@@ -48,7 +48,7 @@ class Sector
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unSector = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && isset($idDeSector))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM sector as s where s.id = :idDeSector");
             $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_STR);
