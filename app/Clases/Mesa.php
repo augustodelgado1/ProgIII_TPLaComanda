@@ -30,7 +30,6 @@ class Mesa
     {
         $estado = false;
         $unaMesa = new Mesa();
-        
         $unaMesa->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
         $unaMesa->estado = 'cerrada';
      
@@ -43,6 +42,7 @@ class Mesa
         return $estado;
     }
 
+    #BaseDeDatos
     private function AgregarBD()
     {
         $estado = false;
@@ -91,21 +91,25 @@ class Mesa
 
         return  $unMesa;
     }
-
-    private static function CrearUnaMesa($data)
+    public static function ModificarEstadoDeMesaBD($idDeMesa,$estado)
     {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unMesa = null;
 
-        if(isset($data))
+        if(isset($unObjetoAccesoDato))
         {
-            $unaMesa = new Mesa();
-            $unaMesa->SetId($data['id']);
-            $unaMesa->SetCodigo($data['codigo']);
-            $unaMesa->SetEstado($data['estado']);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Mesa as m SET estado = :estado where m.id = :idDeMesa");
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $unMesa =  Mesa::CrearUnaMesa($data);
         }
 
-        return  $unaMesa;
+        return  $unMesa;
     }
+
+   
 
     public static function ObtenerListaBD()
     {
@@ -121,6 +125,23 @@ class Mesa
         }
 
         return  $listaDeMesas;
+    }
+
+    #end
+
+    private static function CrearUnaMesa($data)
+    {
+        $unMesa = null;
+
+        if(isset($data))
+        {
+            $unaMesa = new Mesa();
+            $unaMesa->SetId($data['id']);
+            $unaMesa->SetCodigo($data['codigo']);
+            $unaMesa->SetEstado($data['estado']);
+        }
+
+        return  $unaMesa;
     }
     private static function CrearLista($data)
     {

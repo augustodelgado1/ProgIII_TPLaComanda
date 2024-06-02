@@ -28,6 +28,8 @@ class Orden
         $this->fechaDeOrden = new DateTime('now');
         $this->estado = "activa";
         $this->costoTotal = 0;
+        $this->unaMesa = $unaMesa;
+        $this->unCliente = $unCliente;
     }
    
     public static function DarDeAlta($unaMesa,$unCliente)
