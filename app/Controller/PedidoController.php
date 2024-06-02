@@ -16,14 +16,20 @@ class PedidoController
     {
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Pedido';
-        $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($data['unTipoDeProducto']) ; 
+        $unTipo = TipoDeProducto::BuscarPorNombreBD($data['tipoDeProducto']);
+        $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipo) ; 
         $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']) ;     
 
-            
+         
         if(isset($unProducto ) && isset($unaOrden) &&  $unProducto !== false)
         {
-            Pedido::Alta( $unaOrden,$unProducto ,$data['cantidad']);
+           
+            if(Pedido::Alta( $unaOrden,$unProducto ,$data['cantidad']))
+            {
+                $mensaje = 'Se dio de alta correctamente';
+            }
+            
         }
         
         $response->getBody()->write($mensaje);

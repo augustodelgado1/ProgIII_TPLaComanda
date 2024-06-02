@@ -59,6 +59,28 @@ class UsuarioController
         return $response;
     }
 
+    public static function ListarPorRol($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $mensaje = 'Hubo un error  al intentar listar los usuario';
+        $listaDeUsuarios = Usuario::FiltrarPorRolBD($data['rol']);
+
+        
+        if(isset($listaDeUsuarios))
+        {
+            $mensaje = "La lista esta vacia";
+            if(count($listaDeUsuarios) > 0)
+            {
+                $mensaje = Usuario::ToStringList($listaDeUsuarios);
+            }
+        }
+        
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
@@ -68,7 +90,7 @@ class UsuarioController
         {
             $mensaje = 'no se pudo dar de alta';
 
-            if(Usuario::DarDeAlta($data['email'],$data['clave'],$data['nombre'],$data['apellido']))
+            if(Usuario::DarDeAlta($data['email'],$data['clave'],$data['nombre'],$data['apellido'],$data['rol']))
             {
                 $mensaje = 'El Usuario se registro correctamente';
             }

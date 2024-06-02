@@ -66,7 +66,7 @@ class Sector
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Sector as s where s.nombre = :nombre");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Sector as s where s.nombre = :nombre ");
             $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
             $consulta->execute();
             $unSector = Sector::CrearUnSector($consulta->fetch(PDO::FETCH_ASSOC));

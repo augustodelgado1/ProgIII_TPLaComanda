@@ -5,6 +5,7 @@
 require_once './Clases/Orden.php';
 require_once './Clases/Mesa.php';
 require_once './Clases/Cliente.php';
+require_once './Clases/Usuario.php';
 
 class OrdenController 
 {
@@ -14,7 +15,7 @@ class OrdenController
         $data = $request->getParsedBody();
         $mensaje = 'Hubo error con los parametros al intentar dar de alta un Orden';
         $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
-        $unCliente = Cliente::BuscarClientePorIdBD($data['idDeCliente']);
+        $unCliente = Usuario::BuscarPorIdBD($data['idDeCLiente']);
        
         if(isset($unCliente ) &&  isset($unaMesa ) )
         {

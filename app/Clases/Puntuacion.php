@@ -94,7 +94,7 @@ class Puntuacion
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion as p where p.idDeEncuesta = :idDeEncuesta");
-            $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $listaDePuntuaciones = Puntuacion::CrearLista($data);

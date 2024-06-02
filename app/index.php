@@ -8,6 +8,8 @@ require_once './Controller/MesaController.php';
 require_once './Controller/ProductoController.php';
 require_once './Controller/TipoDeProductoController.php';
 require_once './Controller/ClienteController.php';
+require_once './Controller/OrdenController.php';
+require_once './Controller/PedidoController.php';
 require_once './Clases/Mesa.php';
 
 Use Slim\Factory\AppFactory;
@@ -46,6 +48,18 @@ $app->group('/sector', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->post('[/]',\SectorController::class.':CargarUno');
 });
 
+$app->group('/usuario', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	//Post
+	$grupoDeRutas->post('[/]',\UsuarioController::class.':CargarUno');
+	$grupoDeRutas->post('/{login}',\UsuarioController::class.':Login');
+	
+	//Get
+	$grupoDeRutas->get('[/]',\UsuarioController::class.':Listar');
+	$grupoDeRutas->get('/{rol}',\UsuarioController::class.':ListarPorRol');
+});
+
+
 $app->group('/empleados', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
@@ -72,9 +86,9 @@ $app->group('/producto', function (RouteCollectorProxy $grupoDeRutas)
 $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->post('[/]',\EmpleadoController::class.':CargarUno');
-	$grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->get('/{pendientes}',\EmpleadoController::class.':ListarPendientes');
+	$grupoDeRutas->post('[/]',\PedidoController::class.':CargarUno');
+	$grupoDeRutas->get('[/]',\PedidoController::class.':Listar');
+	$grupoDeRutas->get('/{pendientes}',\PedidoController::class.':ListarPendientes');
 });
 
 $app->group('/tipoDeProducto', function (RouteCollectorProxy $grupoDeRutas) 

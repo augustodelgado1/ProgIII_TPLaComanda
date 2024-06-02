@@ -66,7 +66,7 @@ class Categoria
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Categoria as s where s.descripcion = :descripcion");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Categoria as c where LOWER(c.descripcion) = LOWER(:descripcion)");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->execute();
             $unCategoria = Categoria::CrearUnCategoria($consulta->fetch(PDO::FETCH_ASSOC));

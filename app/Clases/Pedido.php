@@ -18,6 +18,8 @@ class Pedido
     private $importeTotal;
     private $estado;
 
+   
+
     private function __construct( $orden,$unProducto,$cantidad) 
     {
         $this->numeroDePedido = rand(100,1000);
@@ -25,7 +27,9 @@ class Pedido
         $this->unProducto = $unProducto;
         $this->SetCantidad($cantidad);
         $this->estado = "pendiente";
-        $this->CalcularImporteTotal();
+        $this->tiempoDePreparacion = new DateTime("now");
+        $this->tiempoDeEntrega = new DateTime("now");
+        $this->idDeSector = 0;
     }
 
     private function CalcularImporteTotal()
@@ -64,7 +68,7 @@ class Pedido
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Pedido (numeroDePedido,idDeLaOrden,idDeSector,idDeProducto,cantidad,tiempoDePreparacion) 
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,cantidad,tiempoDePreparacion,tiempoDeEntrega,importeTotal,estado) 
             values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:cantidad,:tiempoDePreparacion,:tiempoDeEntrega,:importeTotal,:estado)");
             $consulta->bindValue(':numeroDePedido',$this->numeroDePedido,PDO::PARAM_INT);
             $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
@@ -113,6 +117,23 @@ class Pedido
         return  $listaFiltrada;
     }
 
+    public static function FiltrarPorIdDeSectorBD($idDeSector)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDePedidos = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where p.idDeSector = :idDeSector");
+            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDePedidos = Pedido::CrearLista($data);
+        }
+
+        return  $listaDePedidos;
+    }
+
    
     public static function ObtenerListaBD()
     {
@@ -155,7 +176,7 @@ class Pedido
 
         if(isset($data))
         {
-            $unaPedido = new Pedido($data['idDeLaOrden'],$data['idDeProducto'],$data['cantidad']);
+            $unaPedido = new Pedido($data['idDeOrden'],$data['idDeProducto'],$data['cantidad']);
             $unaPedido->SetId($data['id']);
             $unaPedido->SetOrden($data['idDeOrden']);
             $unaPedido->SetProducto($data['idDeProducto']);
@@ -164,6 +185,7 @@ class Pedido
             $unaPedido->SetTiempoDeEntrega(new DateTime($data['tiempoDeEntrega']));
             $unaPedido->SetSector($data['idDeSector']);
             $unaPedido->SetEstado($data['estado']);
+        
         }
 
         return  $unaPedido;
@@ -297,13 +319,23 @@ class Pedido
 
     public function GetImporteTotal()
     {
-        return  $this->importeTotal;
+        return  $this->CalcularImporteTotal();
     }
 
     public function GetEstado()
     {
         return  $this->estado;
     }
+    public function GetTiempoDePreparacion()
+    {
+        return  $this->tiempoDePreparacion->format("H:i:s");
+    }
+
+    public function GetTiempoDeEntrega()
+    {
+        return  $this->tiempoDeEntrega->format("H:i:s");
+    }
+
 
     public function GetNumeroDePedido()
     {
@@ -330,11 +362,11 @@ class Pedido
     public function ToString()
     {
         return 
-        "tiempo De Preparacion: ".$this->tiempoDePreparacion.'<br>'.
+        "tiempo De Preparacion: ".$this->tiempoDePreparacion->format("H:i:s").'<br>'.
         "Cliente que lo pidio: ".$this->orden->GetNombreDelCliente().'<br>'.
-        "Producto Pedido: ".$this->unProducto->ToString().'<br>'.
+        "Producto Pedido: ".'<br>'.$this->unProducto->ToString().'<br>'.
         "cantidad: ".$this->cantidad.'<br>'.
-        "importe Total: ".$this->importeTotal.'<br>'
+        "importe Total: ".$this->GetImporteTotal().'<br>'
         ."Estado: ".$this->estado.'<br>';
     }
 

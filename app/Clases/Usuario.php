@@ -3,7 +3,6 @@
 <?php
 
 require_once './db/AccesoDatos.php';
-require_once 'Rol.php';
 
  class Usuario 
 {
@@ -25,10 +24,10 @@ require_once 'Rol.php';
         $this->fechaDeRegistro = new DateTime('now') ;
     }
 
-    public static function DarDeAlta($mail,$clave,$nombre,$apellido)
+    public static function DarDeAlta($mail,$clave,$nombre,$apellido,$rol = null)
     {
         $estado = false;
-        $unUsuario = new Usuario($mail,$clave,$nombre,$apellido);
+        $unUsuario = new Usuario($mail,$clave,$nombre,$apellido,$rol);
 
         if(empty($unUsuario->nombre) == false && empty($unUsuario->apellido) == false)
         {
@@ -43,10 +42,13 @@ require_once 'Rol.php';
         $unUsuario  = null;
         if(isset($unArrayAsosiativo))
         {
-            $unUsuario = new Usuario($unArrayAsosiativo['mail'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
+            $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
             $unArrayAsosiativo['apellido'],  $unArrayAsosiativo['rol']);
             $unUsuario->SetId($unArrayAsosiativo['id']);
-            $unUsuario->SetFechaDeRegistro($unArrayAsosiativo['fechaDeRegistro']);
+           if(isset($unArrayAsosiativo['fechaDeRegistro']))
+           {
+            $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
+           }
         }
        
         return $unUsuario;
@@ -108,6 +110,21 @@ require_once 'Rol.php';
 
         return $listaDeUsuario;
     }
+    public static function FiltrarPorRolBD($rol)
+    {
+        $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeUsuario = null;
+
+        if(isset($objAccesoDatos) && isset($rol) )
+        {
+            $consulta = $objAccesoDatos->RealizarConsulta("Select * From Usuario as u where LOWER(u.rol) = LOWER(:rol)");
+            $consulta->bindValue(':rol',$rol,PDO::PARAM_STR);
+            $consulta->execute();
+            $listaDeUsuario = Usuario::CrearLista($consulta->fetchAll(Pdo::FETCH_ASSOC));
+        }
+
+        return $listaDeUsuario;
+    }
 
     protected static function ObtenerUnUsuarioPorIdBD($id)
     {
@@ -124,6 +141,17 @@ require_once 'Rol.php';
 
         return  $data;
     }
+    public static function BuscarPorIdBD($id)
+    {
+        $data = Usuario::ObtenerUnUsuarioPorIdBD($id);
+        $unUsuario =  null;
+        if(isset($data))
+        {
+            $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($data);
+        }
+
+        return  $unUsuario;
+    }
 
     
     public static function BuscarEmailUnUsuarioBD($mail)
@@ -133,8 +161,8 @@ require_once 'Rol.php';
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.mail = :mail");
-            $consulta->bindValue(':mail',$mail,PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where LOWER(u.email) = LOWER(:email)");
+            $consulta->bindValue(':email',$mail,PDO::PARAM_STR);
             $consulta->execute();
             Usuario::CrearUnoPorArrayAsosiativo($consulta->fetch(PDO::FETCH_ASSOC));
         }
@@ -195,7 +223,7 @@ require_once 'Rol.php';
 
     public function ToString()
     {
-        return  "mail: ".$this->mail.'<br>'.
+        return  "email: ".$this->mail.'<br>'.
           "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
         "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>';
     }
@@ -287,6 +315,10 @@ require_once 'Rol.php';
     public function GetMail()
     {
         return  $this->mail;
+    }
+    public function GetId()
+    {
+        return  $this->id;
     }
     protected function GetFechaDeRegistro()
     {

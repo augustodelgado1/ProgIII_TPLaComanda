@@ -94,7 +94,7 @@ class TipoDeProducto
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as t where t.nombre = :nombre");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as t where LOWER(t.nombre) = LOWER(:nombre)");
             $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
             $consulta->execute();
             $unTipoDeProducto = TipoDeProducto::CrearUnTipoDeProducto($consulta->fetch(PDO::FETCH_ASSOC));

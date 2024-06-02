@@ -16,7 +16,7 @@ class ClienteController
         {
             $mensaje = 'no se pudo dar de alta';
 
-            if(Cliente::DarDeAlta($data['email'],$data['clave'],$data['nombre'],$data['apellido']))
+            if(Cliente::DarDeAltaCliente($data['email'],$data['clave'],$data['nombre'],$data['apellido']))
             {
                 $mensaje = 'El Cliente se dio de alta';
             }

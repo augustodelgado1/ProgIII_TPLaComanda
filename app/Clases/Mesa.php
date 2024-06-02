@@ -66,7 +66,7 @@ class Mesa
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Mesa as m where m.codigo = :codigo");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Mesa as m where LOWER(m.codigo) = LOWER(:codigo)");
             $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);

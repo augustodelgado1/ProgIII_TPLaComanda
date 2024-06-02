@@ -13,7 +13,7 @@ class Cliente extends Usuario
         parent::__construct($mail,$clave,$nombre,$apellido,"Cliente");
     }
 
-    public static function DarDeAlta($mail,$clave,$nombre,$apellido)
+    public static function DarDeAltaCliente($mail,$clave,$nombre,$apellido)
     {
         $unCliente = new Cliente($mail,$clave,$nombre,$apellido);
         $estado = false;

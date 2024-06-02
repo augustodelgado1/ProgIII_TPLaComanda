@@ -52,7 +52,7 @@ class Cargo
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.descripcion = :descripcion");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where LOWER(c.descripcion) = LOWER(:descripcion)");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->execute();
             $unRol = Cargo::CrearUnCargo($consulta->fetch(PDO::FETCH_ASSOC));

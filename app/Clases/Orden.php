@@ -18,6 +18,7 @@ class Orden
     private $rutaDeLaImagen;
     private $nombreDeLaImagen;
     private $costoTotal;
+    private $estado;
 
    
     public function __construct($unaMesa,$unCliente,$rutaDeLaImagen = null,$nombreDeLaImagen = null) 
@@ -25,6 +26,8 @@ class Orden
         $this->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
         Orden::SetImagen($rutaDeLaImagen,$nombreDeLaImagen);
         $this->fechaDeOrden = new DateTime('now');
+        $this->estado = "activa";
+        $this->costoTotal = 0;
     }
    
     public static function DarDeAlta($unaMesa,$unCliente)
@@ -99,12 +102,13 @@ class Orden
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Orden (codigo,idDeCliente,idDeMesa,fechaDeOrden,costoTotal) 
-            values (:codigo,:idDeCliente,:idDeMesa,:fechaDeOrden,:costoTotal)");
-            $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_INT);
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Orden (codigo,idDeCliente,idDeMesa,fechaDeOrden,costoTotal,estado) 
+            values (:codigo,:idDeCliente,:idDeMesa,:fechaDeOrden,:costoTotal,:estado)");
+            $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_STR);
             $consulta->bindValue(':idDeCliente',$this->unCliente->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':idDeMesa',$this->unaMesa->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':fechaDeOrden',$this->fechaDeOrden->format("y-m-d"),PDO::PARAM_STR);
+            $consulta->bindValue(':estado',$this->GetEstado(),PDO::PARAM_STR);
             $consulta->bindValue(':costoTotal',$this->costoTotal);
             $estado = $consulta->execute();
         }
@@ -129,6 +133,39 @@ class Orden
         return  $unaOrden;
     }
 
+    public static function FiltrarPorIdDeMesaBD($idDeMesa)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeOrdenes = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.idDeMesa = :idDeMesa");
+            $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeOrdenes = Orden::CrearLista($data);
+        }
+
+        return  $listaDeOrdenes;
+    }
+    public static function FiltrarPorIdDeClienteBD($idDeCliente)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeOrdenes = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.idDeCliente = :idDeCliente");
+            $consulta->bindValue(':idDeMesa',$idDeCliente,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeOrdenes = Orden::CrearLista($data);
+        }
+
+        return  $listaDeOrdenes;
+    }
+
     public static function BuscarPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -136,7 +173,7 @@ class Orden
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as p where p.codigo = :codigo");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.codigo = :codigo");
             $consulta->bindValue(':codigo',$codigo,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
@@ -170,12 +207,12 @@ class Orden
         
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            $unaOrden = new Orden($unArrayAsosiativo['idMesa'],$unArrayAsosiativo['idCliente']);
+            $unaOrden = new Orden($unArrayAsosiativo['idDeMesa'],$unArrayAsosiativo['idDeCliente']);
             $unaOrden->SetId($unArrayAsosiativo['id']);
-            $unaOrden->Setcodigo($unArrayAsosiativo['codigo']);
-            $unaOrden->SetMesa($unArrayAsosiativo['idMesa']);
-            $unaOrden->SetCliente($unArrayAsosiativo['idCliente']);
-            $unaOrden->SetFechaDeOrden($unArrayAsosiativo['fechaDeLaOrden']);
+            $unaOrden->SetCodigo($unArrayAsosiativo['codigo']);
+            $unaOrden->SetMesa($unArrayAsosiativo['idDeMesa']);
+            $unaOrden->SetCliente($unArrayAsosiativo['idDeCliente']);
+            $unaOrden->SetFechaDeOrden($unArrayAsosiativo['fechaDeOrden']);
             $unaOrden->SetCostoTotal($unArrayAsosiativo['costoTotal']);
         }
         
@@ -262,7 +299,7 @@ class Orden
 
     
 
-    public function Setcodigo($codigo)
+    public function SetCodigo($codigo)
     {
         $estado = false;
         if(isset($codigo) )
@@ -299,7 +336,7 @@ class Orden
     }
     private function SetCliente($idDeCliente)
     {
-        $unCliente =  Cliente::BuscarClientePorIdBD($idDeCliente);
+        $unCliente =  Usuario::BuscarPorIdBD($idDeCliente);
         $estado  = false;
         if(isset( $unCliente))
         {
@@ -322,9 +359,13 @@ class Orden
     }
 
     #Getters
-    public function Getcodigo()
+    public function GetCodigo()
     {
         return  $this->codigo;
+    }
+    public function GetEstado()
+    {
+        return  $this->estado;
     }
     public function GetNombreDelCliente()
     {
@@ -355,7 +396,7 @@ class Orden
 
     public function ToString()
     {
-        return "codigo: ".$this->codigo.'<br>';
+        return "codigo: ".strtoupper($this->codigo).'<br>';
     }
 
     //  public static function EscribirJson($listaDeOrden,$claveDeArchivo)
