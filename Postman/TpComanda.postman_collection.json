@@ -1,0 +1,458 @@
+{
+	"info": {
+		"_postman_id": "d240f059-fb63-4e06-805f-67610d31c8de",
+		"name": "TpComanda",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "34230564"
+	},
+	"item": [
+		{
+			"name": "index",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:666"
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:666/usuarios",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "rolDeTrabajo",
+						"value": "mozo",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "pablo@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "clave",
+							"value": "123456789",
+							"type": "text"
+						},
+						{
+							"key": "nombre",
+							"value": "pablo124",
+							"type": "text"
+						},
+						{
+							"key": "sector",
+							"value": "1",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "nombre",
+							"value": "barraDeChoperas",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "rolDeTrabajo",
+							"value": "mozo",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:666/empleados/rol?rolDeTrabajo=mozo",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "666",
+					"path": [
+						"empleados",
+						"rol"
+					],
+					"query": [
+						{
+							"key": "rolDeTrabajo",
+							"value": "mozo"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:666/usuarios",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "rolDeTrabajo",
+						"value": "mozo",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "pablo@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "clave",
+							"value": "123456789",
+							"type": "text"
+						},
+						{
+							"key": "nombre",
+							"value": "pablo124",
+							"type": "text"
+						},
+						{
+							"key": "sector",
+							"value": "1",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "nombre",
+							"value": "barraDeChoperas",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "rolDeTrabajo",
+							"value": "mozo",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:666/empleados/rol?rolDeTrabajo=mozo",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "666",
+					"path": [
+						"empleados",
+						"rol"
+					],
+					"query": [
+						{
+							"key": "rolDeTrabajo",
+							"value": "mozo"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Puebas",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "cantidad",
+							"value": "5",
+							"type": "text"
+						}
+					]
+				},
+				"url": "http://localhost:666/prueva"
+			},
+			"response": []
+		},
+		{
+			"name": "Mesas",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": "http://localhost:666/Mesa"
+			},
+			"response": []
+		},
+		{
+			"name": "Empleados",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "cargo",
+						"value": "mozo",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "cargo",
+							"value": "mozo",
+							"type": "text"
+						},
+						{
+							"key": "nombre",
+							"value": "maria",
+							"type": "text"
+						},
+						{
+							"key": "clave",
+							"value": "12345678",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "mariaJuana123@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "apellido",
+							"value": "Dicamio",
+							"type": "text"
+						}
+					]
+				},
+				"url": "http://localhost:666/empleado"
+			},
+			"response": []
+		},
+		{
+			"name": "Producto",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "rolDeTrabajo",
+						"value": "mozo",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "manu@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "clave",
+							"value": "123456789",
+							"type": "text"
+						},
+						{
+							"key": "nombre",
+							"value": "Coca Cola",
+							"type": "text"
+						},
+						{
+							"key": "sector",
+							"value": "1",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "nombre",
+							"value": "barraDeChoperas",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "rolDeTrabajo",
+							"value": "mozo",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "categoria",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "sector",
+							"value": "CandyBar",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "tipoDeProducto",
+							"value": "Bebida",
+							"type": "text"
+						},
+						{
+							"key": "precio",
+							"value": "4500",
+							"type": "text"
+						},
+						{
+							"key": "apellido",
+							"value": "moroco",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": "http://localhost:666/producto"
+			},
+			"response": []
+		},
+		{
+			"name": "Usuario",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "marianocloss@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "nombre",
+							"value": "mariano",
+							"type": "text"
+						},
+						{
+							"key": "clave",
+							"value": "12345678",
+							"type": "text"
+						},
+						{
+							"key": "apellido",
+							"value": "Closs",
+							"type": "text"
+						},
+						{
+							"key": "rol",
+							"value": "cliente",
+							"type": "text"
+						}
+					]
+				},
+				"url": "http://localhost:666/usuario"
+			},
+			"response": []
+		},
+		{
+			"name": "Orden",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "marianocloss@gmail.com",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "nombre",
+							"value": "mariano",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "clave",
+							"value": "12345678",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "apellido",
+							"value": "Closs",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "rol",
+							"value": "cliente",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "idDeCLiente",
+							"value": "10",
+							"type": "text"
+						},
+						{
+							"key": "codigoDeMesa",
+							"value": "eit64",
+							"type": "text"
+						},
+						{
+							"key": "imagen",
+							"type": "file",
+							"src": "/C:/Users/PC/Desktop/mesa.jpg"
+						}
+					]
+				},
+				"url": "http://localhost:666/orden"
+			},
+			"response": []
+		},
+		{
+			"name": "Pedido",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "tipoDeProducto",
+							"value": "Comida",
+							"type": "text"
+						},
+						{
+							"key": "nombreDeProducto",
+							"value": "milanesa napolitana",
+							"type": "text"
+						},
+						{
+							"key": "codigoDeOrden",
+							"value": "0gp2p",
+							"type": "text"
+						},
+						{
+							"key": "cantidad",
+							"value": "2",
+							"type": "text"
+						}
+					]
+				},
+				"url": "http://localhost:666/pedido"
+			},
+			"response": []
+		}
+	]
+}
