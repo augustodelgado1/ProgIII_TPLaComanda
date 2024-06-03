@@ -21,30 +21,14 @@ class Orden
     private $estado;
 
    
-    public function __construct($unaMesa,$unCliente,$rutaDeLaImagen = null,$nombreDeLaImagen = null) 
+    protected function DarDeAlta()
     {
-        $this->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
-        Orden::SetImagen($rutaDeLaImagen,$nombreDeLaImagen);
+        $estado = false;
         $this->fechaDeOrden = new DateTime('now');
         $this->estado = "activa";
         $this->costoTotal = 0;
-        $this->unaMesa = $unaMesa;
-        $this->unCliente = $unCliente;
-    }
-   
-    public static function DarDeAlta($unaMesa,$unCliente)
-    {
-        $estado = false;
-        $unaOrden = new Orden($unaMesa,$unCliente);
-        $unaOrden->unaMesa = $unaMesa;
-        $unaOrden->unCliente = $unCliente;
-        $unaOrden->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
-        $unaOrden->fechaDeOrden = new DateTime('now');
-        if(empty($unaOrden->unaMesa) == false )
-        {
-            $estado = $unaOrden->AgregarBD();
-        }
-
+        $this->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
+        $estado = $this->AgregarBD();
         return $estado;
     }
     private function CalcularCostoTotal()
@@ -98,20 +82,22 @@ class Orden
     #BaseDeDatos
 
 
-    private function AgregarBD()
+    protected function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Orden (codigo,idDeCliente,idDeMesa,fechaDeOrden,costoTotal,estado) 
-            values (:codigo,:idDeCliente,:idDeMesa,:fechaDeOrden,:costoTotal,:estado)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Orden (codigo,idDeCliente,idDeMesa,fechaDeOrden,costoTotal,estado,rutaDeLaImagen,nombreDeLaImagen) 
+            values (:codigo,:idDeCliente,:idDeMesa,:fechaDeOrden,:costoTotal,:estado,:rutaDeLaImagen,:nombreDeLaImagen)");
             $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_STR);
             $consulta->bindValue(':idDeCliente',$this->unCliente->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':idDeMesa',$this->unaMesa->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':fechaDeOrden',$this->fechaDeOrden->format("y-m-d"),PDO::PARAM_STR);
             $consulta->bindValue(':estado',$this->GetEstado(),PDO::PARAM_STR);
             $consulta->bindValue(':costoTotal',$this->costoTotal);
+            $consulta->bindValue(':rutaDeLaImagen',$this->rutaDeLaImagen);
+            $consulta->bindValue(':nombreDeLaImagen',$this->nombreDeLaImagen);
             $estado = $consulta->execute();
         }
 
@@ -209,13 +195,14 @@ class Orden
         
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            $unaOrden = new Orden($unArrayAsosiativo['idDeMesa'],$unArrayAsosiativo['idDeCliente']);
+            $unaOrden = new Orden();
             $unaOrden->SetId($unArrayAsosiativo['id']);
             $unaOrden->SetCodigo($unArrayAsosiativo['codigo']);
-            $unaOrden->SetMesa($unArrayAsosiativo['idDeMesa']);
-            $unaOrden->SetCliente($unArrayAsosiativo['idDeCliente']);
+            $unaOrden->SetIdMesa($unArrayAsosiativo['idDeMesa']);
+            $unaOrden->SetIdCliente($unArrayAsosiativo['idDeCliente']);
             $unaOrden->SetFechaDeOrden($unArrayAsosiativo['fechaDeOrden']);
             $unaOrden->SetCostoTotal($unArrayAsosiativo['costoTotal']);
+            $unaOrden->SetImagen($unArrayAsosiativo['rutaDeLaImagen'],$unArrayAsosiativo['nombreDeLaImagen']);
         }
         
         return $unaOrden ;
@@ -336,28 +323,42 @@ class Orden
 
         return  $estado ;
     }
-    private function SetCliente($idDeCliente)
+    private function SetIdCliente($idDeCliente)
     {
         $unCliente =  Usuario::BuscarPorIdBD($idDeCliente);
-        $estado  = false;
-        if(isset( $unCliente))
-        {
-            $this->unCliente = $unCliente;
-        }
-
+        $estado  = Orden::SetCliente($unCliente);
         return $estado;
     }
 
-    private function SetMesa($idDeMesa)
+    protected function SetCliente($unCliente)
     {
-        $unaMesa =  Mesa::BuscarMesaPorIdBD($idDeMesa);
-        $estado  = false;
-        if(isset( $unaMesa))
+        $estado = false;
+        if(isset($unCliente))
         {
-            $this->unaMesa = $unaMesa;
+            $this->unCliente = $unCliente;
+            $estado = true;
         }
 
+        return  $estado ;
+    }
+
+    private function SetIdMesa($idDeMesa)
+    {
+        $unaMesa =  Mesa::BuscarMesaPorIdBD($idDeMesa);
+        $estado  = Orden::SetMesa($unaMesa);
+
         return $estado;
+    }
+    protected function SetMesa($unaMesa)
+    {
+        $estado = false;
+        if(isset($unaMesa))
+        {
+            $this->unaMesa = $unaMesa;
+            $estado = true;
+        }
+
+        return  $estado ;
     }
 
     #Getters

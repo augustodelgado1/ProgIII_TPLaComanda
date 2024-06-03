@@ -4,6 +4,7 @@
 
 require_once './Clases/Empleado.php';
 require_once './Clases/Cargo.php';
+require_once './Clases/Pedido.php';
 
 class EmpleadoController 
 {
@@ -30,6 +31,57 @@ class EmpleadoController
         return $response;
     }
 
+    public static function Listar($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        
+        $mensaje = 'Hubo un error  al intentar listar los Clientes';
+        
+        $listaDeEmpleados = Empleado::ObternerListaBD();
+
+
+        if(isset($listaDeEmpleados))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeEmpleados) > 0)
+            {
+                $mensaje = Empleado::ToStringList($listaDeEmpleados);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    public static function ListarPedidosPendientes($request, $response, array $args)
+    {
+        $data = $request->getHeaders();
+        $mensaje = 'Hubo un error al intentar listar los Pedidos';
+        $unEmpleado = Empleado::ObtenerUnoPorIdBD($data['idDeEmpeado']);
+       
+        if(isset($unEmpleado))
+        {
+            $listaDePedidos = Pedido::FiltrarPorIdDeSectorBD($unEmpleado->GetCargo()->GetSector()->GetId());
+            $listaDePedidosPendientes = Pedido::FiltrarPorEstado($listaDePedidos,"pendiente");
+
+            if(isset($listaDePedidosPendientes))
+            {
+                $mensaje = "la lista esta vacia";
+                if(count($listaDePedidosPendientes) > 0)
+                {
+                    $mensaje = Pedido::ToStringList($listaDePedidosPendientes);
+                }
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
     public static function ListarPorRolDeTrabajo($request, $response, array $args)
     {
         $data = $request->getQueryParams();
@@ -38,11 +90,15 @@ class EmpleadoController
         $unCargo= Cargo::BuscarCargoPorDescripcionBD($data['cargo']) ;       
         
         $listaDeEmpleados = Empleado::ObtenerListaPorCargoBD($unCargo);
-
+        
 
         if(isset($listaDeEmpleados))
         {
-            $mensaje = Empleado::ToStringList($listaDeEmpleados);
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeEmpleados) > 0)
+            {
+                $mensaje = Empleado::ToStringList($listaDeEmpleados);
+            }
         }
 
         $response->getBody()->write($mensaje);
@@ -50,6 +106,8 @@ class EmpleadoController
 
         return $response;
     }
+
+    
 }
 
 ?>

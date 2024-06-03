@@ -12,15 +12,6 @@ class Producto
     private $tipoDeProducto;
     private $precio;
 
-   
-   
-    public function __construct($nombre,$precio,$tipoDeProducto) 
-    {
-        $this->tipoDeProducto = $tipoDeProducto;
-        $this->SetNombre($nombre);
-        $this->SetPrecio($precio);
-    }
-
     public function ToString()
     {
         return 
@@ -30,7 +21,7 @@ class Producto
     }
 
     
-    private function AgregarBD()
+    protected function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
@@ -63,28 +54,11 @@ class Producto
 
         return  $listaDeProductos;
     }
-    public static function DarDeAltaUnProducto($nombre,$precio,$tipoDeProducto)
-    {
-        $estado = false;
-        $unProducto = new Producto($nombre,$precio,$tipoDeProducto);
-
-        if(empty($unProducto->nombre) == false && empty($unProducto->tipoDeProducto) == false 
-        && empty($unProducto->precio) == false)
-        {
-            $estado = $unProducto->AgregarBD();
-        }
-
-        return $estado;
-    }
-    private function SetTipoDeProducto($idDeTipoDeProducto)
+    
+    private function SetIdTipoDeProducto($idDeTipoDeProducto)
     {
         $unaTipoDeProducto =  TipoDeProducto::BuscarTipoDeProductoPorIdBD($idDeTipoDeProducto);
-        $estado  = false;
-        if(isset( $unaTipoDeProducto))
-        {
-            $this->tipoDeProducto = $unaTipoDeProducto;
-        }
-
+        $estado  = Producto::SetTipoDeProducto($unaTipoDeProducto);
         return $estado;
     }
    
@@ -120,7 +94,7 @@ class Producto
         return  $listaDeProductos;
     }
 
-    private static function CrearLista($data)
+    protected static function CrearLista($data)
     {
         $listaDeProductos = null;
         if(isset($data))
@@ -145,9 +119,11 @@ class Producto
      
         if(isset($unArrayAsosiativo))
         {
-            $unProducto = new Producto($unArrayAsosiativo['nombre'],$unArrayAsosiativo['precio'],$unArrayAsosiativo['idDeTipo']);
+            $unProducto = new Producto();
             $unProducto->SetId($unArrayAsosiativo['id']);
-            $unProducto->SetTipoDeProducto($unArrayAsosiativo['idDeTipo']);
+            $unProducto->SetNombre($unArrayAsosiativo['nombre']);
+            $unProducto->SetPrecio($unArrayAsosiativo['precio']);
+            $unProducto->SetIdTipoDeProducto($unArrayAsosiativo['idDeTipo']);
         }
         
         return $unProducto ;
@@ -200,8 +176,8 @@ class Producto
           
             foreach($listaDeProductos as $unProductoDeLaLista)
             {
-               
-                if($unProductoDeLaLista->nombre === $nombre)
+              
+                if( strnatcasecmp($unProductoDeLaLista->nombre,$nombre ) === 0)
                 {
                     $unProducto = $unProductoDeLaLista;
                     break;
@@ -236,7 +212,19 @@ class Producto
         return  $estado ;
     }
 
-    private function SetNombre($nombre)
+    protected function SetTipoDeProducto($tipoDeProducto)
+    {
+        $estado = false;
+        if(isset($tipoDeProducto))
+        {
+            $this->tipoDeProducto = $tipoDeProducto;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+
+    protected function SetNombre($nombre)
     {
         $estado = false;
        
@@ -250,7 +238,7 @@ class Producto
     }
 
   
-    private function SetPrecio($precio)
+    protected function SetPrecio($precio)
     {
         $estado = false;
         if(isset($precio) && $precio > 0)

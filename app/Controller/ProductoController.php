@@ -7,7 +7,7 @@ require_once './Clases/TipoDeProducto.php';
 require_once './Clases/Orden.php';
 
 
-class ProductoController 
+class ProductoController extends Producto
 {
   
     public static function CargarUno($request, $response, array $args)
@@ -15,15 +15,19 @@ class ProductoController
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Producto';
         $unTipoDeProducto = TipoDeProducto::BuscarPorNombreBD($data['tipoDeProducto']) ;   
-
+      
      
         if(isset($data))
         {
             $mensaje = 'no se pudo dar de alta';
-
-            if(Producto::DarDeAltaUnProducto($data['nombre'],$data['precio'],$unTipoDeProducto))
+            $unProducto =  new Producto();
+           
+            if($unProducto->SetNombre($data['nombre']) &&
+            $unProducto->SetPrecio($data['precio']) &&  
+            $unProducto->SetTipoDeProducto($unTipoDeProducto) 
+            && $unProducto->AgregarBD())
             {
-                $mensaje = 'El Producto se dio de alta';
+                $mensaje = 'El Producto se dio de alta <br>'.$unProducto->ToString();
             }
         }
 

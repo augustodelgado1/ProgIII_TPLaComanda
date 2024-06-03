@@ -40,6 +40,7 @@ require_once './db/AccesoDatos.php';
     protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
     {
         $unUsuario  = null;
+       
         if(isset($unArrayAsosiativo))
         {
             $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
@@ -47,7 +48,7 @@ require_once './db/AccesoDatos.php';
             $unUsuario->SetId($unArrayAsosiativo['id']);
            if(isset($unArrayAsosiativo['fechaDeRegistro']))
            {
-            $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
+             $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
            }
         }
        
@@ -126,17 +127,19 @@ require_once './db/AccesoDatos.php';
         return $listaDeUsuario;
     }
 
-    protected static function ObtenerUnUsuarioPorIdBD($id)
+    public static function ObtenerUnUsuarioPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $data= null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
+
+            
         }
 
         return  $data;
@@ -145,7 +148,7 @@ require_once './db/AccesoDatos.php';
     {
         $data = Usuario::ObtenerUnUsuarioPorIdBD($id);
         $unUsuario =  null;
-        if(isset($data))
+        if(isset($data) && isset($id))
         {
             $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($data);
         }
@@ -277,7 +280,7 @@ require_once './db/AccesoDatos.php';
         return  $estado ;
     }
 
-    protected function SetNombre($nombre)
+    public function SetNombre($nombre)
     {
         $estado = false;
         if(isset($nombre) && Usuario::VerificarQueContengaSoloLetras($nombre))
@@ -288,7 +291,7 @@ require_once './db/AccesoDatos.php';
 
         return  $estado ;
     }
-    protected function SetApellido($apellido)
+    public function SetApellido($apellido)
     {
         $estado = false;
         if(isset($apellido) && Usuario::VerificarQueContengaSoloLetras($apellido))
@@ -320,17 +323,17 @@ require_once './db/AccesoDatos.php';
     {
         return  $this->id;
     }
-    protected function GetFechaDeRegistro()
+    public function GetFechaDeRegistro()
     {
         return  $this->fechaDeRegistro;
     }
     //Getters
-    protected function GetNombre()
+    public function GetNombre()
     {
         return  $this->nombre;
     }
 
-    protected function GetApellido()
+    public function GetApellido()
     {
         return  $this->apellido;
     }

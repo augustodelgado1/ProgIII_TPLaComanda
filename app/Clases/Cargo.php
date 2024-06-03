@@ -44,6 +44,21 @@ class Cargo
 
         return $unRol;
     }
+    public static function BuscarCargoPorIdDeSectorBD($id)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unRol = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.idDeSector = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->execute();
+            $unRol = Cargo::CrearUnCargo($consulta->fetch(PDO::FETCH_ASSOC));
+        }
+
+        return $unRol;
+    }
 
     public static function BuscarCargoPorDescripcionBD($descripcion)
     {
@@ -106,7 +121,7 @@ class Cargo
             $leght = count($listaDeCargos); 
             for ($i=0; $i < $leght; $i++) { 
          
-                if($listaDeCargos[$i]->id == $id)
+                if($listaDeCargos[$i]->id === $id)
                 {
                     $index = $i;
                     break;
@@ -152,6 +167,10 @@ class Cargo
     public function GetDescripcion()
     {
         return  $this->trabajo;
+    }
+    public function GetSector()
+    {
+        return  $this->idDeSector;
     }
 
    

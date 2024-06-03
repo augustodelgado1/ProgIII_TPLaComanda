@@ -84,16 +84,43 @@ class UsuarioController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Usuario';
-   
+        $mensaje = 'no se recibieron parametros';
+        // $listaDeFunciones = array('email' => [$unUsuario ,'SetEmail'], 'clave' =>[$unUsuario ,'SetClave'],
+            // 'nombre' => [$unUsuario ,'SetNombre']
+            // ,'apellido' =>  [$unUsuario ,'SetApellido']);
+        // $mensajesError = [
+        //     'email' => 'El email no es válido',
+        //     'clave' => 'La clave no es válida',
+        //     'nombre' => 'El nombre no es válido',
+        //     'apellido' => 'El apellido es inválido'
+        // ];
         if(isset($data))
         {
             $mensaje = 'no se pudo dar de alta';
 
-            if(Usuario::DarDeAlta($data['email'],$data['clave'],$data['nombre'],$data['apellido'],$data['rol']))
-            {
-                $mensaje = 'El Usuario se registro correctamente';
-            }
+        //     $unUsuario = new Usuario();
+        
+        //     $mensaje = 'el email no es valido';
+        //    if($unUsuario->SetEmail($data['email']))
+        //    {
+        //         $mensaje = 'la clave no es valida';
+
+        //         if($unUsuario->SetClave($data['clave']))
+        //         {
+        //             $mensaje = 'el nombre no es valido';
+        //             if($unUsuario->SetNombre($data['apellido']))
+        //             {
+        //                 $mensaje = "el apillido es invalido";
+        //                 if($unUsuario->SetApellido($data['apellido']))
+        //                 {
+        //                     if($unUsuario->AgregarBD())
+        //                     {
+        //                         $mensaje = 'El Usuario se registro correctamente';
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //    }
         }
 
 
@@ -102,6 +129,28 @@ class UsuarioController
 
         return $response;
     }
+
+    // public static function ControlDeFunciones($listaDeFunciones,$parametos)
+    // {
+    //     $retorno = false;
+    //     if(isset($listaDeFunciones) && isset($parametos) )
+    //     {
+    //         $retorno = true;
+    //         foreach($listaDeFunciones as $unaClave => $unaFuncion)
+    //         {
+    //             if(isset($unaFuncion) === false || key_exists($unaClave,$parametos) === false
+    //             && $unaFuncion($parametos[$unaClave]) === false)
+    //             {
+    //                 $retorno = [$unaClave => $unaFuncion];
+    //                 break;
+    //             }
+    //         }
+    //     }
+       
+
+
+    //     return $retorno;
+    // }
 }
 
 ?>

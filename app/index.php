@@ -60,10 +60,11 @@ $app->group('/usuario', function (RouteCollectorProxy $grupoDeRutas)
 });
 
 
-$app->group('/empleados', function (RouteCollectorProxy $grupoDeRutas) 
+$app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\EmpleadoController::class.':CargarUno');
+	$grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->get('/{rol}',\EmpleadoController::class.':ListarPorRolDeTrabajo');
 });
 

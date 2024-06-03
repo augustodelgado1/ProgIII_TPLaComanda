@@ -167,6 +167,10 @@ class TipoDeProducto
     {
         return  $this->nombre;
     }
+    public function GetSector()
+    {
+        return  $this->idDeSector;
+    }
 
     public function GetId()
     {

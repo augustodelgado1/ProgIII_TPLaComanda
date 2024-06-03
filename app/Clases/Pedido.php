@@ -10,6 +10,7 @@ class Pedido
     private $id;
     private $orden;
     private $idDeSector;
+    private $idDeEmpleado;
     private $numeroDePedido;
     private $unProducto;
     private $cantidad;
@@ -17,46 +18,46 @@ class Pedido
     private $tiempoDeEntrega;
     private $importeTotal;
     private $estado;
-
-   
-
-    private function __construct( $orden,$unProducto,$cantidad) 
-    {
-        $this->numeroDePedido = rand(100,1000);
-        $this->orden = $orden;
-        $this->unProducto = $unProducto;
-        $this->SetCantidad($cantidad);
-        $this->estado = "pendiente";
-        $this->tiempoDePreparacion = new DateTime("now");
-        $this->tiempoDeEntrega = new DateTime("now");
-        $this->idDeSector = 0;
-    }
-
     private function CalcularImporteTotal()
     {
         $this->importeTotal = 0;
 
-        if(isset($this->unProducto) && isset($this->cantidad)  && $this->cantidad > 0)
+        if(isset($this->unProducto) 
+        && isset($this->cantidad)  
+         && $this->cantidad > 0)
         {
+          
             $this->importeTotal =  $this->unProducto->GetPrecio() * $this->cantidad;
         }
+
+        return $this->importeTotal;
     }
 
     private function ObtenerSector()
     {
-        $this->idDeSector = 0;
-
+        $this->idDeSector = null;
         if(isset($this->unProducto))
         {
-            $this->idDeSector =  $this->unProducto->GetTipo()->ObtenerSector();
+            $this->idDeSector =  $this->unProducto->GetTipo()->GetSector();
         }
+
+        return $this->idDeSector ;
     }
     public static function Alta($orden,$unProducto,$cantidad)
     {
-        $unPedido = new Pedido($orden,$unProducto,$cantidad);
         $estado = false;
-        if(empty($unPedido->cantidad) == false)
+        $unPedido = new Pedido();
+      
+        if($unPedido->SetProducto($unProducto) && $unPedido->SetOrden($orden) 
+        && $unPedido->SetCantidad($cantidad) && 
+        $unPedido->ObtenerSector() !== null)
         {
+            $unPedido->numeroDePedido = rand(100,1000);
+            $unPedido->tiempoDePreparacion = new DateTime("now");
+            $unPedido->tiempoDeEntrega = new DateTime("now");
+            $unPedido->idDeEmpleado = null;
+            $unPedido->SetEstado("pendiente");
+            // $estado = true;
             $estado = $unPedido->AgregarBD();
         }
 
@@ -68,13 +69,14 @@ class Pedido
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,cantidad,tiempoDePreparacion,tiempoDeEntrega,importeTotal,estado) 
-            values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:cantidad,:tiempoDePreparacion,:tiempoDeEntrega,:importeTotal,:estado)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,idDeEmpleado,cantidad,tiempoDePreparacion,tiempoDeEntrega,importeTotal,estado) 
+            values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:idDeEmpleado,:cantidad,:tiempoDePreparacion,:tiempoDeEntrega,:importeTotal,:estado)");
             $consulta->bindValue(':numeroDePedido',$this->numeroDePedido,PDO::PARAM_INT);
-            $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':idDeLaOrden',$this->orden->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':idDeProducto',$this->unProducto->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':cantidad',$this->cantidad,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeEmpleado',$this->idDeEmpleado,PDO::PARAM_INT);
             $consulta->bindValue(':tiempoDePreparacion',$this->tiempoDePreparacion->format("H:i:s"),PDO::PARAM_STR);
             $consulta->bindValue(':tiempoDeEntrega',$this->tiempoDeEntrega->format("H:i:s"),PDO::PARAM_STR);
             $consulta->bindValue(':importeTotal',$this->importeTotal);
@@ -134,6 +136,41 @@ class Pedido
         return  $listaDePedidos;
     }
 
+    public static function FiltrarPorEstadoBD($estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDePedidos = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where LOWER(p.estado) = LOWER(:estado)");
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDePedidos = Pedido::CrearLista($data);
+        }
+
+        return  $listaDePedidos;
+    }
+
+    public static function ModificarEstadoDeMesaBD($idDePedido,$estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unPedido = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET estado = :estado where p.id = :idDePedido");
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta->bindValue(':idDePedido',$idDePedido,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $unPedido =  Pedido::CrearUnaPedido($data);
+        }
+
+        return  $unPedido;
+    }
+
    
     public static function ObtenerListaBD()
     {
@@ -149,6 +186,29 @@ class Pedido
         }
 
         return  $listaDePedidos;
+    }
+
+    #end
+
+    public static function FiltrarPorEstado($listaDePedidos,$estado)
+    {
+        $listaFiltrada = null;
+
+        if(isset($listaDePedidos) && isset($estado) && count($listaDePedidos) > 0)
+        {
+            $listaFiltrada =  [];
+
+            foreach($listaDePedidos as $unPedido)
+            {
+                
+                if(strcasecmp($unPedido->estado,$estado) === 0)
+                {
+                    array_push($listaFiltrada,$unPedido);
+                }
+            }
+        }
+
+        return  $listaFiltrada;
     }
     private static function CrearLista($data)
     {
@@ -176,16 +236,17 @@ class Pedido
 
         if(isset($data))
         {
-            $unaPedido = new Pedido($data['idDeOrden'],$data['idDeProducto'],$data['cantidad']);
+            $unaPedido = new Pedido();
             $unaPedido->SetId($data['id']);
-            $unaPedido->SetOrden($data['idDeOrden']);
-            $unaPedido->SetProducto($data['idDeProducto']);
+            $unaPedido->SetCantidad($data['cantidad']);
+            $unaPedido->SetIdOrden($data['idDeOrden']);
+            $unaPedido->SetIdEmpleado($data['idDeEmpleado']);
+            $unaPedido->SetIdProducto($data['idDeProducto']);
             $unaPedido->SetNumeroDePedido($data['numeroDePedido']);
             $unaPedido->SetTiempoDePreparacion(new DateTime($data['tiempoDePreparacion']));
             $unaPedido->SetTiempoDeEntrega(new DateTime($data['tiempoDeEntrega']));
-            $unaPedido->SetSector($data['idDeSector']);
+            $unaPedido->SetIdSector($data['idDeSector']);
             $unaPedido->SetEstado($data['estado']);
-        
         }
 
         return  $unaPedido;
@@ -278,7 +339,7 @@ class Pedido
 
         return  $estado ;
     }
-    private function SetSector($idDeSector)
+    private function SetIdSector($idDeSector)
     {
         $unSector =  Sector::BuscarSectorPorIdBD($idDeSector);
         $estado  = false;
@@ -289,29 +350,56 @@ class Pedido
 
         return $estado;
     }
-
-    private function SetProducto($idDeProducto)
+    private function SetIdEmpleado($idDeEmpleado)
     {
-        $unaProducto =  Producto::BuscarProductoPorIdBD($idDeProducto);
+        $unEmpleado =  Empleado::ObtenerUnoPorIdBD($idDeEmpleado);
         $estado  = false;
-        if(isset( $unaProducto))
+        if(isset( $unEmpleado))
         {
-            $this->unProducto = $unaProducto;
+            
+            $this->idDeEmpleado = $idDeEmpleado;
         }
 
         return $estado;
     }
-    private function SetOrden($idDeOrden)
+
+    private function SetIdProducto($idDeProducto)
     {
-        $unaOrden =  Orden::BuscarOrdenPorIdBD($idDeOrden);
-        $estado  = false;
-        if(isset( $unaOrden))
+        $unProducto =  Producto::BuscarProductoPorIdBD($idDeProducto);
+        $estado  = Pedido::SetProducto($unProducto);
+        return $estado;
+    }
+
+    private function SetProducto($unProducto)
+    {
+        $estado = false;
+        if(isset( $unProducto))
+        {
+            $this->unProducto = $unProducto;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+    private function SetOrden($unaOrden)
+    {
+        $estado = false;
+        if(isset($unaOrden))
         {
             $this->orden = $unaOrden;
+            $estado = true;
         }
 
+        return  $estado ;
+    }
+    private function SetIdOrden($idDeOrden)
+    {
+        $unaOrden =  Orden::BuscarOrdenPorIdBD($idDeOrden);
+        $estado  = Pedido::SetOrden($unaOrden);
         return $estado;
     }
+
+   
 
     
 
@@ -529,25 +617,7 @@ class Pedido
 
 //Filtrar
 
-    // public static function FiltrarPizzaPorTipo($listaDePizzas,$tipo)
-    // {
-    //     $listaDeTipoDePizza = null;
 
-    //     if(isset($listaDePizzas) && isset($tipo) && count($listaDePizzas) > 0)
-    //     {
-    //         $listaDeTipoDePizza =  [];
-
-    //         foreach($listaDePizzas as $unaPizza)
-    //         {
-    //             if($unaPizza->tipo == $tipo)
-    //             {
-    //                 array_push($listaDeTipoDePizza,$unaPizza);
-    //             }
-    //         }
-    //     }
-
-    //     return  $listaDeTipoDePizza;
-    // }
 
 
      //  //Contar

@@ -7,9 +7,7 @@ require_once './Clases/Producto.php';
 require_once './Clases/TipoDeProducto.php';
 require_once './Clases/Orden.php';
 
-
-
-class PedidoController 
+class PedidoController extends Pedido
 {
   
     public static function CargarUno($request, $response, array $args)
@@ -20,6 +18,7 @@ class PedidoController
         $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipo) ; 
         $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']) ;     
+
 
          
         if(isset($unProducto ) && isset($unaOrden) &&  $unProducto !== false)
@@ -46,7 +45,11 @@ class PedidoController
 
         if(isset($listaDePedidos))
         {
-            $mensaje = Pedido::ToStringList($listaDePedidos);
+            $mensaje = "la lista esta vacia";
+            if(count($listaDePedidos) > 0)
+            {
+                $mensaje = Pedido::ToStringList($listaDePedidos);
+            }
         }
 
         $response->getBody()->write($mensaje);
@@ -54,6 +57,30 @@ class PedidoController
 
         return $response;
     }
+
+
+    public static function ListarPendientes($request, $response, array $args)
+    {
+        // $data = $request->getHeaders();
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $listaDePedidos = Pedido::FiltrarPorEstadoBD('pendiente');
+
+        if(isset($listaDePedidos))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDePedidos) > 0)
+            {
+                $mensaje = Pedido::ToStringList($listaDePedidos);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    
 }
 
 ?>

@@ -29,7 +29,7 @@ class ClienteController
         return $response;
     }
 
-    public static function ListarPorRolDeTrabajo($request, $response, array $args)
+    public static function Listar($request, $response, array $args)
     {
         $data = $request->getQueryParams();
         

@@ -81,8 +81,24 @@ class Empleado extends Usuario
             $consulta->bindValue(':idDeCargo',$unCargo->GetId(),PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-          
+         
             $listaDeEmpleados = Empleado::CrearLista($data);
+        }
+        
+
+        return $listaDeEmpleados;
+    }
+
+    public static function ObternerListaBD()
+    {
+        $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeEmpleados = null;
+
+        if(isset($objAccesoDatos))
+        {
+            $consulta = $objAccesoDatos->RealizarConsulta("Select * From Empleado");
+            $consulta->execute();
+            $listaDeEmpleados = Cliente::CrearLista($consulta->fetchAll(Pdo::FETCH_ASSOC));
         }
         
 
@@ -100,7 +116,7 @@ class Empleado extends Usuario
             {
 
                 $unEmpleado = Empleado::CrearUnoPorArrayAsosiativo($unArray);
-              
+               
                 if(isset($unEmpleado))
                 {
                     array_push($listaDeEmpleados,$unEmpleado);
@@ -110,14 +126,31 @@ class Empleado extends Usuario
 
         return   $listaDeEmpleados;
     }
+
+    public static function ObtenerUnoPorIdBD($id)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $data= null;
+
+    
+        if(isset($unObjetoAccesoDato) && isset($id))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Empleado as e where e.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->execute();
+            Empleado::CrearUnoPorArrayAsosiativo($consulta->fetch(PDO::FETCH_ASSOC));
+        }
+
+        return  $data;
+    }
     protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
     {
         $unEmpleado = null;
-
+       
         $dataUsuario = Usuario::ObtenerUnUsuarioPorIdBD($unArrayAsosiativo['idDeUsuario']);
      
-     
-        if(isset($unArrayAsosiativo) && isset($dataUsuario))
+       
+        if(isset($unArrayAsosiativo) && isset($dataUsuario) && $dataUsuario !== false)
         {
             $unEmpleado = new Empleado($dataUsuario['email'],$dataUsuario['clave'],$dataUsuario['nombre'],
             $dataUsuario['apellido'],$unArrayAsosiativo['idDeCargo']);
@@ -216,6 +249,11 @@ class Empleado extends Usuario
         }
 
         return  $estado ;
+    }
+
+    public function GetCargo()
+    {
+        return $this->cargo;
     }
 
     

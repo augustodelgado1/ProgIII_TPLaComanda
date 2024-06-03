@@ -12,38 +12,12 @@ class Mesa
     private $codigo;
     private $estado;
 
-    public function ToString()
-    {
-        return 
-        "Codigo: ".strtoupper($this->codigo).'<br>'
-        ."Estado: ".$this->estado.'<br>';
-    }
-   
-    // private function __construct() 
-    // {
-    //     $this->numeroDeMesa = rand(100,1000);
-    //     $this->codigo = Mesa::CrearUnCodigoAlfaNumerico(5);
-    //     $this->estado = 'cerrada';
-    // }
+    
 
-    public static function Alta()
-    {
-        $estado = false;
-        $unaMesa = new Mesa();
-        $unaMesa->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
-        $unaMesa->estado = 'cerrada';
-     
-
-        if(isset($unaMesa) && $unaMesa->AgregarBD())
-        {
-            $estado = $unaMesa->codigo ;
-        }
-
-        return $estado;
-    }
+    
 
     #BaseDeDatos
-    private function AgregarBD()
+    protected function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
@@ -186,7 +160,7 @@ class Mesa
 
         return  $estado ;
     }
-    private function SetCodigo($codigo)
+    protected function SetCodigo($codigo)
     {
         $estado = false;
         if(isset($codigo))
@@ -197,7 +171,7 @@ class Mesa
 
         return  $estado ;
     }
-    private function SetEstado($estadoDelaMesa)
+    protected function SetEstado($estadoDelaMesa)
     {
         $estado = false;
         if(isset($estado))
@@ -234,6 +208,13 @@ class Mesa
         }
 
         return   $strLista;
+    }
+
+    public function ToString()
+    {
+        return 
+        "Codigo: ".strtoupper($this->codigo).'<br>'
+        ."Estado: ".$this->estado.'<br>';
     }
 
   
