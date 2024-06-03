@@ -100,7 +100,7 @@ class Cliente extends Usuario
      
         if(isset($unArrayAsosiativo) && isset($dataUsuario))
         {
-            $unCliente = new Cliente($dataUsuario['mail'],$dataUsuario['clave'],$dataUsuario['nombre'],
+            $unCliente = new Cliente($dataUsuario['email'],$dataUsuario['clave'],$dataUsuario['nombre'],
             $dataUsuario['apellido']);
             $unCliente->SetId($unArrayAsosiativo['id']);
             $unCliente->SetFechaDeRegistro($dataUsuario['fechaDeRegistro']);

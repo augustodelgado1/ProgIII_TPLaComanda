@@ -98,7 +98,7 @@ class Empleado extends Usuario
         {
             $consulta = $objAccesoDatos->RealizarConsulta("Select * From Empleado");
             $consulta->execute();
-            $listaDeEmpleados = Cliente::CrearLista($consulta->fetchAll(Pdo::FETCH_ASSOC));
+            $listaDeEmpleados = Empleado::CrearLista($consulta->fetchAll(Pdo::FETCH_ASSOC));
         }
         
 

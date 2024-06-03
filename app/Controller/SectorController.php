@@ -1,11 +1,9 @@
 
 
 <?php
-
-require_once './Clases/Sector.php';
 require_once './Clases/Pedido.php';
 
-class SectorController 
+class SectorController extends Sector
 {
   
     public static function CargarUno($request, $response, array $args)
@@ -13,20 +11,20 @@ class SectorController
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Sector';
 
-        if(isset($data))
+        if(isset($data) && isset($data['descripcion']))
         {
             $mensaje = 'no se pudo dar de alta';
+           
+            $unSector = new Sector();
 
-            if(Sector::DarDeAltaUnSector($data['nombre']))
+            if($unSector->SetDescripcion($data['descripcion']) 
+            && $unSector->AgregarBD())
             {
                 $mensaje = 'El Sector se dio de alta';
             }
         }
 
-
         $response->getBody()->write($mensaje);
-
-
         return $response;
     }
 
@@ -34,9 +32,7 @@ class SectorController
     {
         // $data = $request->getHeaders();
         $mensaje = 'Hubo un error  al intentar listar los Mesas';  
-        $listaDeSectores = Sector::ListarBD();
-
-      
+        $listaDeSectores = Sector::ObternerListaBD();
 
         if(isset($listaDeSectores))
         {
@@ -57,17 +53,21 @@ class SectorController
     {
         $data = $request->getHeaders();
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
-        $listaDePedidos = Pedido::FiltrarPorIdDeSectorBD($data['idDeSector']);
-
-        if(isset($listaDePedidos))
+     
+        if(isset($data ) && isset($data['idDeSector']))
         {
-            $mensaje = "la lista esta vacia";
-            if(count($listaDePedidos) > 0)
+            $listaDePedidos = Pedido::FiltrarPorIdDeSectorBD($data['idDeSector']);
+
+            if(isset($listaDePedidos))
             {
-                $mensaje = Pedido::ToStringList($listaDePedidos);
+                $mensaje = "la lista esta vacia";
+                if(count($listaDePedidos) > 0)
+                {
+                    $mensaje = Pedido::ToStringList($listaDePedidos);
+                }
             }
         }
-
+       
         $response->getBody()->write($mensaje);
 
 

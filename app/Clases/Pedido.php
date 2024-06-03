@@ -3,8 +3,8 @@
 <?php
 
 require_once './db/AccesoDatos.php';
-require_once 'Sector.php';
-
+require_once 'Producto.php';
+require_once 'Orden.php';
 class Pedido 
 {
     private $id;
@@ -91,7 +91,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unPedido = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && isset($numeroDePedido))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where p.numeroDePedido = :numeroDePedido");
             $consulta->bindValue(':numeroDePedido',$numeroDePedido,PDO::PARAM_INT);
@@ -107,7 +107,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaFiltrada = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && isset($idDeOrden))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where p.idDeOrden = :idDeOrden");
             $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
@@ -124,7 +124,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDePedidos = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && isset($idDeSector))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where p.idDeSector = :idDeSector");
             $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_INT);
@@ -141,7 +141,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDePedidos = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && isset($estado))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where LOWER(p.estado) = LOWER(:estado)");
             $consulta->bindValue(':estado',$estado,PDO::PARAM_INT);
@@ -158,7 +158,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unPedido = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && isset($idDePedido) && isset($estado))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET estado = :estado where p.id = :idDePedido");
             $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);

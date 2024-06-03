@@ -3,8 +3,7 @@
 <?php
 
 require_once './db/AccesoDatos.php';
-require_once 'Sector.php';
-
+require_once 'TipoDeProducto.php';
 class Producto 
 {
     private $id;
@@ -176,8 +175,8 @@ class Producto
           
             foreach($listaDeProductos as $unProductoDeLaLista)
             {
-              
-                if( strnatcasecmp($unProductoDeLaLista->nombre,$nombre ) === 0)
+            
+                if(strnatcasecmp($unProductoDeLaLista->nombre,$nombre ) === 0)
                 {
                     $unProducto = $unProductoDeLaLista;
                     break;

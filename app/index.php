@@ -76,6 +76,16 @@ $app->group('/cliente', function (RouteCollectorProxy $grupoDeRutas)
 });
 
 
+$app->group('/socio', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	
+	
+	
+});
+
+
+
 $app->group('/producto', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');

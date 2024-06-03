@@ -49,7 +49,7 @@ class Cargo
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unRol = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.idDeSector = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);

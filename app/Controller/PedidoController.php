@@ -3,9 +3,6 @@
 <?php
 
 require_once './Clases/Pedido.php';
-require_once './Clases/Producto.php';
-require_once './Clases/TipoDeProducto.php';
-require_once './Clases/Orden.php';
 
 class PedidoController extends Pedido
 {

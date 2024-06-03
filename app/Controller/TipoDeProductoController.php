@@ -12,7 +12,7 @@ class TipoDeProductoController
     {
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un TipoDeProducto';
-        $unSector = Sector::BuscarPorNombreBD($data['sector']) ;   
+        $unSector = Sector::BuscarPorDescripcionBD($data['sector']) ;   
         
 
         

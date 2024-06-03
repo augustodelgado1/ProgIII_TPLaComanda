@@ -7,35 +7,19 @@ require_once './db/AccesoDatos.php';
 class Sector 
 {
     private $id;
-    private $nombre;
+    private $descripcion;
    
-    public function __construct($nombre) 
-    {
-        $this->SetNombre($nombre);
-    }
 
-    public static function DarDeAltaUnSector($nombre)
-    {
-        $estado = false;
-        $unSector = new Sector($nombre);
-      
-        if(empty($unSector->nombre) == false )
-        {
-            $estado = $unSector->AgregarBD();
-        }
-
-        return $estado;
-    }
 
     #BaseDeDatos
-    private function AgregarBD()
+    protected function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Sector (nombre) values (:nombre)");
-            $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Sector (descripcion) values (:descripcion)");
+            $consulta->bindValue(':descripcion',$this->descripcion,PDO::PARAM_STR);
             $estado = $consulta->execute();
         }
 
@@ -59,15 +43,15 @@ class Sector
         return  $unSector;
     }
 
-    public static function BuscarPorNombreBD($nombre)
+    public static function BuscarPorDescripcionBD($descripcion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unSector = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato)  && isset($descripcion))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Sector as s where s.nombre = :nombre ");
-            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Sector as s where s.descripcion = :descripcion ");
+            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->execute();
             $unSector = Sector::CrearUnSector($consulta->fetch(PDO::FETCH_ASSOC));
         }
@@ -75,7 +59,7 @@ class Sector
         return  $unSector;
     }
 
-    public static function ListarBD()
+    public static function ObternerListaBD()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeSectores= null;
@@ -102,9 +86,9 @@ class Sector
         
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-           
-            $unSector = new Sector($unArrayAsosiativo['nombre']);
+            $unSector = new Sector();
             $unSector->SetId($unArrayAsosiativo['id']);
+            $unSector->SetDescripcion($unArrayAsosiativo['descripcion']);
         }
         
         return $unSector ;
@@ -188,12 +172,12 @@ class Sector
         return  $estado ;
     }
 
-    public function SetNombre($nombre)
+    protected function SetDescripcion($descripcion)
     {
         $estado = false;
-        if(isset($nombre) )
+        if(isset($descripcion) )
         {
-            $this->nombre = $nombre;
+            $this->descripcion = $descripcion;
             $estado = true;
         }
 
@@ -201,9 +185,9 @@ class Sector
     }
 
     #Getters
-    public function GetNombre()
+    public function Getdescripcion()
     {
-        return  $this->nombre;
+        return  $this->descripcion;
     }
 
     public function GetId()
@@ -230,7 +214,7 @@ class Sector
 
     public function ToString()
     {
-        return "nombre: ".$this->nombre.'<br>';
+        return "descripcion: ".$this->descripcion.'<br>';
     }
 
     //  public static function EscribirJson($listaDeSector,$claveDeArchivo)
