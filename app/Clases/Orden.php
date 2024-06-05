@@ -10,6 +10,8 @@ require_once './Clases/Cliente.php';
 
 class Orden 
 {
+    public static const ESTADO_ACTIVO = "activo";
+    public static const ESTADO_INACTIVO = "inactivo";
     private $id;
     private $codigo;
     private $unCliente;
@@ -45,11 +47,44 @@ class Orden
                 }
             }
         }
+        return $this->costoTotal;
+    }
+
+    //hacer
+    private function CalcularTiempoTotal()
+    {
+        $tiempoTotal = null;
+        $listaDePedidos = $this->ObtenerListaDePedidos();
+        if(isset($listaDePedidos) && count($listaDePedidos) > 0)
+        {
+            $tiempoTotal = new DateTime('00:00');
+            foreach ($listaDePedidos as $unPedido) {
+               
+                if(isset($unPedido))
+                {
+                    $tiempoTotal->add($unPedido->GetTiempoEstimado());
+                }
+            }
+        }
     }
 
     public function ObtenerListaDePedidos()
     {
         return  Pedido::FiltrarPedidosPorIdDeOrdenBD($this->id);
+    }
+
+    public function ObtenerUnPedidoPendiente()
+    {
+        $unPedido = null;
+        $listaDePedidos = $this->ObtenerListaDePedidos(); 
+        $listaDeFiltrada = Pedido::FiltrarPorEstado($listaDePedidos,Pedido::ESTADO_INICIAL); 
+
+        if(isset( $listaDeFiltrada) && count($listaDePedidos) > 0)
+        {
+            $unPedido = $listaDeFiltrada[0];
+        }
+
+        return $unPedido;
     }
 
     #Imagen
@@ -325,7 +360,7 @@ class Orden
     }
     private function SetIdCliente($idDeCliente)
     {
-        $unCliente =  Usuario::BuscarPorIdBD($idDeCliente);
+        $unCliente =  Cliente::BuscarPorIdBD($idDeCliente);
         $estado  = Orden::SetCliente($unCliente);
         return $estado;
     }

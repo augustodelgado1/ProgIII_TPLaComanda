@@ -63,7 +63,7 @@ class EmpleadoController
        
         if(isset($unEmpleado))
         {
-            $listaDePedidos = Pedido::FiltrarPorIdDeSectorBD($unEmpleado->GetCargo()->GetSector()->GetId());
+            $listaDePedidos = $unEmpleado->ObtenerListaDePedidos();
             $listaDePedidosPendientes = Pedido::FiltrarPorEstado($listaDePedidos,"pendiente");
 
             if(isset($listaDePedidosPendientes))

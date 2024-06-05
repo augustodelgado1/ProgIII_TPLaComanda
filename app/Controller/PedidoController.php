@@ -77,6 +77,71 @@ class PedidoController extends Pedido
         return $response;
     }
 
+    public static function ListarCancelados($request, $response, array $args)
+    {
+        // $data = $request->getHeaders();
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $listaDePedidos = Pedido::FiltrarPorEstadoBD(PEDIDO::ESTADO_CANCELADO);
+
+        if(isset($listaDePedidos))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDePedidos) > 0)
+            {
+                $mensaje = Pedido::ToStringList($listaDePedidos);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+
+    public static function CambiarEstadoPreparacion($request, $response, array $args)
+    { 
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+       
+        $unPedido = Pedido::BuscarPedidoPorNumeroDePedidoBD($data['numeroDePedido']);
+        $unEmpleado = Empleado::ObtenerUnoPorIdBD($data['idDeEmpleado']);
+        $horaEstimada = $data['horaEstimada'];
+        $minutosEstimada = $data['minutosEstimados'];
+
+        if(isset($unPedido) && isset( $unEmpleado))
+        {
+            $unPedido->ModificarIdDeEmpleadoBD($unEmpleado->GetId());
+            $unPedido->ModificarEstadoBD(Pedido::ESTADO_INTERMEDIO);
+            $unPedido->ModificarTiempoEstimadoBD(DateInterval::createFromDateString($horaEstimada.' hours '.$minutosEstimada .' Minutes'));
+            $unPedido->ModificarTiempoDeInicioBD(new DateTime('now'));
+        }
+
+        $response->getBody()->write($mensaje);
+        
+        return $response;
+    }
+    public static function CambiarEstadoListo($request, $response, array $args)
+    { 
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+       
+        $unPedido = Pedido::BuscarPedidoPorNumeroDePedidoBD($data['numeroDePedido']);
+       
+        if(isset($unPedido))
+        {
+            $unPedido->ModificarEstadoBD(Pedido::ESTADO_FINAL);
+            $unPedido->ModificarTiempoDeFinalizacionBD(new DateTime("now"));
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
     
 }
 

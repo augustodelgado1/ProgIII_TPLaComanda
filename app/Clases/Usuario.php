@@ -4,7 +4,7 @@
 
 require_once './db/AccesoDatos.php';
 
- class Usuario 
+abstract class Usuario 
 {
     private $id;
     private $mail;
@@ -24,57 +24,46 @@ require_once './db/AccesoDatos.php';
         $this->fechaDeRegistro = new DateTime('now') ;
     }
 
-    public static function DarDeAlta($mail,$clave,$nombre,$apellido,$rol = null)
-    {
-        $estado = false;
-        $unUsuario = new Usuario($mail,$clave,$nombre,$apellido,$rol);
-
-        if(empty($unUsuario->nombre) == false && empty($unUsuario->apellido) == false)
-        {
-            $estado = $unUsuario->AgregarBD();
-        }
-
-        return $estado;
-    }
+ 
 
     protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
     {
-        $unUsuario  = null;
+        // $unUsuario  = null;
        
-        if(isset($unArrayAsosiativo))
-        {
-            $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
-            $unArrayAsosiativo['apellido'],  $unArrayAsosiativo['rol']);
-            $unUsuario->SetId($unArrayAsosiativo['id']);
-           if(isset($unArrayAsosiativo['fechaDeRegistro']))
-           {
-             $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
-           }
-        }
+        // if(isset($unArrayAsosiativo))
+        // {
+        //     $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
+        //     $unArrayAsosiativo['apellido'],  $unArrayAsosiativo['rol']);
+        //     $unUsuario->SetId($unArrayAsosiativo['id']);
+        //    if(isset($unArrayAsosiativo['fechaDeRegistro']))
+        //    {
+        //      $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
+        //    }
+        // }
        
-        return $unUsuario;
+        // return $unUsuario;
     }
 
     protected static function CrearLista($data)
     {
-        $listaDeUsuarios = null;
-        if(isset($data))
-        {
-            $listaDeUsuarios = [];
+        // $listaDeUsuarios = null;
+        // if(isset($data))
+        // {
+        //     $listaDeUsuarios = [];
 
-            foreach($data as $unArray)
-            {
+        //     foreach($data as $unArray)
+        //     {
                
-                $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($unArray);
+        //         $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($unArray);
               
-                if(isset($unUsuario))
-                {
-                    array_push($listaDeUsuarios,$unUsuario);
-                }
-            }
-        }
+        //         if(isset($unUsuario))
+        //         {
+        //             array_push($listaDeUsuarios,$unUsuario);
+        //         }
+        //     }
+        // }
 
-        return   $listaDeUsuarios;
+        // return   $listaDeUsuarios;
     }
     protected function AgregarBD()
     {
@@ -106,7 +95,7 @@ require_once './db/AccesoDatos.php';
         {
             $consulta = $objAccesoDatos->RealizarConsulta("Select * From Usuario");
             $consulta->execute();
-            $listaDeUsuario = Usuario::CrearLista($consulta->fetchAll(Pdo::FETCH_ASSOC));
+            $listaDeUsuario = $consulta->fetchAll(Pdo::FETCH_ASSOC);
         }
 
         return $listaDeUsuario;
@@ -121,7 +110,7 @@ require_once './db/AccesoDatos.php';
             $consulta = $objAccesoDatos->RealizarConsulta("Select * From Usuario as u where LOWER(u.rol) = LOWER(:rol)");
             $consulta->bindValue(':rol',$rol,PDO::PARAM_STR);
             $consulta->execute();
-            $listaDeUsuario = Usuario::CrearLista($consulta->fetchAll(Pdo::FETCH_ASSOC));
+            $listaDeUsuario = $consulta->fetchAll(Pdo::FETCH_ASSOC);
         }
 
         return $listaDeUsuario;
@@ -144,17 +133,7 @@ require_once './db/AccesoDatos.php';
 
         return  $data;
     }
-    public static function BuscarPorIdBD($id)
-    {
-        $data = Usuario::ObtenerUnUsuarioPorIdBD($id);
-        $unUsuario =  null;
-        if(isset($data) && isset($id))
-        {
-            $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($data);
-        }
-
-        return  $unUsuario;
-    }
+   
 
     
     public static function BuscarEmailUnUsuarioBD($mail)
@@ -167,7 +146,7 @@ require_once './db/AccesoDatos.php';
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where LOWER(u.email) = LOWER(:email)");
             $consulta->bindValue(':email',$mail,PDO::PARAM_STR);
             $consulta->execute();
-            Usuario::CrearUnoPorArrayAsosiativo($consulta->fetch(PDO::FETCH_ASSOC));
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
         }
 
         return  $data;
@@ -183,7 +162,7 @@ require_once './db/AccesoDatos.php';
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.clave = :clave");
             $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
             $consulta->execute();
-            Usuario::CrearUnoPorArrayAsosiativo($consulta->fetch(PDO::FETCH_ASSOC));
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
         }
 
         return  $data;
@@ -226,7 +205,7 @@ require_once './db/AccesoDatos.php';
 
     public function ToString()
     {
-        return  "email: ".$this->mail.'<br>'.
+        return      "Email: ".$this->mail.'<br>'.
           "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
         "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>';
     }
@@ -256,7 +235,7 @@ require_once './db/AccesoDatos.php';
         return  $estado ;
     }
 
-    public function SetEmail($email)
+    protected function SetEmail($email)
     {
         $estado = false;
         if(isset($email))
@@ -268,7 +247,7 @@ require_once './db/AccesoDatos.php';
         return  $estado ;
     }
 
-    public function SetClave($clave)
+    protected function SetClave($clave)
     {
         $estado = false;
         if(isset($clave) && strlen($clave) >= 8)
@@ -291,7 +270,7 @@ require_once './db/AccesoDatos.php';
 
         return  $estado ;
     }
-    public function SetApellido($apellido)
+    protected function SetApellido($apellido)
     {
         $estado = false;
         if(isset($apellido) && Usuario::VerificarQueContengaSoloLetras($apellido))
@@ -303,7 +282,7 @@ require_once './db/AccesoDatos.php';
         return  $estado ;
     }
 
-    private function SetRol($descripcion)
+    protected function SetRol($descripcion)
     {
         $estado  = false;
         if(isset( $descripcion) )

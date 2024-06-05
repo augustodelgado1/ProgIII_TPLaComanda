@@ -72,6 +72,23 @@ class TipoDeProducto
         return $unTipoDeProducto;
     }
 
+    public static function FiltrarTipoDeProductoPorSectorBD($idDeSector)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeTipos= null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as t where t.idDeSector = :idDeSector");
+            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $listaDeTipos= TipoDeProducto::CrearLista($data);
+        }
+
+        return $listaDeTipos;
+    }
+
     private static function CrearUnTipoDeProducto($unArrayAsosiativo)
     {
         $unTipoDeProducto = null;
@@ -84,6 +101,28 @@ class TipoDeProducto
         }
         
         return $unTipoDeProducto ;
+    }
+
+    private static function CrearLista($data)
+    {
+        $listaDeTipoDeProducto = null;
+        if(isset($data))
+        {
+            $listaDeTipoDeProducto = [];
+
+            foreach($data as $unArray)
+            {
+                $unTipoDeProducto = TipoDeProducto::CrearUnTipoDeProducto($unArray);
+                
+                
+                if(isset($unTipoDeProducto))
+                {
+                    array_push($listaDeTipoDeProducto,$unTipoDeProducto);
+                }
+            }
+        }
+
+        return   $listaDeTipoDeProducto;
     }
 
 

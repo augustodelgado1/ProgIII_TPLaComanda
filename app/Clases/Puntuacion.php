@@ -79,8 +79,6 @@ class Puntuacion
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion");
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            
-            
             $listaDePuntuaciones = Puntuacion::CrearLista($data);
         }
 

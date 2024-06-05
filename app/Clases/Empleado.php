@@ -7,6 +7,9 @@ require_once 'Cargo.php';
 
 class Empleado extends Usuario
 {
+    public static const ESTADO_ACTIVO = "activo";
+    public static const ESTADO_INACTIVO = "inactivo";
+    public static const ESTADO_SUSPENDIDO = "suspendido";
     private $id;
     private $cargo;
     private $estado;
@@ -16,6 +19,24 @@ class Empleado extends Usuario
         parent::__construct($mail,$clave,$nombre,$apellido,"Empleado");
         $this->cargo = $cargo;
         $this->estado = $estado;
+    }
+
+    public function ObtenerListaDePedidos()
+    {
+        return  Pedido::FiltrarPorIdDeSectorBD($this->GetCargo()->GetSector()->GetId());
+    }
+
+    public function ObternerListaDePedidosRealizados()
+    {
+        $listaDePedidosRealizados = null;
+        $listaDePedidos =  $this->ObtenerListaDePedidos();
+
+        if(isset($listaDePedidos ))
+        {
+            $listaDePedidosRealizados =  Pedido::FiltrarPorEstado($listaDePedidos,"listos para servir");
+        }
+
+        return  $listaDePedidosRealizados;
     }
 
     public function ToString()
@@ -103,6 +124,23 @@ class Empleado extends Usuario
         
 
         return $listaDeEmpleados;
+    }
+
+    public static function FiltrarPorCargoBD($idDeCargo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeTipos= null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Empleado as e where e.idDeCargo = :idDeCargo");
+            $consulta->bindValue(':idDeCargo',$idDeCargo,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $listaDeTipos= Empleado::CrearLista($data);
+        }
+
+        return $listaDeTipos;
     }
 
     protected static function CrearLista($data)

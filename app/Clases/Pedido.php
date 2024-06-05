@@ -7,27 +7,29 @@ require_once 'Producto.php';
 require_once 'Orden.php';
 class Pedido 
 {
+    public static const ESTADO_INICIAL = "pendiente";
+    public static const ESTADO_INTERMEDIO = "en preparacion";
+    public static const ESTADO_FINAL = "listo para servir";
+    public static const ESTADO_CANCELADO = "cancelado";
     private $id;
     private $orden;
     private $idDeSector;
     private $idDeEmpleado;
     private $numeroDePedido;
     private $unProducto;
-    private $cantidad;
-    private $tiempoDePreparacion;
-    private $tiempoDeEntrega;
+    private $tiempoEstimado;
+
+    private $tiempoDeInicio;
+    private $tiempoDeFinalizacion;
     private $importeTotal;
     private $estado;
     private function CalcularImporteTotal()
     {
         $this->importeTotal = 0;
 
-        if(isset($this->unProducto) 
-        && isset($this->cantidad)  
-         && $this->cantidad > 0)
+        if(isset($this->unProducto))
         {
-          
-            $this->importeTotal =  $this->unProducto->GetPrecio() * $this->cantidad;
+            $this->importeTotal =  $this->unProducto->GetPrecio();
         }
 
         return $this->importeTotal;
@@ -49,14 +51,13 @@ class Pedido
         $unPedido = new Pedido();
       
         if($unPedido->SetProducto($unProducto) && $unPedido->SetOrden($orden) 
-        && $unPedido->SetCantidad($cantidad) && 
-        $unPedido->ObtenerSector() !== null)
+        && $unPedido->ObtenerSector() !== null)
         {
             $unPedido->numeroDePedido = rand(100,1000);
-            $unPedido->tiempoDePreparacion = new DateTime("now");
-            $unPedido->tiempoDeEntrega = new DateTime("now");
+            $unPedido->tiempoEstimado = new DateTime("now");
+            $unPedido->tiempoDeFinalizacion = new DateTime("now");
             $unPedido->idDeEmpleado = null;
-            $unPedido->SetEstado("pendiente");
+            $unPedido->SetEstado(Pedido::ESTADO_INICIAL);
             // $estado = true;
             $estado = $unPedido->AgregarBD();
         }
@@ -69,22 +70,117 @@ class Pedido
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,idDeEmpleado,cantidad,tiempoDePreparacion,tiempoDeEntrega,importeTotal,estado) 
-            values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:idDeEmpleado,:cantidad,:tiempoDePreparacion,:tiempoDeEntrega,:importeTotal,:estado)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,importeTotal,estado) 
+            values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:tiempoDeFinalizacion,:importeTotal,:estado)");
             $consulta->bindValue(':numeroDePedido',$this->numeroDePedido,PDO::PARAM_INT);
             $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':idDeLaOrden',$this->orden->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':idDeProducto',$this->unProducto->GetId(),PDO::PARAM_INT);
-            $consulta->bindValue(':cantidad',$this->cantidad,PDO::PARAM_INT);
-            $consulta->bindValue(':idDeEmpleado',$this->idDeEmpleado,PDO::PARAM_INT);
-            $consulta->bindValue(':tiempoDePreparacion',$this->tiempoDePreparacion->format("H:i:s"),PDO::PARAM_STR);
-            $consulta->bindValue(':tiempoDeEntrega',$this->tiempoDeEntrega->format("H:i:s"),PDO::PARAM_STR);
             $consulta->bindValue(':importeTotal',$this->importeTotal);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $estado = $consulta->execute();
         }
 
         return $estado;
+    }
+
+    // $unPedido->ModificarIdDeEmpleadoBD($unEmpleado->GetId());
+    // $unPedido->ModificarEstadoBD(Pedido::ESTADO_INTERMEDIO);
+    protected function ModificarIdDeEmpleadoBD($idDeEmpleado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = null;
+
+        if(isset($unObjetoAccesoDato) && $this->SetEmpleado($idDeEmpleado))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.idDeEmpleado = :idDeEmpleado where p.id = :id");
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeEmpleado',$this->idDeEmpleado,PDO::PARAM_INT);
+            $estado =$consulta->execute();
+        }
+
+        return  $estado;
+    }
+    protected function ModificarEstadoBD($estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = null;
+
+        if(isset($unObjetoAccesoDato) && $this->SetEmpleado($estado))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.estado = :estado where p.id = :id");
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
+            $estado =$consulta->execute();
+        }
+
+        return  $estado;
+    }
+    protected function ModificarTiempoEstimadoBD($tiempoEstimado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato) && $this->SetTiempoEstimado($tiempoEstimado))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.tiempoEstimado = :tiempoEstimado where p.id = :id");
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':tiempoEstimado',$this->GetStrTiempoEstimado(),PDO::PARAM_STR);
+            $estado =$consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+ 
+    public function SeEntregoEnElTimpoEstimado()
+    {
+        $estado = false;
+
+        $diferencia = $this->tiempoDeInicio->diff($this->tiempoDeFinalizacion);
+
+        if(isset($diferencia))
+        {
+            $estado = true;
+            if($diferencia->h > $this->tiempoEstimado->h 
+            || ($diferencia->h === $this->tiempoEstimado->h && $diferencia->i >  $this->tiempoEstimado->i)  )
+            {
+                $estado = false;
+            }
+        }
+        
+        return  $estado;
+    }
+    protected function ModificarTiempoDeInicioBD($tiempoInicio)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato) && $this->SetTiempoInicio($tiempoInicio))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.tiempoInicio = :tiempoInicio where p.id = :id");
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':tiempoInicio',$this->GetTiempoDeInicio(),PDO::PARAM_STR);
+            $estado =$consulta->execute();
+        }
+
+        return  $estado;
+    }
+    protected function ModificarTiempoDeFinalizacionBD($tiempoDeFinalizacion)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = null;
+
+        if(isset($unObjetoAccesoDato) && $this->SetTiempoDeFinalizacion($tiempoDeFinalizacion))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.tiempoDeFinalizacion = :tiempoDeFinalizacion where p.id = :id");
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':tiempoDeFinalizacion',$this->GetTiempoDeFinalizacion(),PDO::PARAM_STR);
+            $consulta->execute();
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
     public static function BuscarPedidoPorNumeroDePedidoBD($numeroDePedido)
     {
@@ -238,13 +334,12 @@ class Pedido
         {
             $unaPedido = new Pedido();
             $unaPedido->SetId($data['id']);
-            $unaPedido->SetCantidad($data['cantidad']);
             $unaPedido->SetIdOrden($data['idDeOrden']);
-            $unaPedido->SetIdEmpleado($data['idDeEmpleado']);
+            $unaPedido->SetEmpleado($data['idDeEmpleado']);
             $unaPedido->SetIdProducto($data['idDeProducto']);
             $unaPedido->SetNumeroDePedido($data['numeroDePedido']);
-            $unaPedido->SetTiempoDePreparacion(new DateTime($data['tiempoDePreparacion']));
-            $unaPedido->SetTiempoDeEntrega(new DateTime($data['tiempoDeEntrega']));
+            $unaPedido->SetTiempoEstimado(new DateTime($data['tiempoEstimado']));
+            $unaPedido->SetTiempoDeFinalizacion(new DateTime($data['tiempoDeFinalizacion']));
             $unaPedido->SetIdSector($data['idDeSector']);
             $unaPedido->SetEstado($data['estado']);
         }
@@ -278,18 +373,7 @@ class Pedido
 
         return  $estado ;
     }
-    private function SetCantidad($cantidad)
-    {
-        $estado = false;
-        if(isset($cantidad) && $cantidad > 0)
-        {
-            $this->cantidad = $cantidad;
-            $estado = true;
-        }
 
-        return  $estado ;
-    }
-    
   
     private function SetEstado($estadoDelaPedido)
     {
@@ -303,24 +387,24 @@ class Pedido
         return  $estado ;
     }
 
-    private function SetTiempoDeEntrega($tiempoDeEntrega)
+    private function SetTiempoDeFinalizacion($tiempoDeFinalizacion)
     {
         $estado = false;
-        if(isset($tiempoDeEntrega))
+        if(isset($tiempoDeFinalizacion))
         {
-            $this->tiempoDeEntrega = $tiempoDeEntrega;
+            $this->tiempoDeFinalizacion = $tiempoDeFinalizacion;
             $estado = true;
         }
 
         return  $estado ;
     }
 
-    private function SetTiempoDePreparacion($tiempoDePreparacion)
+    private function SetTiempoEstimado($tiempoEstimado)
     {
         $estado = false;
-        if(isset($tiempoDePreparacion))
+        if(isset($tiempoEstimado))
         {
-            $this->tiempoDePreparacion = $tiempoDePreparacion;
+            $this->tiempoEstimado = $tiempoEstimado;
             $estado = true;
         }
 
@@ -350,19 +434,6 @@ class Pedido
 
         return $estado;
     }
-    private function SetIdEmpleado($idDeEmpleado)
-    {
-        $unEmpleado =  Empleado::ObtenerUnoPorIdBD($idDeEmpleado);
-        $estado  = false;
-        if(isset( $unEmpleado))
-        {
-            
-            $this->idDeEmpleado = $idDeEmpleado;
-        }
-
-        return $estado;
-    }
-
     private function SetIdProducto($idDeProducto)
     {
         $unProducto =  Producto::BuscarProductoPorIdBD($idDeProducto);
@@ -381,12 +452,34 @@ class Pedido
 
         return  $estado ;
     }
+    private function SetTiempoInicio($unTiempoDeInicio)
+    {
+        $estado = false;
+        if(isset( $unTiempoDeInicio))
+        {
+            $this->tiempoDeInicio = $unTiempoDeInicio;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
     private function SetOrden($unaOrden)
     {
         $estado = false;
         if(isset($unaOrden))
         {
             $this->orden = $unaOrden;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+    private function SetEmpleado($idDeEmpleado)
+    {
+        $estado = false;
+        if(isset($idDeEmpleado))
+        {
+            $this->idDeEmpleado = $idDeEmpleado;
             $estado = true;
         }
 
@@ -414,14 +507,22 @@ class Pedido
     {
         return  $this->estado;
     }
-    public function GetTiempoDePreparacion()
+    public function GetTiempoEstimado()
     {
-        return  $this->tiempoDePreparacion->format("H:i:s");
+        return  $this->tiempoEstimado;
+    }
+    private function GetStrTiempoEstimado()
+    {
+        return  (new DateTime($this->tiempoEstimado->h.':'.$this->tiempoEstimado->i))->format('H:i');
+    }
+    public function GetTiempoDeInicio()
+    {
+        return  $this->tiempoDeInicio->format("H:i:s");
     }
 
-    public function GetTiempoDeEntrega()
+    public function GetTiempoDeFinalizacion()
     {
-        return  $this->tiempoDeEntrega->format("H:i:s");
+        return  $this->tiempoDeFinalizacion->format("H:i:s");
     }
 
 
@@ -450,10 +551,9 @@ class Pedido
     public function ToString()
     {
         return 
-        "tiempo De Preparacion: ".$this->tiempoDePreparacion->format("H:i:s").'<br>'.
+        "tiempo De Preparacion: ".$this->GetStrTiempoEstimado().'<br>'.
         "Cliente que lo pidio: ".$this->orden->GetNombreDelCliente().'<br>'.
         "Producto Pedido: ".'<br>'.$this->unProducto->ToString().'<br>'.
-        "cantidad: ".$this->cantidad.'<br>'.
         "importe Total: ".$this->GetImporteTotal().'<br>'
         ."Estado: ".$this->estado.'<br>';
     }

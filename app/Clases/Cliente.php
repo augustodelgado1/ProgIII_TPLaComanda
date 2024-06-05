@@ -39,7 +39,7 @@ class Cliente extends Usuario
         return $estado;
     }
 
-    public static function BuscarClientePorIdBD($idDeCliente)
+    public static function BuscarPorIdBD($idDeCliente)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unCliente = null;

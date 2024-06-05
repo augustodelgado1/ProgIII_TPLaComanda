@@ -8,6 +8,11 @@ require_once 'Usuario.php';
 
 class Mesa 
 {
+    public static const ESTADO_INICIAL = "con cliente esperando pedido";
+    public static const ESTADO_INTERMEDIO = "con cliente comiendo";
+    public static const ESTADO_FINAL = "con cliente pagando";
+    public static const ESTADO_CERRADO = "cerrada";
+ 
     private $id;
     private $codigo;
     private $estado;
@@ -82,6 +87,13 @@ class Mesa
 
         return  $unMesa;
     }
+
+    public function ObtenerListaDeOrdenes()
+    {
+        return  Orden::FiltrarPorIdDeMesaBD($this->GetId());
+    }
+
+   
 
    
 

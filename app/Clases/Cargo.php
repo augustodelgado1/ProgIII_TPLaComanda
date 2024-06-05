@@ -76,6 +76,29 @@ class Cargo
         return  $unRol;
     }
 
+    public static function FiltrarPorSectorBD($idDeSector)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeTipos= null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.idDeSector = :idDeSector");
+            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $listaDeTipos= Cargo::CrearLista($data);
+        }
+
+        return $listaDeTipos;
+    }
+
+    public function ObtenerListaDeEmpleados()
+    {
+        return Empleado::FiltrarPorCargoBD($this->id);
+    }
+
+
     private static function CrearUnCargo($unArrayAsosiativo)
     {
         $unCargo = null;

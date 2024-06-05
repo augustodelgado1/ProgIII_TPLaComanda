@@ -11,9 +11,12 @@ require_once './Controller/ClienteController.php';
 require_once './Controller/OrdenController.php';
 require_once './Controller/PedidoController.php';
 require_once './Clases/Mesa.php';
+require_once './middlewares/ValidadorMiddleware.php';
 
 Use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
+
+
 
 $app = AppFactory::create();
 

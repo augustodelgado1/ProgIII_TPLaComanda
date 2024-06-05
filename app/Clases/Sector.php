@@ -79,6 +79,32 @@ class Sector
 
     #end
 
+    public function ObtenerListaDeCargos()
+    {
+        return Cargo::FiltrarPorSectorBD($this->id);
+    }
+
+    public function ObtenerListaDeEmpleados()
+    {
+        $listaDeCargos = Cargo::FiltrarPorSectorBD($this->id);
+        $listaDeEmpelados = null;
+
+        if(isset( $listaDeCargos))
+        {
+            $listaDeEmpelados = [];
+            foreach( $listaDeCargos as $unCargo)
+            {
+                $listaDeEmpleadosDeUnCargo = $unCargo->ObtenerListaDeEmpleados();
+                if(isset( $listaDeEmpleadosDeUnCargo))
+                {
+                    array_push($listaDeEmpelados ,$listaDeEmpleadosDeUnCargo);
+                }
+            }
+        }
+
+        return $listaDeEmpelados;
+        
+    }
 
     private static function CrearUnSector($unArrayAsosiativo)
     {
