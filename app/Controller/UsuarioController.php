@@ -4,34 +4,35 @@
 
 require_once './Clases/Usuario.php';
 
-class UsuarioController 
+class UsuarioController
 {
 
     public static function Login($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Ingrese el mail y la clave';
-        
-        if(isset($data))
-        {
-            $unUsuario = Usuario::BuscarEmailUnUsuarioBD($data['email']);
+        $unaVariable  = false;
+        echo "en el controller";
+        // if(isset($data) && $unaVariable == true)
+        // {
+        //     $unUsuario = Usuario::BuscarEmailUnUsuarioBD($data['email']);
+
            
-            $mensaje = 'el mail no existe';
-            if(isset($unUsuario))
-            {
-                $otroUsuario = Usuario::BuscarClaveUnUsuarioBD($data['clave']);
-                $mensaje = 'la clave es incorrecta';
+        //     $mensaje = 'el mail no existe';
+        //     if(isset($unUsuario))
+        //     {
+        //         $otroUsuario = Usuario::BuscarClaveUnUsuarioBD($data['clave']);
+        //         $mensaje = 'la clave es incorrecta';
                 
-                if(isset($otroUsuario) && $unUsuario->Equals($otroUsuario))
-                {
-                    $mensaje = 'Se logio Perfectamente';
-                }
-            }
+        //         if(isset($otroUsuario) && $unUsuario->Equals($otroUsuario))
+        //         {
+        //             $mensaje = 'Se logio Perfectamente';
+        //         }
+        //     }
 
-        }
+        // }
 
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write("no");
 
 
         return $response;
@@ -85,44 +86,71 @@ class UsuarioController
     {
         $data = $request->getParsedBody();
         $mensaje = 'no se recibieron parametros';
-        // $listaDeFunciones = array('email' => [$unUsuario ,'SetEmail'], 'clave' =>[$unUsuario ,'SetClave'],
-            // 'nombre' => [$unUsuario ,'SetNombre']
-            // ,'apellido' =>  [$unUsuario ,'SetApellido']);
-        // $mensajesError = [
-        //     'email' => 'El email no es válido',
-        //     'clave' => 'La clave no es válida',
-        //     'nombre' => 'El nombre no es válido',
-        //     'apellido' => 'El apellido es inválido'
-        // ];
         if(isset($data))
         {
+            $unUsuario = new Usuario($data['email'],$data['clave'],$data['nombre'] ,$data['apellido'],$data['dni']);
             $mensaje = 'no se pudo dar de alta';
 
-        //     $unUsuario = new Usuario();
-        
-        //     $mensaje = 'el email no es valido';
-        //    if($unUsuario->SetEmail($data['email']))
-        //    {
-        //         $mensaje = 'la clave no es valida';
-
-        //         if($unUsuario->SetClave($data['clave']))
-        //         {
-        //             $mensaje = 'el nombre no es valido';
-        //             if($unUsuario->SetNombre($data['apellido']))
-        //             {
-        //                 $mensaje = "el apillido es invalido";
-        //                 if($unUsuario->SetApellido($data['apellido']))
-        //                 {
-        //                     if($unUsuario->AgregarBD())
-        //                     {
-        //                         $mensaje = 'El Usuario se registro correctamente';
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //    }
+            // if($unUsuario->AgregarBD())
+            // {
+            //     $mensaje = 'El Usuario se registro correctamente';
+            // }
         }
 
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    public static function ModificarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+        $mensaje = 'no se recibieron parametros';
+        if(isset($data))
+        {
+            $unUsuario = new Usuario($data['email'],$data['clave'],$data['nombre'] ,$data['apellido'],$data['dni']);
+            $mensaje = 'no se pudo dar de alta';
+
+            // if($unUsuario->AgregarBD())
+            // {
+            //     $mensaje = 'El Usuario se registro correctamente';
+            // }
+        }
+
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function BorrarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+
+        $mensaje = 'no se pudo dar de alta';
+
+        if(Usuario::BorrarUnUsuarioPorDniBD($data['dni']))
+        {
+            $mensaje = 'El Usuario se registro correctamente';
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function SuspenderUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+
+        $mensaje = 'no se pudo dar de alta';
+
+        if(Usuario::SuspenderUnUsuarioPorDniBD($data['dni']))
+        {
+            $mensaje = 'El Usuario se registro correctamente';
+        }
 
         $response->getBody()->write($mensaje);
 

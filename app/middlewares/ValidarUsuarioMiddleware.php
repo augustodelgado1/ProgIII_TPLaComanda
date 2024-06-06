@@ -4,25 +4,26 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Psr7\Response;
 
-class ValidadorMiddleware
+class ValidarUsuarioMiddleware
 {
-    private $funcValidador;
+    private $unUsuario;
+    private $funcValidadora;
     private $mensajeDeError;
-    public function __construct($funcValidador,$mensajeDeError = null) 
+    public function __construct($unUsuario,$funcValidadora,$mensajeDeError = null) 
     {
-        $this->funcValidador = $funcValidador;
+        $this->unUsuario = $unUsuario;
+        $this->funcValidadora = $funcValidadora;
         $this->mensajeDeError = $mensajeDeError;
     }
     public function __invoke(Request $request, RequestHandler $handler)
     {   
-        $parametros = $request->getQueryParams();
-
         $response = new Response();
-     
-       
-        if(is_callable($this->funcValidador))
+      
+        if(is_callable($this->funcValidadora))
         {
-            if (call_user_func($this->funcValidador,$parametros) == true) {
+           
+            
+            if (call_user_func($this->funcValidadora,$this->unUsuario) == true) {
                 $response = $handler->handle($request);
             } else {
                 $payload = $this->mensajeDeError;
@@ -30,7 +31,6 @@ class ValidadorMiddleware
             }
         }
         
-
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

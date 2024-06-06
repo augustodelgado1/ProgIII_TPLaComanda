@@ -19,34 +19,12 @@ class Encuesta
         // $this->ObtenerEstado();
     }
 
-    private function ObtenerEstado()
-    {
-        $listaDePuntuaciones = $this->ObtenerListaDePuntuaciones();
-        $this->estado = "nulo";
-
-        if(isset($listaDePuntuaciones))
-        {
-            $puntuacionesPositivas = Puntuacion::CantidadDePositivas($listaDePuntuaciones);
-            $puntuacionesNegativas = Puntuacion::CantidadDeNegativas($listaDePuntuaciones);
-
-            if($puntuacionesPositivas > 0 && $puntuacionesNegativas > 0 )
-            {
-                $this->estado = "negativo";
-                if($puntuacionesPositivas > $puntuacionesNegativas)
-                {
-                    $this->estado = "positivo";
-                }
-            }
-        }
-
-        return  $this->estado;
-    }
-
-    private function ObtenerListaDePuntuaciones()
+    public function ObtenerListaDePuntuaciones()
     {
        return Puntuacion::FiltrarPorIdDeEncuestaBD($this->id);
     }
 
+    
 
     public static function DarDeAltaUnEncuesta($idDeOrden,$mensaje)
     {

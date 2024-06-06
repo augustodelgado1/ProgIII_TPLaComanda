@@ -16,11 +16,11 @@ class OrdenController extends Orden
         $data = $request->getParsedBody();
         $mensaje = 'Hubo error con los parametros al intentar dar de alta un Orden';
         $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
-        $unCliente = Usuario::BuscarPorIdBD($data['idDeCLiente']);
+        // $unCliente = Usuario::BuscarPorIdBD($data['idDeCLiente']);
         $unaOrden = new Orden();
         File::CrearUnDirectorio('Imagenes');
         File::CrearUnDirectorio('Imagenes/Mesa');
-        
+        $unCliente = null;
         if($unaOrden->SetMesa($unaMesa) &&
           $unaOrden->SetCliente($unCliente))
         {

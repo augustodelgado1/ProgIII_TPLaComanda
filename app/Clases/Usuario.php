@@ -4,7 +4,7 @@
 
 require_once './db/AccesoDatos.php';
 
-abstract class Usuario 
+ class Usuario 
 {
     private $id;
     private $mail;
@@ -13,57 +13,74 @@ abstract class Usuario
     private $nombre;
     private $apellido;
     private $fechaDeRegistro;
+    private $dni;
+    private $estado;
+
+    
 
    
-    public function __construct($mail,$clave,$nombre,$apellido,$rol = null) {
+    public function __construct($mail,$clave,$nombre,$apellido,$dni,$rol = null) {
         $this->SetEmail($mail);
         $this->SetClave($clave);
         $this->SetNombre($nombre);
         $this->SetApellido($apellido);
         $this->SetRol($rol);
+        $this->SetDni($dni);
         $this->fechaDeRegistro = new DateTime('now') ;
+        $this->estado = "activo"; 
+    }
+
+    public static function GetListaDeEmpleados()
+    {
+        return Usuario::FiltrarPorRolBD("Empleado");
+    }
+    public static function GetListaDeSocios()
+    {
+        return Usuario::FiltrarPorRolBD("Socio");
+    }
+    public static function GetListaDeClientes()
+    {
+        return Usuario::FiltrarPorRolBD("Cliente");
     }
 
  
 
     protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
     {
-        // $unUsuario  = null;
+        $unUsuario  = null;
        
-        // if(isset($unArrayAsosiativo))
-        // {
-        //     $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
-        //     $unArrayAsosiativo['apellido'],  $unArrayAsosiativo['rol']);
-        //     $unUsuario->SetId($unArrayAsosiativo['id']);
-        //    if(isset($unArrayAsosiativo['fechaDeRegistro']))
-        //    {
-        //      $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
-        //    }
-        // }
+        if(isset($unArrayAsosiativo))
+        {
+            $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
+            $unArrayAsosiativo['apellido'],  $unArrayAsosiativo['rol']);
+            $unUsuario->SetId($unArrayAsosiativo['id']);
+           if(isset($unArrayAsosiativo['fechaDeRegistro']))
+           {
+             $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
+           }
+            $unUsuario->SetEstado($unArrayAsosiativo['estado']);
+        }
        
-        // return $unUsuario;
+        return $unUsuario;
     }
 
     protected static function CrearLista($data)
     {
-        // $listaDeUsuarios = null;
-        // if(isset($data))
-        // {
-        //     $listaDeUsuarios = [];
+        $listaDeUsuarios = null;
+        if(isset($data))
+        {
+            $listaDeUsuarios = [];
+            foreach($data as $unArray)
+            {
+                $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($unArray);
+                if(isset($unUsuario))
+                {
+                    array_push($listaDeUsuarios,$unUsuario);
+                }
+            }
+        }
 
-        //     foreach($data as $unArray)
-        //     {
-               
-        //         $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($unArray);
-              
-        //         if(isset($unUsuario))
-        //         {
-        //             array_push($listaDeUsuarios,$unUsuario);
-        //         }
-        //     }
-        // }
-
-        // return   $listaDeUsuarios;
+        return   $listaDeUsuarios;
     }
     protected function AgregarBD()
     {
@@ -72,13 +89,16 @@ abstract class Usuario
 
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,nombre,apellido,rol) values (:email,:clave,:fechaDeRegistro,:nombre,:apellido,:rol)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,nombre,apellido,dni,estado,rol) 
+            values (:email,:clave,:fechaDeRegistro,:nombre,:apellido,:dni,:estado,:rol)");
             $consulta->bindValue(':email',$this->mail,PDO::PARAM_STR);
             $consulta->bindValue(':clave',$this->clave,PDO::PARAM_STR);
             $consulta->bindValue(':rol',$this->rol,PDO::PARAM_STR);
             $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
             $consulta->bindValue(':apellido',$this->apellido,PDO::PARAM_STR);
             $consulta->bindValue(':fechaDeRegistro',$this->fechaDeRegistro->format('y-m-d H:i:s'),PDO::PARAM_STR);
+            $consulta->bindValue(':dni',$this->dni,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $consulta->execute();
             $idDeUsuario =  $objAccesoDatos->ObtenerUltimoID();
         }
@@ -134,6 +154,53 @@ abstract class Usuario
         return  $data;
     }
    
+    public static function ObtenerUnUsuarioPorDniBD($dni)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $data= null;
+
+        if(isset($unObjetoAccesoDato) && isset($dni))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.dni = :dni");
+            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+        }
+
+        return  $data;
+    }
+   
+    public static function BorrarUnUsuarioPorDniBD($dni)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato) && isset($dni))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Usuario as u where u.dni = :dni");
+            $consulta->bindValue(':dni',$dni,PDO::PARAM_STR);
+            $estado= $consulta->execute();
+        }
+
+        return  $estado;
+    }
+    public static function SuspenderUnUsuarioPorDniBD($dni)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado= false;
+        if(isset($unObjetoAccesoDato) && isset($dni))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u SET u.estado = :estado
+            where u.dni = :dni");
+            $consulta->bindValue(':dni',$dni,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',"Suspendido",PDO::PARAM_STR);
+            $estado = $consulta->execute();  
+        }
+
+        return  $estado;
+    }
+   
+ 
 
     
     public static function BuscarEmailUnUsuarioBD($mail)
@@ -166,6 +233,94 @@ abstract class Usuario
         }
 
         return  $data;
+    }
+
+    //Modificar
+
+    public function ModificarDniPorDniBD($dniAnterior,$dniNuevo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+     
+        if(isset($unObjetoAccesoDato) && isset($dniAnterior) && Usuario::ValidadorDni($dniNuevo))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
+            SET u.dni = :dniNuevo 
+            where u.dni = :dni");
+            $consulta->bindValue(':dniNuevo',$dniNuevo,PDO::PARAM_STR);
+            $consulta->bindValue(':dni',$dniAnterior,PDO::PARAM_INT);
+            $estado =  $consulta->execute();
+        }
+
+        return  $estado;
+    }
+    public function ModificarNombrePorDniBD($dni,$nombre)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+     
+        if(isset($unObjetoAccesoDato) && isset($dni) && Usuario::ValidadorStr($nombre))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
+            SET u.nombre = :nombre 
+            where u.dni = :dni");
+            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
+            $estado =  $consulta->execute();
+        }
+
+        return  $estado;
+    }
+    public function ModificarApellidoPorDniBD($dni,$apellido)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+     
+        if(isset($unObjetoAccesoDato) && isset($dni) && Usuario::ValidadorStr($apellido))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
+            SET u.apellido = :apellido 
+            where u.dni = :dni");
+            $consulta->bindValue(':apellido',$apellido,PDO::PARAM_STR);
+            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
+            $estado =  $consulta->execute();
+        }
+
+        return  $estado;
+    }
+    public function ModificarClavePorDniBD($dni,$clave)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+     
+        if(isset($unObjetoAccesoDato) && isset($dni) && Usuario::ValidadorClave(array("clave" => $clave)))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
+            SET u.clave = :clave 
+            where u.dni = :dni");
+            $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
+            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+    public function ModificarEmailPorDniBD($dni,$email)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+     
+        if(isset($unObjetoAccesoDato) && isset($dni) && Usuario::ValidadorEmail(array("email" => $email)))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
+            SET u.email = :email 
+            where u.dni = :dni");
+            $consulta->bindValue(':email',$email,PDO::PARAM_STR);
+            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
 
     public static function CrearUnCodigoAlfaNumerico($cantidadDeCaracteres)
@@ -207,7 +362,8 @@ abstract class Usuario
     {
         return      "Email: ".$this->mail.'<br>'.
           "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
-        "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>';
+        "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>'.
+        "Estado: ".$this->estado.'<br>';
     }
 
     public function Equals($unUsuario)
@@ -238,7 +394,7 @@ abstract class Usuario
     protected function SetEmail($email)
     {
         $estado = false;
-        if(isset($email))
+        if(Usuario::ValidadorEmail(array("email" => $email)))
         {
             $this->mail = $email;
             $estado = true;
@@ -250,7 +406,7 @@ abstract class Usuario
     protected function SetClave($clave)
     {
         $estado = false;
-        if(isset($clave) && strlen($clave) >= 8)
+        if(Usuario::ValidadorClave(array("clave" => $clave)))
         {
             $this->clave = $clave;
             $estado = true;
@@ -262,7 +418,7 @@ abstract class Usuario
     public function SetNombre($nombre)
     {
         $estado = false;
-        if(isset($nombre) && Usuario::VerificarQueContengaSoloLetras($nombre))
+        if(Usuario::ValidadorStr($nombre))
         {
             $this->nombre = $nombre;
             $estado = true;
@@ -273,9 +429,20 @@ abstract class Usuario
     protected function SetApellido($apellido)
     {
         $estado = false;
-        if(isset($apellido) && Usuario::VerificarQueContengaSoloLetras($apellido))
+        if(Usuario::ValidadorStr($apellido))
         {
             $this->apellido = $apellido;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+    protected function SetDni($dni)
+    {
+        $estado = false;
+        if(isset($dni) && Usuario::VerificarQueContengaSoloNumeros($dni))
+        {
+            $this->dni = $dni;
             $estado = true;
         }
 
@@ -291,6 +458,17 @@ abstract class Usuario
         }
 
         return $estado;
+    }
+    private function SetEstado($estadoDelUsuario)
+    {
+        $estado = false;
+        if(isset($estado))
+        {
+            $this->estado = $estadoDelUsuario;
+            $estado = true;
+        }
+
+        return  $estado ;
     }
 
     //Getters
@@ -329,6 +507,26 @@ abstract class Usuario
     public static function VerificarQueContengaSoloLetras($string)
     {
         $estado = false;
+        $caracteresInvalidos = range('A','Z');
+
+        if(isset($string) && strlen($string) > 0)
+        {
+            $estado = true;
+           foreach($caracteresInvalidos  as $unCaracter)
+           {
+                if(!str_contains($string,$unCaracter))
+                {
+                    $estado = false;
+                    break;
+                }
+           }
+        }
+
+        return $estado;
+    }
+    public static function VerificarQueContengaSoloNumeros($string)
+    {
+        $estado = false;
         $caracteresInvalidos = range('0','9');
 
         if(isset($string) && strlen($string) > 0)
@@ -336,7 +534,7 @@ abstract class Usuario
             $estado = true;
            foreach($caracteresInvalidos  as $unCaracter)
            {
-                if(str_contains($string,$unCaracter))
+                if(!str_contains($string,$unCaracter))
                 {
                     $estado = false;
                     break;
@@ -347,15 +545,6 @@ abstract class Usuario
         return $estado;
     }
     
-    public function jsonSerialize()
-    {
-        return array(
-            'id' => $this->id,
-            'claveDeUsuario' => $this->clave,
-            'mail' => $this->mail,
-        );
-    }
-
     public static function ToStringList($listaDeUsuarios)
     {
         $strLista = null; 
@@ -371,6 +560,73 @@ abstract class Usuario
 
         return   $strLista;
     }
+    public static function ValidadorEmail($data)
+    {
+        $estado = false; 
+
+        if(isset($data) && isset($data['email'])
+        && strlen($data['email']) >= 8)
+        {
+            $estado = true; 
+        }
+
+        
+        return $estado;
+    }
+
+    public static function ValidadorClave($data)
+    {
+        $estado = false; 
+  
+        if(isset($data) && isset($data['clave'])
+        && strlen($data['clave']) >= 8)
+        {
+            $estado = true; 
+        }
+        return $estado;
+    }
+    public static function ValidadorDni($data)
+    {
+        $estado = false; 
+        
+        if(isset($data) && isset($data['dni'])
+        && strlen($data['dni']) == 7 && Usuario::VerificarQueContengaSoloNumeros($data['dni']))
+        {
+            $estado = true; 
+        }
+        return $estado;
+    }
+    private static function ValidadorStr($unString)
+    {
+        $estado = false; 
+        if(isset($unString) && Usuario::VerificarQueContengaSoloLetras($unString))
+        {
+            $estado = true; 
+        }
+        return $estado;
+    }
+    public static function ValidadorApellido($data)
+    {
+        $estado = false; 
+        if(isset($data) && Usuario::ValidadorStr($data['apellido']))
+        {
+            $estado = true; 
+        }
+        return $estado;
+    }
+    public static function ValidadorNombre($data)
+    {
+        $estado = false; 
+        if(isset($data) && Usuario::ValidadorStr($data['nombre']))
+        {
+            $estado = true; 
+        }
+        return $estado;
+    }
+
+
+
+  
     //  public static function EscribirJson($listaDeUsuario,$claveDeArchivo)
     //  {
     //      $estado = false; 

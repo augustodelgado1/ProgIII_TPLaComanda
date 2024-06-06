@@ -4,6 +4,13 @@
 
 require_once './Clases/Pedido.php';
 
+// 8- De las pedidos:
+// a- Lo que más se vendió.
+// b- Lo que menos se vendió.
+// c- Los que no se entregaron en el tiempo estipulado.
+// d- Los cancelados.
+
+
 class PedidoController extends Pedido
 {
   
@@ -21,7 +28,7 @@ class PedidoController extends Pedido
         if(isset($unProducto ) && isset($unaOrden) &&  $unProducto !== false)
         {
            
-            if(Pedido::Alta( $unaOrden,$unProducto ,$data['cantidad']))
+            if(Pedido::Alta( $unaOrden,$unProducto))
             {
                 $mensaje = 'Se dio de alta correctamente';
             }
@@ -77,6 +84,7 @@ class PedidoController extends Pedido
         return $response;
     }
 
+    // d- Los cancelados.
     public static function ListarCancelados($request, $response, array $args)
     {
         // $data = $request->getHeaders();
@@ -134,6 +142,7 @@ class PedidoController extends Pedido
         {
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_FINAL);
             $unPedido->ModificarTiempoDeFinalizacionBD(new DateTime("now"));
+            
         }
 
         $response->getBody()->write($mensaje);
@@ -141,6 +150,9 @@ class PedidoController extends Pedido
 
         return $response;
     }
+    
+
+    // c- Los que no se entregaron en el tiempo estipulado.
 
     
 }

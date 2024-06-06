@@ -28,9 +28,9 @@ class SectorController extends Sector
         return $response;
     }
 
+    // b- Cantidad de operaciones de todos por sector
     public static function Listar($request, $response, array $args)
     {
-        // $data = $request->getHeaders();
         $mensaje = 'Hubo un error  al intentar listar los Mesas';  
         $listaDeSectores = Sector::ObternerListaBD();
 
@@ -40,6 +40,27 @@ class SectorController extends Sector
             if(count($listaDeSectores) > 0)
             {
                 $mensaje = Sector::ToStringList($listaDeSectores);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    // c- Cantidad de operaciones de todos por sector, listada por cada empleado
+    public static function ListarEmpleados($request, $response, array $args)
+    {
+        $mensaje = 'Hubo un error  al intentar listar los Mesas';  
+        $listaDeSectores = Sector::ObternerListaBD();
+
+        if(isset($listaDeSectores))
+        {
+            $mensaje = "La lista esta vacia";
+            if(count($listaDeSectores) > 0)
+            {
+                $mensaje = Sector::MostrarListaDeEmpleados($listaDeSectores);
             }
         }
 
@@ -68,33 +89,6 @@ class SectorController extends Sector
             }
         }
        
-        $response->getBody()->write($mensaje);
-
-
-        return $response;
-    }
-
-    public static function ListarEmpleados($request, $response, array $args)
-    {
-        $data = $request->getHeaders();
-        $unCargo = Cargo::BuscarCargoPorIdDeSectorBD($data['idDeSector']);
-        $mensaje = 'el sector no existe';
-        if(isset($unCargo))
-        {
-            $listaDeEmpleados = Empleado::FiltrarPorRolBD($unCargo);
-            $mensaje = 'Hubo un error al intentar listar los Empleados';  
-
-            if(isset($listaDeEmpleados))
-            {
-                $mensaje = "la lista esta vacia";
-                if(count($listaDeEmpleados) > 0)
-                {
-                    $mensaje = Empleado::ToStringList($listaDeEmpleados);
-                }
-            }
-            
-        }
-
         $response->getBody()->write($mensaje);
 
 

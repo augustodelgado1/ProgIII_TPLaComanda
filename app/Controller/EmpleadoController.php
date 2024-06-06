@@ -6,6 +6,14 @@ require_once './Clases/Empleado.php';
 require_once './Clases/Cargo.php';
 require_once './Clases/Pedido.php';
 
+// 7- De los empleados:
+// a- Los días y horarios que se ingresaron al sistema.
+// b- Cantidad de operaciones de todos por sector.
+// c- Cantidad de operaciones de todos por sector, listada por cada empleado.
+// d- Cantidad de operaciones de cada uno por separado.
+// e- Posibilidad de dar de alta a nuevos, suspenderlos o borrarlos.
+
+
 class EmpleadoController 
 {
   
@@ -18,7 +26,7 @@ class EmpleadoController
         {
             $mensaje = 'no se pudo dar de alta';
 
-            if(Empleado::DarDeAltaUnEmpleado($data['email'],$data['clave'],$data['nombre'],$data['apellido'],$unCargo))
+            if(Empleado::DarDeAltaUnEmpleado($data['email'],$data['clave'],$data['nombre'],$data['apellido'],$data['dni'],$unCargo))
             {
                 $mensaje = 'El Empleado se dio de alta';
             }
@@ -30,6 +38,8 @@ class EmpleadoController
 
         return $response;
     }
+
+     // d- Cantidad de operaciones de cada uno por separado.
 
     public static function Listar($request, $response, array $args)
     {
@@ -55,6 +65,8 @@ class EmpleadoController
         return $response;
     }
 
+   
+
     public static function ListarPedidosPendientes($request, $response, array $args)
     {
         $data = $request->getHeaders();
@@ -63,12 +75,12 @@ class EmpleadoController
        
         if(isset($unEmpleado))
         {
-            $listaDePedidos = $unEmpleado->ObtenerListaDePedidos();
+            $listaDePedidos = $unEmpleado->GetSector()->ObtenerListaDePedidos();
             $listaDePedidosPendientes = Pedido::FiltrarPorEstado($listaDePedidos,"pendiente");
 
             if(isset($listaDePedidosPendientes))
             {
-                $mensaje = "la lista esta vacia";
+                $mensaje = "No se encontraron pedidos pendientes";
                 if(count($listaDePedidosPendientes) > 0)
                 {
                     $mensaje = Pedido::ToStringList($listaDePedidosPendientes);
@@ -107,7 +119,9 @@ class EmpleadoController
         return $response;
     }
 
-    
+  
+
+    // e- Posibilidad de dar de alta a nuevos, suspenderlos o borrarlos
 }
 
 ?>

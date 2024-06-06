@@ -10,8 +10,8 @@ require_once './Clases/Cliente.php';
 
 class Orden 
 {
-    public static const ESTADO_ACTIVO = "activo";
-    public static const ESTADO_INACTIVO = "inactivo";
+    public const ESTADO_ACTIVO = "activo";
+    public const ESTADO_INACTIVO = "inactivo";
     private $id;
     private $codigo;
     private $unCliente;
@@ -20,6 +20,7 @@ class Orden
     private $rutaDeLaImagen;
     private $nombreDeLaImagen;
     private $costoTotal;
+    private $tiempoTotal;
     private $estado;
 
    
@@ -49,8 +50,6 @@ class Orden
         }
         return $this->costoTotal;
     }
-
-    //hacer
     private function CalcularTiempoTotal()
     {
         $tiempoTotal = null;
@@ -66,6 +65,8 @@ class Orden
                 }
             }
         }
+
+        return $tiempoTotal;
     }
 
     public function ObtenerListaDePedidos()
@@ -234,7 +235,7 @@ class Orden
             $unaOrden->SetId($unArrayAsosiativo['id']);
             $unaOrden->SetCodigo($unArrayAsosiativo['codigo']);
             $unaOrden->SetIdMesa($unArrayAsosiativo['idDeMesa']);
-            $unaOrden->SetIdCliente($unArrayAsosiativo['idDeCliente']);
+            // $unaOrden->SetIdCliente($unArrayAsosiativo['idDeCliente']);
             $unaOrden->SetFechaDeOrden($unArrayAsosiativo['fechaDeOrden']);
             $unaOrden->SetCostoTotal($unArrayAsosiativo['costoTotal']);
             $unaOrden->SetImagen($unArrayAsosiativo['rutaDeLaImagen'],$unArrayAsosiativo['nombreDeLaImagen']);

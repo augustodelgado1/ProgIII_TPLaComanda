@@ -4,6 +4,17 @@
 
 require_once './Clases/Mesa.php';
 
+// 9- De las mesas:
+// a- La más usada.
+// b- La menos usada.
+// c- La que más facturó.
+// d- La que menos facturó.
+// e- La/s que tuvo la factura con el mayor importe.
+// f- La/s que tuvo la factura con el menor importe.
+// g- Lo que facturó entre dos fechas dadas.
+// h- Mejores comentarios.
+// i- Peores comentarios
+
 class MesaController extends Mesa
 {
   

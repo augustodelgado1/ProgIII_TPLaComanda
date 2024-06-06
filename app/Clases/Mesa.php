@@ -8,10 +8,10 @@ require_once 'Usuario.php';
 
 class Mesa 
 {
-    public static const ESTADO_INICIAL = "con cliente esperando pedido";
-    public static const ESTADO_INTERMEDIO = "con cliente comiendo";
-    public static const ESTADO_FINAL = "con cliente pagando";
-    public static const ESTADO_CERRADO = "cerrada";
+    public const ESTADO_INICIAL = "con cliente esperando pedido";
+    public const ESTADO_INTERMEDIO = "con cliente comiendo";
+    public const ESTADO_FINAL = "con cliente pagando";
+    public const ESTADO_CERRADO = "cerrada";
  
     private $id;
     private $codigo;

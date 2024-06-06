@@ -7,24 +7,57 @@ require_once 'Cargo.php';
 
 class Empleado extends Usuario
 {
-    public static const ESTADO_ACTIVO = "activo";
-    public static const ESTADO_INACTIVO = "inactivo";
-    public static const ESTADO_SUSPENDIDO = "suspendido";
+    public const ESTADO_ACTIVO = "activo";
+    public const ESTADO_INACTIVO = "inactivo";
+    public const ESTADO_SUSPENDIDO = "suspendido";
     private $id;
     private $cargo;
-    private $estado;
    
-    public function __construct($mail,$clave,$nombre,$apellido,$cargo,$estado = "activo") {
+   
+    public function __construct($mail,$clave,$nombre,$apellido,$dni,$cargo) {
         
-        parent::__construct($mail,$clave,$nombre,$apellido,"Empleado");
+        parent::__construct($mail,$clave,$nombre,$apellido,$dni,"Empleado");
         $this->cargo = $cargo;
-        $this->estado = $estado;
     }
 
     public function ObtenerListaDePedidos()
     {
-        return  Pedido::FiltrarPorIdDeSectorBD($this->GetCargo()->GetSector()->GetId());
+        return  Pedido::FiltrarPorIdDeEmpleadoBD($this->id);
     }
+
+    // d- Cantidad de operaciones de cada uno por separado.
+    public function CantidadDePedidos()
+    {
+        $cantidad = -1;
+        $listaDePedidos = Pedido::FiltrarPorIdDeEmpleadoBD($this->id);
+        if(isset( $listaDePedidos))
+        {
+            $cantidad = count($listaDePedidos);
+        }
+
+        return $cantidad;
+    }
+
+    public function ModificarCargoPorDniBD($dni,$idDeCargo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unPedido = null;
+        $unCargo = Cargo::BuscarCargoPorIdBD($idDeCargo);
+        $unUsuario = Usuario::ObtenerUnUsuarioPorDniBD($dni);
+     
+        if(isset($unObjetoAccesoDato) && isset($unUsuario) && isset($unCargo))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Empleado as e 
+            SET e.idDeCargo = :idDeCargo 
+            where e.idDeUsuario = :idDeUsuario");
+            $consulta->bindValue(':idDeCargo',$idDeCargo,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeUsuario',$unUsuario->GetId(),PDO::PARAM_INT);
+            $consulta->execute();
+        }
+
+        return  $unPedido;
+    }
+
 
     public function ObternerListaDePedidosRealizados()
     {
@@ -33,7 +66,7 @@ class Empleado extends Usuario
 
         if(isset($listaDePedidos ))
         {
-            $listaDePedidosRealizados =  Pedido::FiltrarPorEstado($listaDePedidos,"listos para servir");
+            $listaDePedidosRealizados =  Pedido::FiltrarPorEstado($listaDePedidos,PEDIDO::ESTADO_FINAL);
         }
 
         return  $listaDePedidosRealizados;
@@ -45,7 +78,7 @@ class Empleado extends Usuario
         return 
         "<br>".parent::ToString().
         "Rol de trabajo: ".$this->cargo->GetDescripcion().'<br>'
-        ."estado: ". $this->estado;
+        .$this->GetStrCantidadDeOpereaciones();
          ;
     }
     private function SetCargo($idDerol)
@@ -60,10 +93,10 @@ class Empleado extends Usuario
         return $estado;
     }
 
-    public static function DarDeAltaUnEmpleado($mail,$clave,$nombre,$apellido,$cargo)
+    public static function DarDeAltaUnEmpleado($mail,$clave,$nombre,$apellido,$dni,$cargo)
     {
         $estado = false;
-        $unEmpleado = new Empleado($mail,$clave,$nombre,$apellido,$cargo);
+        $unEmpleado = new Empleado($mail,$clave,$nombre,$apellido,$dni,$cargo);
 
         if(empty($unEmpleado->cargo) == false)
         {
@@ -80,10 +113,9 @@ class Empleado extends Usuario
         $idDeUsuario = parent::AgregarBD();
         if(isset($objAccesoDatos) && isset($idDeUsuario))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Empleado (idDeUsuario,idDeCargo,estado) values (:idDeUsuario,:cargo,:estado)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Empleado (idDeUsuario,idDeCargo) values (:idDeUsuario,:cargo)");
             $consulta->bindValue(':idDeUsuario',$idDeUsuario,PDO::PARAM_INT);
             $consulta->bindValue(':cargo',$this->cargo->GetId(),PDO::PARAM_INT);
-            $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $estado = $consulta->execute();
         }
 
@@ -191,11 +223,11 @@ class Empleado extends Usuario
         if(isset($unArrayAsosiativo) && isset($dataUsuario) && $dataUsuario !== false)
         {
             $unEmpleado = new Empleado($dataUsuario['email'],$dataUsuario['clave'],$dataUsuario['nombre'],
-            $dataUsuario['apellido'],$unArrayAsosiativo['idDeCargo']);
+            $dataUsuario['apellido'],$unArrayAsosiativo['dni'],$unArrayAsosiativo['idDeCargo']);
             $unEmpleado->SetId($unArrayAsosiativo['id']);
             $unEmpleado->SetCargo($unArrayAsosiativo['idDeCargo']);
             $unEmpleado->SetFechaDeRegistro(new DateTime($dataUsuario['fechaDeRegistro']));
-            $unEmpleado->SetEstado($unArrayAsosiativo['estado']);
+          
         }
         
         return $unEmpleado ;
@@ -277,21 +309,28 @@ class Empleado extends Usuario
         return  $estado ;
     }
 
-    private function SetEstado($estadoDelEmpleado)
-    {
-        $estado = false;
-        if(isset($estado))
-        {
-            $this->estado = $estadoDelEmpleado;
-            $estado = true;
-        }
-
-        return  $estado ;
-    }
+    
 
     public function GetCargo()
     {
         return $this->cargo;
+    }
+
+    public function GetSector()
+    {
+        return $this->cargo->GetSector();
+    }
+    public function GetStrCantidadDeOpereaciones()
+    {
+        $mensaje = "No realizo operaciones";
+        $cantidad = $this->CantidadDePedidos();
+
+        if($cantidad > 0)
+        {
+            $mensaje = "Cantidad: ".$cantidad;
+        }
+
+        return  $mensaje;
     }
 
     

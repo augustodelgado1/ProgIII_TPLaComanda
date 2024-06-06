@@ -92,8 +92,8 @@ class TipoDeProducto
     private static function CrearUnTipoDeProducto($unArrayAsosiativo)
     {
         $unTipoDeProducto = null;
-        
-        if(isset($unArrayAsosiativo))
+   
+        if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
             $unTipoDeProducto = new TipoDeProducto($unArrayAsosiativo['nombre'],$unArrayAsosiativo['idDeSector']);
             $unTipoDeProducto->SetId($unArrayAsosiativo['id']);

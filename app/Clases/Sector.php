@@ -84,9 +84,14 @@ class Sector
         return Cargo::FiltrarPorSectorBD($this->id);
     }
 
+    public function ObtenerListaDePedidos()
+    {
+        return Pedido::FiltrarPorIdDeSectorBD($this->id);
+    }
+
     public function ObtenerListaDeEmpleados()
     {
-        $listaDeCargos = Cargo::FiltrarPorSectorBD($this->id);
+        $listaDeCargos = $this->ObtenerListaDeCargos();
         $listaDeEmpelados = null;
 
         if(isset( $listaDeCargos))
@@ -237,10 +242,53 @@ class Sector
 
         return   $strLista;
     }
+     public static function MostrarListaDeEmpleados($listaDeSectores)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeSectores) )
+        {
+            $strLista = "Sectores".'<br>';
+            foreach($listaDeSectores as $unSector)
+            {
+                $strLista .= "Sector: ".$unSector->descripcion.'<br>';
+                $strLista .= "Empleados".'<br>'.Empleado::ToStringList($unSector->ObtenerListaDeEmpleados());
+            }
+        }
+
+        return   $strLista;
+    }
 
     public function ToString()
     {
-        return "descripcion: ".$this->descripcion.'<br>';
+        return "Sector: ".$this->descripcion.'<br>'.
+        $this->GetStrCantidadDeOpereaciones();
+    }
+
+    public function CantidadDePedidos()
+    {
+        $cantidad = -1;
+        $listaDePedidos = $this->ObtenerListaDePedidos();
+        if(isset( $listaDePedidos))
+        {
+            $cantidad = count($listaDePedidos);
+        }
+
+        return $cantidad;
+    }
+
+
+    public function GetStrCantidadDeOpereaciones()
+    {
+        $mensaje = "No se realizaron operaciones";
+        $cantidad = $this->CantidadDePedidos();
+
+        if($cantidad > 0)
+        {
+            $mensaje = "Cantidad: ".$cantidad;
+        }
+
+        return  $mensaje;
     }
 
     //  public static function EscribirJson($listaDeSector,$claveDeArchivo)

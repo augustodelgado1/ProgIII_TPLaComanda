@@ -5,12 +5,14 @@
 require_once './db/AccesoDatos.php';
 require_once 'Producto.php';
 require_once 'Orden.php';
+
+date_default_timezone_set('America/Argentina/Buenos_Aires');
 class Pedido 
 {
-    public static const ESTADO_INICIAL = "pendiente";
-    public static const ESTADO_INTERMEDIO = "en preparacion";
-    public static const ESTADO_FINAL = "listo para servir";
-    public static const ESTADO_CANCELADO = "cancelado";
+    public const ESTADO_INICIAL = "pendiente";
+    public const ESTADO_INTERMEDIO = "en preparacion";
+    public const ESTADO_FINAL = "listo para servir";
+    public const ESTADO_CANCELADO = "cancelado";
     private $id;
     private $orden;
     private $idDeSector;
@@ -23,6 +25,8 @@ class Pedido
     private $tiempoDeFinalizacion;
     private $importeTotal;
     private $estado;
+
+    private $estadoDelTiempo;
     private function CalcularImporteTotal()
     {
         $this->importeTotal = 0;
@@ -45,33 +49,32 @@ class Pedido
 
         return $this->idDeSector ;
     }
-    public static function Alta($orden,$unProducto,$cantidad)
+    public static function Alta($orden,$unProducto)
     {
-        $estado = false;
+        
         $unPedido = new Pedido();
       
         if($unPedido->SetProducto($unProducto) && $unPedido->SetOrden($orden) 
         && $unPedido->ObtenerSector() !== null)
         {
             $unPedido->numeroDePedido = rand(100,1000);
-            $unPedido->tiempoEstimado = new DateTime("now");
-            $unPedido->tiempoDeFinalizacion = new DateTime("now");
-            $unPedido->idDeEmpleado = null;
             $unPedido->SetEstado(Pedido::ESTADO_INICIAL);
-            // $estado = true;
-            $estado = $unPedido->AgregarBD();
+            $unPedido->AgregarBD();
         }
 
-        return $estado;
+        return $unPedido;
     }
+
+    
     private function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,importeTotal,estado) 
-            values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:tiempoDeFinalizacion,:importeTotal,:estado)");
+            $consulta = $objAccesoDatos->RealizarConsulta("
+            Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,importeTotal,estado) 
+            values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:importeTotal,:estado)");
             $consulta->bindValue(':numeroDePedido',$this->numeroDePedido,PDO::PARAM_INT);
             $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':idDeLaOrden',$this->orden->GetId(),PDO::PARAM_INT);
@@ -93,7 +96,9 @@ class Pedido
 
         if(isset($unObjetoAccesoDato) && $this->SetEmpleado($idDeEmpleado))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.idDeEmpleado = :idDeEmpleado where p.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
+            SET p.idDeEmpleado = :idDeEmpleado 
+            where p.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $consulta->bindValue(':idDeEmpleado',$this->idDeEmpleado,PDO::PARAM_INT);
             $estado =$consulta->execute();
@@ -108,7 +113,9 @@ class Pedido
 
         if(isset($unObjetoAccesoDato) && $this->SetEmpleado($estado))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.estado = :estado where p.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
+            SET p.estado = :estado 
+            where p.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $estado =$consulta->execute();
@@ -123,7 +130,9 @@ class Pedido
 
         if(isset($unObjetoAccesoDato) && $this->SetTiempoEstimado($tiempoEstimado))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.tiempoEstimado = :tiempoEstimado where p.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
+            SET p.tiempoEstimado = :tiempoEstimado 
+            where p.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $consulta->bindValue(':tiempoEstimado',$this->GetStrTiempoEstimado(),PDO::PARAM_STR);
             $estado =$consulta->execute();
@@ -132,33 +141,36 @@ class Pedido
         return  $estado;
     }
 
- 
-    public function SeEntregoEnElTimpoEstimado()
+  
+    
+    private function SeEntregoEnElTimpoEstimado()
     {
-        $estado = false;
+        $this->estadoDelTiempo = false;
 
         $diferencia = $this->tiempoDeInicio->diff($this->tiempoDeFinalizacion);
 
         if(isset($diferencia))
         {
-            $estado = true;
+            $this->estadoDelTiempo  = true;
             if($diferencia->h > $this->tiempoEstimado->h 
             || ($diferencia->h === $this->tiempoEstimado->h && $diferencia->i >  $this->tiempoEstimado->i)  )
             {
-                $estado = false;
+                $this->estadoDelTiempo  = false;
             }
         }
         
-        return  $estado;
+        return  $this->estadoDelTiempo ;
     }
     protected function ModificarTiempoDeInicioBD($tiempoInicio)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
 
-        if(isset($unObjetoAccesoDato) && $this->SetTiempoInicio($tiempoInicio))
+        if(isset($unObjetoAccesoDato) && $this->SetTiempoDeInicio($tiempoInicio))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.tiempoInicio = :tiempoInicio where p.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
+            SET p.tiempoInicio = :tiempoInicio 
+            where p.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $consulta->bindValue(':tiempoInicio',$this->GetTiempoDeInicio(),PDO::PARAM_STR);
             $estado =$consulta->execute();
@@ -182,6 +194,7 @@ class Pedido
 
         return  $estado;
     }
+    
     public static function BuscarPedidoPorNumeroDePedidoBD($numeroDePedido)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -207,6 +220,22 @@ class Pedido
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where p.idDeOrden = :idDeOrden");
             $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaFiltrada =  Pedido::CrearLista($data);
+        }
+
+        return  $listaFiltrada;
+    }
+    public static function FiltrarPorIdDeEmpleadoBD($idDeEmpleado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaFiltrada = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeEmpleado))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where p.idDeEmpleado = :idDeEmpleado");
+            $consulta->bindValue(':idDeEmpleado',$idDeEmpleado,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $listaFiltrada =  Pedido::CrearLista($data);
@@ -256,7 +285,9 @@ class Pedido
 
         if(isset($unObjetoAccesoDato) && isset($idDePedido) && isset($estado))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET estado = :estado where p.id = :idDePedido");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
+            SET estado = :estado 
+            where p.id = :idDePedido");
             $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
             $consulta->bindValue(':idDePedido',$idDePedido,PDO::PARAM_INT);
             $consulta->execute();
@@ -338,8 +369,12 @@ class Pedido
             $unaPedido->SetEmpleado($data['idDeEmpleado']);
             $unaPedido->SetIdProducto($data['idDeProducto']);
             $unaPedido->SetNumeroDePedido($data['numeroDePedido']);
-            $unaPedido->SetTiempoEstimado(new DateTime($data['tiempoEstimado']));
-            $unaPedido->SetTiempoDeFinalizacion(new DateTime($data['tiempoDeFinalizacion']));
+            if(isset($data['tiempoEstimado']) && isset($data['tiempoDeFinalizacion']) && isset($data['tiempoDeInicio']))
+            {
+                $unaPedido->SetTiempoEstimado(DateInterval::createFromDateString($data['tiempoEstimado']));
+                $unaPedido->SetTiempoDeFinalizacion(new DateTime($data['tiempoDeFinalizacion']));
+                $unaPedido->SetTiempoDeInicio(new DateTime($data['tiempoDeInicio']));
+            }
             $unaPedido->SetIdSector($data['idDeSector']);
             $unaPedido->SetEstado($data['estado']);
         }
@@ -347,6 +382,65 @@ class Pedido
         return  $unaPedido;
     }
 
+    public function CantidadDeUnPedido($listaDePedidos,$unPedido)
+    {
+        $cantidad = -1;
+        if(isset($listaDePedidos) && isset($unPedido))
+        {
+            $cantidad = 0;
+            foreach ($listaDePedidos as $unPedidoDeLaLista) {
+               
+                if($unPedidoDeLaLista->Equals($unPedido))
+                {
+                    $cantidad++;
+                }                
+            }
+        }
+
+        return  $cantidad;
+    }
+    public function FiltrarPorEstadoDelTiempo($estadoDelTiempo)
+    {
+        $listafiltrada = null;
+        $cantidad = 0;
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+    
+            if(isset($unObjetoAccesoDato) && isset($estadoDelTiempo))
+            {
+                $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p 
+                where LOWER(p.estadoDelTiempo) = LOWER(:estadoDelTiempo)");
+                $consulta->bindValue(':estadoDelTiempo',$estadoDelTiempo,PDO::PARAM_STR);
+                $consulta->execute();
+                $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+                $listafiltrada = Pedido::CrearLista($data);
+            }
+    
+            return  $listafiltrada;
+    }
+
+  
+
+    // public function BuscarElMayor()
+    // {
+    //     $cantidadMayor = null;
+    //     $flag = false;
+    //     $listaDeProductos = Pedido::ObtenerListaDeProductosPedidos($listaDePedidos);
+        
+    //     if(isset($listaDeProductos) && isset($listaDeProductos))
+    //     {
+    //         foreach($listaDeProductos as $unProducto)
+    //         {
+    //             $cantidad = Producto::ContarProductos($listaDePedidos,$unProducto);
+
+                
+    //             if($cantidad > $cantidadMayor || $flag === false)
+    //             {
+    //                 $cantidadMayor = $cantidad;
+    //                 $flag = true;
+    //             }
+    //         }
+    //     }
+    // }
    
     
 
@@ -356,7 +450,7 @@ class Pedido
  
         if(isset($unPedido))
         {
-            $estado =  $unPedido->numeroDePedido === $this->numeroDePedido;
+            $estado =  $unPedido->unProducto->Equals($this->unProducto);
         }
         return  $estado ;
     }
@@ -398,8 +492,19 @@ class Pedido
 
         return  $estado ;
     }
+    private function SetTiempoDeInicio($tiempoDeInicio)
+    {
+        $estado = false;
+        if(isset($tiempoDeInicio))
+        {
+            $this->tiempoDeInicio = $tiempoDeInicio;
+            $estado = true;
+        }
 
-    private function SetTiempoEstimado($tiempoEstimado)
+        return  $estado ;
+    }
+
+    public function SetTiempoEstimado($tiempoEstimado)
     {
         $estado = false;
         if(isset($tiempoEstimado))
@@ -440,6 +545,7 @@ class Pedido
         $estado  = Pedido::SetProducto($unProducto);
         return $estado;
     }
+ 
 
     private function SetProducto($unProducto)
     {
@@ -452,12 +558,12 @@ class Pedido
 
         return  $estado ;
     }
-    private function SetTiempoInicio($unTiempoDeInicio)
+    private function SetEstadoDelTiempo($estadoDelTiempo)
     {
         $estado = false;
-        if(isset( $unTiempoDeInicio))
+        if(isset( $estadoDelTiempo))
         {
-            $this->tiempoDeInicio = $unTiempoDeInicio;
+            $this->estadoDelTiempo = $estadoDelTiempo;
             $estado = true;
         }
 
@@ -492,9 +598,6 @@ class Pedido
         return $estado;
     }
 
-   
-
-    
 
     //Getters
 
@@ -511,9 +614,17 @@ class Pedido
     {
         return  $this->tiempoEstimado;
     }
-    private function GetStrTiempoEstimado()
+    public function GetStrTiempoEstimado()
     {
-        return  (new DateTime($this->tiempoEstimado->h.':'.$this->tiempoEstimado->i))->format('H:i');
+        $mensaje = "No definido";
+
+        if(isset($this->tiempoEstimado) 
+        && ($this->tiempoEstimado->h > 0 || $this->tiempoEstimado->m > 0) )
+        {
+            $mensaje = $this->tiempoEstimado->format('%h hours %i minutes');;
+        }
+
+        return  $mensaje;
     }
     public function GetTiempoDeInicio()
     {
@@ -529,6 +640,10 @@ class Pedido
     public function GetNumeroDePedido()
     {
         return  $this->numeroDePedido;
+    }
+    public function GetestadoDelTiempo()
+    {
+        return  $this->estadoDelTiempo;
     }
 
 

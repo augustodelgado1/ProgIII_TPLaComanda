@@ -41,7 +41,7 @@ class Producto
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeProductos = null;
-
+      
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Producto as p where p.idDeTipo = :tipo");
@@ -193,7 +193,8 @@ class Producto
  
         if(isset($unProducto))
         {
-            $estado =  $unProducto->id === $this->id;
+            $estado =  strcasecmp($unProducto->tipoDeProducto->GetDescripcion(),$this->tipoDeProducto->GetDescripcion())  === 0 &&
+                       strcasecmp($unProducto->nombre,$this->nombre) === 0;
         }
         return  $estado ;
     }
