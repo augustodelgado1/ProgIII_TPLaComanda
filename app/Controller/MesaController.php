@@ -53,6 +53,68 @@ class MesaController extends Mesa
 
         return $response;
     }
+
+    public static function ListarPedidos($request, $response, array $args)
+    {
+        $data = $request->getHeaders();
+        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+    
+        if(in_array($unaOrden,$unaMesa->ObtenerListaDeOrdenes()))
+        {
+            $listaDePedidos =  $unaOrden->ObtenerListaDePedidos();
+            $mensaje = 'Hubo un error  al intentar listar pedidos'; 
+            if(isset($listaDePedidos))
+            {
+                $mensaje = "la lista esta vacia";
+                if(count($listaDePedidos) > 0)
+                {
+                    $mensaje = Pedido::ToStringList($listaDePedidos);
+                }
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    private static function ValidarMesaYOrden($data)
+    {
+        $estado = false;
+        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+
+        if(in_array($unaOrden,$unaMesa->ObtenerListaDeOrdenes()))
+        {
+            $estado = true;
+        }
+
+        return $estado;
+    }
+    private static function ValidarOrdenIngresada($data)
+    {
+        $estado = false;
+        if(isset($data['codigoDeOrden']) && 
+        Orden::BuscarPorCodigoBD($data['codigoDeOrden']) !== null)
+        {
+            $estado = true;
+        }
+
+        return $estado;
+    }
+    private static function ValidarMesaIngresada($data)
+    {
+        $estado = false;
+        if(isset($data['codigoDeMesa']) &&  
+        Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']) !== null)
+        {
+            $estado = true;
+        }
+
+        return $estado;
+    }
 }
 
 ?>

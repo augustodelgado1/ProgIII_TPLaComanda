@@ -20,35 +20,12 @@ class Pedido
     private $numeroDePedido;
     private $unProducto;
     private $tiempoEstimado;
-
     private $tiempoDeInicio;
     private $tiempoDeFinalizacion;
     private $importeTotal;
     private $estado;
-
     private $estadoDelTiempo;
-    private function CalcularImporteTotal()
-    {
-        $this->importeTotal = 0;
-
-        if(isset($this->unProducto))
-        {
-            $this->importeTotal =  $this->unProducto->GetPrecio();
-        }
-
-        return $this->importeTotal;
-    }
-
-    private function ObtenerSector()
-    {
-        $this->idDeSector = null;
-        if(isset($this->unProducto))
-        {
-            $this->idDeSector =  $this->unProducto->GetTipo()->GetSector();
-        }
-
-        return $this->idDeSector ;
-    }
+   
     public static function Alta($orden,$unProducto)
     {
         
@@ -140,28 +117,25 @@ class Pedido
 
         return  $estado;
     }
-
-  
-    
-    private function SeEntregoEnElTimpoEstimado()
+    protected function EvaluarEstadoDelTiempo()
     {
-        $this->estadoDelTiempo = false;
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        $this->SeEntregoEnElTimpoEstimado();
 
-        $diferencia = $this->tiempoDeInicio->diff($this->tiempoDeFinalizacion);
-
-        if(isset($diferencia))
+        if(isset($unObjetoAccesoDato) && $this->SetEstadoDelTiempo($this->estadoDelTiempo))
         {
-            $this->estadoDelTiempo  = true;
-            if($diferencia->h > $this->tiempoEstimado->h 
-            || ($diferencia->h === $this->tiempoEstimado->h && $diferencia->i >  $this->tiempoEstimado->i)  )
-            {
-                $this->estadoDelTiempo  = false;
-            }
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
+            SET p.estadoDelTiempo = :estadoDelTiempo 
+            where p.id = :id");
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':estadoDelTiempo',$this->estadoDelTiempo,PDO::PARAM_STR);
+            $estado =$consulta->execute();
         }
-        
-        return  $this->estadoDelTiempo ;
+
+        return  $estado;
     }
-    protected function ModificarTiempoDeInicioBD($tiempoInicio)
+        protected function ModificarTiempoDeInicioBD($tiempoInicio)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
@@ -369,7 +343,10 @@ class Pedido
             $unaPedido->SetEmpleado($data['idDeEmpleado']);
             $unaPedido->SetIdProducto($data['idDeProducto']);
             $unaPedido->SetNumeroDePedido($data['numeroDePedido']);
-            if(isset($data['tiempoEstimado']) && isset($data['tiempoDeFinalizacion']) && isset($data['tiempoDeInicio']))
+
+            if(isset($data['tiempoEstimado']) 
+            && isset($data['tiempoDeFinalizacion']) 
+            && isset($data['tiempoDeInicio']))
             {
                 $unaPedido->SetTiempoEstimado(DateInterval::createFromDateString($data['tiempoEstimado']));
                 $unaPedido->SetTiempoDeFinalizacion(new DateTime($data['tiempoDeFinalizacion']));
@@ -377,6 +354,7 @@ class Pedido
             }
             $unaPedido->SetIdSector($data['idDeSector']);
             $unaPedido->SetEstado($data['estado']);
+            $unaPedido->SetEstadoDelTiempo($data['estadoDelTiempo']);
         }
 
         return  $unaPedido;
@@ -635,15 +613,18 @@ class Pedido
     {
         return  $this->tiempoDeFinalizacion->format("H:i:s");
     }
-
-
     public function GetNumeroDePedido()
     {
         return  $this->numeroDePedido;
     }
-    public function GetestadoDelTiempo()
+    public function GetEstadoDelTiempo()
     {
-        return  $this->estadoDelTiempo;
+        $mensaje = "No se entrego en el tiempo estimado";
+        if($this->estadoDelTiempo)
+        {
+            $mensaje = "Se entrego en el tiempo estimado";
+        }
+        return  $mensaje;
     }
 
 
@@ -666,12 +647,55 @@ class Pedido
     public function ToString()
     {
         return 
-        "tiempo De Preparacion: ".$this->GetStrTiempoEstimado().'<br>'.
+        "Tiempo de preparacion estimado: ".$this->GetStrTiempoEstimado().'<br>'.
         "Cliente que lo pidio: ".$this->orden->GetNombreDelCliente().'<br>'.
         "Producto Pedido: ".'<br>'.$this->unProducto->ToString().'<br>'.
         "importe Total: ".$this->GetImporteTotal().'<br>'
         ."Estado: ".$this->estado.'<br>';
     }
+
+    private function SeEntregoEnElTimpoEstimado()
+    {
+        $this->estadoDelTiempo = false;
+
+        $diferencia = $this->tiempoDeInicio->diff($this->tiempoDeFinalizacion);
+
+        if(isset($diferencia))
+        {
+            $this->estadoDelTiempo  = true;
+            if($diferencia->h > $this->tiempoEstimado->h 
+            || ($diferencia->h === $this->tiempoEstimado->h && $diferencia->i >  $this->tiempoEstimado->i)  )
+            {
+                $this->estadoDelTiempo  = false;
+            }
+        }
+        
+        return  $this->estadoDelTiempo ;
+    }
+
+    private function CalcularImporteTotal()
+    {
+        $this->importeTotal = 0;
+
+        if(isset($this->unProducto))
+        {
+            $this->importeTotal =  $this->unProducto->GetPrecio();
+        }
+
+        return $this->importeTotal;
+    }
+
+    private function ObtenerSector()
+    {
+        $this->idDeSector = null;
+        if(isset($this->unProducto))
+        {
+            $this->idDeSector =  $this->unProducto->GetTipo()->GetSector();
+        }
+
+        return $this->idDeSector ;
+    }
+
 
   
 

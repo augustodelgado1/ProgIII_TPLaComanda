@@ -14,7 +14,7 @@ class Orden
     public const ESTADO_INACTIVO = "inactivo";
     private $id;
     private $codigo;
-    private $unCliente;
+    private $nombreDelCliente;
     private $unaMesa;
     private $fechaDeOrden;
     private $rutaDeLaImagen;
@@ -80,7 +80,7 @@ class Orden
         $listaDePedidos = $this->ObtenerListaDePedidos(); 
         $listaDeFiltrada = Pedido::FiltrarPorEstado($listaDePedidos,Pedido::ESTADO_INICIAL); 
 
-        if(isset( $listaDeFiltrada) && count($listaDePedidos) > 0)
+        if(isset($listaDeFiltrada) && count($listaDePedidos) > 0)
         {
             $unPedido = $listaDeFiltrada[0];
         }
@@ -124,14 +124,15 @@ class Orden
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Orden (codigo,idDeCliente,idDeMesa,fechaDeOrden,costoTotal,estado,rutaDeLaImagen,nombreDeLaImagen) 
-            values (:codigo,:idDeCliente,:idDeMesa,:fechaDeOrden,:costoTotal,:estado,:rutaDeLaImagen,:nombreDeLaImagen)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Orden (codigo,nombreDelCliente,idDeMesa,fechaDeOrden,costoTotal,estado,rutaDeLaImagen,nombreDeLaImagen) 
+            values (:codigo,:nombreDelCliente,:idDeMesa,:fechaDeOrden,:costoTotal,:tiempoTotal,:estado,:rutaDeLaImagen,:nombreDeLaImagen)");
             $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeCliente',$this->unCliente->GetId(),PDO::PARAM_INT);
+            $consulta->bindValue(':nombreDelCliente',$this->nombreDelCliente,PDO::PARAM_STR);
             $consulta->bindValue(':idDeMesa',$this->unaMesa->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':fechaDeOrden',$this->fechaDeOrden->format("y-m-d"),PDO::PARAM_STR);
             $consulta->bindValue(':estado',$this->GetEstado(),PDO::PARAM_STR);
             $consulta->bindValue(':costoTotal',$this->costoTotal);
+            $consulta->bindValue(':tiempoTotal',$this->tiempoTotal);
             $consulta->bindValue(':rutaDeLaImagen',$this->rutaDeLaImagen);
             $consulta->bindValue(':nombreDeLaImagen',$this->nombreDeLaImagen);
             $estado = $consulta->execute();
@@ -149,7 +150,7 @@ class Orden
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.id = :idDeOrden");
-            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
             $consulta->execute();
             $unaOrden = Orden::CrearUnaOrden($consulta->fetch(PDO::FETCH_ASSOC));
         }
@@ -173,23 +174,6 @@ class Orden
 
         return  $listaDeOrdenes;
     }
-    public static function FiltrarPorIdDeClienteBD($idDeCliente)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDeOrdenes = null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.idDeCliente = :idDeCliente");
-            $consulta->bindValue(':idDeMesa',$idDeCliente,PDO::PARAM_INT);
-            $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $listaDeOrdenes = Orden::CrearLista($data);
-        }
-
-        return  $listaDeOrdenes;
-    }
-
     public static function BuscarPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -359,19 +343,12 @@ class Orden
 
         return  $estado ;
     }
-    private function SetIdCliente($idDeCliente)
-    {
-        $unCliente =  Cliente::BuscarPorIdBD($idDeCliente);
-        $estado  = Orden::SetCliente($unCliente);
-        return $estado;
-    }
-
-    protected function SetCliente($unCliente)
+    protected function SetNombreDelCliente($nombreDelCliente)
     {
         $estado = false;
-        if(isset($unCliente))
+        if(isset($nombreDelCliente))
         {
-            $this->unCliente = $unCliente;
+            $this->nombreDelCliente = $nombreDelCliente;
             $estado = true;
         }
 
@@ -408,12 +385,25 @@ class Orden
     }
     public function GetNombreDelCliente()
     {
-        return  $this->unCliente->GetNombreCompleto();
+        return  $this->nombreDelCliente;
     }
 
     public function GetId()
     {
         return  $this->id;
+    }
+
+    public function GetStrTiempoEstimado()
+    {
+        $mensaje = "No definido";
+
+        if(isset($this->tiempoTotal) 
+        && ($this->tiempoTotal->h > 0 || $this->tiempoTotal->m > 0) )
+        {
+            $mensaje = $this->tiempoTotal->format('%h hours %i minutes');;
+        }
+
+        return  $mensaje;
     }
 
     #Mostrar
@@ -435,9 +425,22 @@ class Orden
 
     public function ToString()
     {
-        return "codigo: ".strtoupper($this->codigo).'<br>';
+        return "Codigo: ".strtoupper($this->codigo).'<br>'.
+        "Tiempo Total De Espera: ".$this->GetStrTiempoEstimado().
+        "Mesa: ".'<br>'.$this->unaMesa->ToString().'<br>';
     }
 
+    public static function ValidarOrdenIngresada($data)
+    {
+        $estado = false;
+        if(isset($data['codigoDeOrden']) && 
+        Orden::BuscarPorCodigoBD($data['codigoDeOrden']) !== null)
+        {
+            $estado = true;
+        }
+
+        return $estado;
+    }
     //  public static function EscribirJson($listaDeOrden,$claveDeArchivo)
     //  {
     //      $estado = false; 

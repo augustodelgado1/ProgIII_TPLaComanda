@@ -92,10 +92,26 @@ class Mesa
     {
         return  Orden::FiltrarPorIdDeMesaBD($this->GetId());
     }
+    public function ObtenerListaDeEncuestas()
+    {
+        $listaDeOrdenes = $this->ObtenerListaDeOrdenes();
+        $listaDeEncuesta = null;
+        if(isset( $listaDeOrdenes) && count($listaDeOrdenes) > 0)
+        {
+            $listaDeEncuesta = [];
 
-   
+            foreach ($listaDeOrdenes as $unaOrden) 
+            {
+                $unaLista = $unaOrden->ObtenerListaDeEncuestas();
+                if(isset($unaLista))
+                {
+                    array_push( $listaDeEncuesta, $unaLista);
+                }
 
-   
+            }
+        }
+        return  $listaDeEncuesta;
+    }
 
     public static function ObtenerListaBD()
     {
@@ -229,6 +245,31 @@ class Mesa
         ."Estado: ".$this->estado.'<br>';
     }
 
+    public static function ValidarMesaYOrden($data)
+    {
+        $estado = false;
+        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+
+        if(in_array($unaOrden,$unaMesa->ObtenerListaDeOrdenes()))
+        {
+            $estado = true;
+        }
+
+        return $estado;
+    }
+   
+    public static function ValidarMesaIngresada($data)
+    {
+        $estado = false;
+        if(isset($data['codigoDeMesa']) &&  
+        Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']) !== null)
+        {
+            $estado = true;
+        }
+
+        return $estado;
+    }
   
 
     //  public static function EscribirJson($listaDeMesa,$claveDeArchivo)

@@ -107,7 +107,7 @@ class PedidoController extends Pedido
     }
 
 
-    public static function CambiarEstadoPreparacion($request, $response, array $args)
+    public static function PreapararUnPedido($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
        
@@ -130,7 +130,7 @@ class PedidoController extends Pedido
         
         return $response;
     }
-    public static function CambiarEstadoListo($request, $response, array $args)
+    public static function TerminarUnPedido($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
        
@@ -142,7 +142,25 @@ class PedidoController extends Pedido
         {
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_FINAL);
             $unPedido->ModificarTiempoDeFinalizacionBD(new DateTime("now"));
-            
+            $unPedido->EvaluarEstadoDelTiempo();
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function CancelarUnPedido($request, $response, array $args)
+    { 
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+       
+        $unPedido = Pedido::BuscarPedidoPorNumeroDePedidoBD($data['numeroDePedido']);
+       
+        if(isset($unPedido))
+        {
+            $unPedido->ModificarEstadoBD(Pedido::ESTADO_CANCELADO);
         }
 
         $response->getBody()->write($mensaje);

@@ -14,18 +14,16 @@ class OrdenController extends Orden
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Hubo error con los parametros al intentar dar de alta un Orden';
         $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
-        // $unCliente = Usuario::BuscarPorIdBD($data['idDeCLiente']);
-        $unaOrden = new Orden();
         File::CrearUnDirectorio('Imagenes');
         File::CrearUnDirectorio('Imagenes/Mesa');
-        $unCliente = null;
+
+        $unaOrden = new Orden();
         if($unaOrden->SetMesa($unaMesa) &&
-          $unaOrden->SetCliente($unCliente))
+          $unaOrden->SetNombreDelCliente($data['nombreDeCliente']))
         {
             $unaOrden->GuardarImagen($_FILES['imagen']['tmp_name'],"Imagenes/Mesa/",$_FILES['imagen']['name']) ;
-            $mensaje = 'la Orden no se pudo dar de alta';
+          
             if($unaOrden->DarDeAlta())
             {
                 $mensaje = 'la Orden se dio de alta <br>'.$unaOrden->ToString();

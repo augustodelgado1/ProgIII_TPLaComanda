@@ -130,21 +130,11 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 	
 });
 
-$app->group('/cliente', function (RouteCollectorProxy $grupoDeRutas) 
-{
-	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->post('[/]',\ClienteController::class.':CargarUno');
-	$grupoDeRutas->put('[/]',\ClienteController::class.':CargarUno');
-	$grupoDeRutas->delete('[/]',\ClienteController::class.':CargarUno');
-	
-});
-
-
 $app->group('/socio', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	$grupoDeRutas->post('[/]',\ClienteController::class.':CargarUno');
-	$grupoDeRutas->put('[/]',\ClienteController::class.':CargarUno');
-	$grupoDeRutas->delete('[/]',\ClienteController::class.':CargarUno');
+	$grupoDeRutas->post('[/]',\UsuarioController::class.':CargarUno');
+	$grupoDeRutas->put('[/]',\UsuarioController::class.':CargarUno');
+	$grupoDeRutas->delete('[/]',\UsuarioController::class.':CargarUno');
 	$grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 });
 
@@ -164,6 +154,9 @@ $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas)
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\PedidoController::class.':CargarUno');
+	$grupoDeRutas->put('/{preparar}',\PedidoController::class.':PrepararUnPedido');
+	$grupoDeRutas->put('/{terminar}',\PedidoController::class.':FinalizarPreparacionDeUnPedido');
+	$grupoDeRutas->put('/{cancelar}',\PedidoController::class.':CancelarUnPedido');
 	
 	
 	$grupoDeRutas->get('[/]',\PedidoController::class.':Listar');

@@ -305,7 +305,7 @@ require_once './db/AccesoDatos.php';
 
         return  $estado;
     }
-    public function ModificarEmailPorDniBD($dni,$email)
+    public static function ModificarEmailPorDniBD($dni,$email)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
@@ -415,7 +415,7 @@ require_once './db/AccesoDatos.php';
         return  $estado ;
     }
 
-    public function SetNombre($nombre)
+    protected function SetNombre($nombre)
     {
         $estado = false;
         if(Usuario::ValidadorStr($nombre))
@@ -459,7 +459,7 @@ require_once './db/AccesoDatos.php';
 
         return $estado;
     }
-    private function SetEstado($estadoDelUsuario)
+    protected function SetEstado($estadoDelUsuario)
     {
         $estado = false;
         if(isset($estado))

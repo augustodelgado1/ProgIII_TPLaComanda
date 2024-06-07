@@ -60,29 +60,13 @@ class Puntuacion
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion as s where s.id = :idDePuntuacion");
-            $consulta->bindValue(':idDePuntuacion',$idDePuntuacion,PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion as p where p.id = :idDePuntuacion");
+            $consulta->bindValue(':idDePuntuacion',$idDePuntuacion,PDO::PARAM_INT);
             $consulta->execute();
             $unPuntuacion = Puntuacion::CrearUnPuntuacion($consulta->fetch(PDO::FETCH_ASSOC));
         }
 
         return  $unPuntuacion;
-    }
-
-    public static function ListarBD()
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDePuntuaciones= null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion");
-            $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $listaDePuntuaciones = Puntuacion::CrearLista($data);
-        }
-
-        return  $listaDePuntuaciones;
     }
     public static function FiltrarPorIdDeEncuestaBD($idDeEncuesta)
     {
@@ -99,6 +83,25 @@ class Puntuacion
         }
 
         return  $listaDePuntuaciones;
+    }
+    public static function FiltrarPorIdDeCategoriaBD($listaDePuntuaciones,$idDeCategoria)
+    {
+        $listaFiltrada = null;
+
+        if(isset($listaDePuntuaciones) && isset($idDeCategoria) && count($listaDePuntuaciones) > 0)
+        {
+            $listaFiltrada =  [];
+
+            foreach($listaDePuntuaciones as $unaPuntuacion)
+            {
+                if($unaPuntuacion->idDeCategoria === $idDeCategoria)
+                {
+                    array_push($listaFiltrada,$unaPuntuacion);
+                }
+            }
+        }
+
+        return  $listaFiltrada;
     }
 
     public static function FiltrarPorEstado($listaDePuntuaciones,$estado)
@@ -119,31 +122,6 @@ class Puntuacion
         }
 
         return  $listaFiltrada;
-    }
-    public static function CantidadDePositivas($listaDePuntuaciones)
-    {
-        $cantidad = -1;
-        $listaFiltrada = Puntuacion::FiltrarPorEstado($listaDePuntuaciones,"positivo");
-
-        if(isset($listaFiltrada))
-        {
-            $cantidad =  count($listaFiltrada);
-        }
-
-        return  $cantidad;
-    }
-
-    public static function CantidadDeNegativas($listaDePuntuaciones)
-    {
-        $cantidad = -1;
-        $listaFiltrada = Puntuacion::FiltrarPorEstado($listaDePuntuaciones,"negativa");
-
-        if(isset($listaFiltrada))
-        {
-            $cantidad =  count($listaFiltrada);
-        }
-
-        return  $cantidad;
     }
 
     #end
@@ -186,37 +164,7 @@ class Puntuacion
         return   $listaDePuntuaciones;
     }
 
-    public static function BuscarPuntuacionPorId($listaDePuntuacions,$id)
-    {
-        $unaPuntuacionABuscar = null; 
-        $index = Puntuacion::ObtenerIndicePorId($listaDePuntuacions,$id);
-        if($index > 0 )
-        {
-            $unaPuntuacionABuscar = $listaDePuntuacions[$index];
-        }
-
-        return  $unaPuntuacionABuscar;
-    }
-
-     public static function ObtenerIndicePorId($listaDePuntuacions,$id)
-    {
-        $index = -1;
-       
-        if(isset($listaDePuntuacions)  && isset($id))
-        {
-            $leght = count($listaDePuntuacions); 
-            for ($i=0; $i < $leght; $i++) { 
-         
-                if($listaDePuntuacions[$i]->id == $id)
-                {
-                    $index = $i;
-                    break;
-                }
-            }
-        }
-
-        return $index;
-    }
+   
 
     public function Equals($unPuntuacion)
     {
