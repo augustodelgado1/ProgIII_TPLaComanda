@@ -3,6 +3,7 @@
 <?php
 
 require_once './Clases/Mesa.php';
+require_once './Clases/Puntuacion.php';
 
 // 9- De las mesas:
 // a- La más usada.
@@ -80,41 +81,50 @@ class MesaController extends Mesa
         return $response;
     }
 
-    private static function ValidarMesaYOrden($data)
+    public static function ListarComentariosPositivosDeLasMesas($request, $response, array $args)
     {
-        $estado = false;
-        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
-        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+        $data = $request->getQueryParams();
+        $listaDeMesas = Mesa::FiltarMesaPuntuadas();
+        
 
-        if(in_array($unaOrden,$unaMesa->ObtenerListaDeOrdenes()))
+
+        $mensaje = "Hubo error en la funcion";
+        if(isset($listaDeMesas))
         {
-            $estado = true;
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeMesas) > 0)
+            {
+                $mensaje = Mesa::MostarComentarios($listaDeMesas);
+            }
         }
 
-        return $estado;
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
     }
-    private static function ValidarOrdenIngresada($data)
+    public static function ListarComentariosNegativosDeLasMesas($request, $response, array $args)
     {
-        $estado = false;
-        if(isset($data['codigoDeOrden']) && 
-        Orden::BuscarPorCodigoBD($data['codigoDeOrden']) !== null)
+        $data = $request->getQueryParams();
+        $listaDeMesas = Mesa::FiltarMesaPuntuadas();
+        
+        if(isset($listaDeMesas))
         {
-            $estado = true;
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeMesas) > 0)
+            {
+                $mensaje = Mesa::MostarComentarios($listaDeMesas);
+            }
         }
 
-        return $estado;
-    }
-    private static function ValidarMesaIngresada($data)
-    {
-        $estado = false;
-        if(isset($data['codigoDeMesa']) &&  
-        Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']) !== null)
-        {
-            $estado = true;
-        }
+        $response->getBody()->write($mensaje);
 
-        return $estado;
+
+        return $response;
     }
+   
+
+   
 }
 
 ?>

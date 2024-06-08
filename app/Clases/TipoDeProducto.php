@@ -31,11 +31,10 @@ class TipoDeProducto
 
     private function SetSector($idDeSector)
     {
-        $unSector =  Sector::BuscarSectorPorIdBD($idDeSector);
         $estado  = false;
-        if(isset( $unSector))
+        if(isset( $idDeSector))
         {
-            $this->idDeSector = $unSector;
+            $this->idDeSector = $idDeSector;
         }
 
         return $estado;
@@ -48,7 +47,7 @@ class TipoDeProducto
         {
             $consulta = $objAccesoDatos->RealizarConsulta("Insert into TipoDeProducto (nombre,idDeSector) values (:nombre,:idDeSector)");
             $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
+            $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
 
@@ -62,7 +61,7 @@ class TipoDeProducto
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as c where c.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as T where t.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);

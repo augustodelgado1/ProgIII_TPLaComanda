@@ -6,7 +6,7 @@ require_once './db/AccesoDatos.php';
 require_once './Clases/File.php';
 require_once './Clases/Mesa.php';
 require_once './Clases/Pedido.php';
-require_once './Clases/Cliente.php';
+require_once './Clases/Encuesta.php';
 
 class Orden 
 {
@@ -72,6 +72,10 @@ class Orden
     public function ObtenerListaDePedidos()
     {
         return  Pedido::FiltrarPedidosPorIdDeOrdenBD($this->id);
+    }
+    public function ObtenerListaDeEncuestas()
+    {
+        return  Encuesta::FiltrarPorIdDeOrdenBD($this->id);
     }
 
     public function ObtenerUnPedidoPendiente()
@@ -219,7 +223,7 @@ class Orden
             $unaOrden->SetId($unArrayAsosiativo['id']);
             $unaOrden->SetCodigo($unArrayAsosiativo['codigo']);
             $unaOrden->SetIdMesa($unArrayAsosiativo['idDeMesa']);
-            // $unaOrden->SetIdCliente($unArrayAsosiativo['idDeCliente']);
+            $unaOrden->SetNombreDelCliente($unArrayAsosiativo['nombreDelCliente']);
             $unaOrden->SetFechaDeOrden($unArrayAsosiativo['fechaDeOrden']);
             $unaOrden->SetCostoTotal($unArrayAsosiativo['costoTotal']);
             $unaOrden->SetImagen($unArrayAsosiativo['rutaDeLaImagen'],$unArrayAsosiativo['nombreDeLaImagen']);
@@ -282,17 +286,9 @@ class Orden
         return $index;
     }
 
-    public function Equals($unaOrden)
-    {
-        $estado = false;
- 
-        if(isset($unaOrden))
-        {
-            $estado =  $unaOrden->id === $this->id;
-        }
-        return  $estado ;
-    }
+    
 
+   
     #Setters
     private function SetId($id)
     {
@@ -428,6 +424,24 @@ class Orden
         return "Codigo: ".strtoupper($this->codigo).'<br>'.
         "Tiempo Total De Espera: ".$this->GetStrTiempoEstimado().
         "Mesa: ".'<br>'.$this->unaMesa->ToString().'<br>';
+    }
+
+    public static function MostarComentariosPorCategoria($listaDeOrdenes,$categoria)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeOrdenes) )
+        {
+            $strLista  = "Ordenes".'<br>';
+            foreach($listaDeOrdenes as $unaOrden)
+            {
+                $strLista .= "Orden: ".strtoupper($unaOrden->codigo).'<br>'.
+                Encuesta::MostrarSoloComentariosPorCategoria($unaOrden->ObtenerListaDeEncuestas(),$categoria).
+                '<br>';
+            }
+        }
+
+        return   $strLista;
     }
 
     public static function ValidarOrdenIngresada($data)

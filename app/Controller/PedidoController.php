@@ -130,7 +130,7 @@ class PedidoController extends Pedido
         
         return $response;
     }
-    public static function TerminarUnPedido($request, $response, array $args)
+    public static function FinalizarPreparacionDeUnPedido($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
        

@@ -12,12 +12,14 @@ class Empleado extends Usuario
     public const ESTADO_SUSPENDIDO = "suspendido";
     private $id;
     private $cargo;
+    private $estado;
    
    
     public function __construct($mail,$clave,$nombre,$apellido,$dni,$cargo) {
         
         parent::__construct($mail,$clave,$nombre,$apellido,$dni,"Empleado");
         $this->cargo = $cargo;
+        $this->estado = Empleado::ESTADO_ACTIVO;
     }
 
     public function ObtenerListaDePedidos()
@@ -38,43 +40,89 @@ class Empleado extends Usuario
         return $cantidad;
     }
 
-    public function ModificarCargoPorDniBD($dni,$idDeCargo)
+   
+    public static function BorrarUnoPorIdBD($idDeEmpleado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unPedido = null;
-        $unCargo = Cargo::BuscarCargoPorIdBD($idDeCargo);
-        $unUsuario = Usuario::ObtenerUnUsuarioPorDniBD($dni);
-     
-        if(isset($unObjetoAccesoDato) && isset($unUsuario) && isset($unCargo))
+        $estado = false;
+        $arrayDeEmpleado = Empleado::ObtenerArrayDeEmpleadoPorId($idDeEmpleado);
+       
+        if(isset($unObjetoAccesoDato) && isset($arrayDeEmpleado))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Empleado as e 
-            SET e.idDeCargo = :idDeCargo 
-            where e.idDeUsuario = :idDeUsuario");
-            $consulta->bindValue(':idDeCargo',$idDeCargo,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeUsuario',$unUsuario->GetId(),PDO::PARAM_INT);
+            parent::BorrarUnoPorIdBD($arrayDeEmpleado['idDeUsuario']);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Empleado as e where e.id = :id");
+            $consulta->bindValue(':id',$idDeEmpleado,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+    
+    public static function ModificarUnEmpleadoBD($idDeEmpleado,$mail,$clave,$nombre,$apellido,$dni,$cargo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        $arrayDeEmpleado = Empleado::ObtenerArrayDeEmpleadoPorId($idDeEmpleado);
+       
+        if(isset($unObjetoAccesoDato) && isset($arrayDeEmpleado))
+        {
+            $estado = Usuario::ModificarUnoBD($arrayDeEmpleado['idDeUsuario'],$mail,$clave,$nombre,$apellido,$dni) == true 
+            && Empleado::ModificarCargoBD($idDeEmpleado,$cargo) == true;
+        }
+
+        return  $estado;
+    }
+
+    public static function ModificarCargoBD($id,$cargo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Empleado` SET cargo = :cargo Where id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':cargo',$cargo,PDO::PARAM_STR);
+            $estado= $consulta->execute();
+        }
+
+        return  $estado;
+    }
+    private static function ModificarEstadoBD($id,$estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Empleado` SET estado = :estado Where id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $estado= $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    private static function ObtenerArrayDeEmpleadoPorId($idDeEmpleado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+       
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Empleado as s where s.id = :idDeEmpleado");
+            $consulta->bindValue(':idDeEmpleado',$idDeEmpleado,PDO::PARAM_INT);
             $consulta->execute();
         }
 
-        return  $unPedido;
+        return  $consulta->fetch(PDO::FETCH_ASSOC);;
     }
 
 
-    public function ObternerListaDePedidosRealizados()
-    {
-        $listaDePedidosRealizados = null;
-        $listaDePedidos =  $this->ObtenerListaDePedidos();
-
-        if(isset($listaDePedidos ))
-        {
-            $listaDePedidosRealizados =  Pedido::FiltrarPorEstado($listaDePedidos,PEDIDO::ESTADO_FINAL);
-        }
-
-        return  $listaDePedidosRealizados;
-    }
+   
 
     public function ToString()
     {
-      
         return 
         "<br>".parent::ToString().
         "Rol de trabajo: ".$this->cargo->GetDescripcion().'<br>'
@@ -120,6 +168,11 @@ class Empleado extends Usuario
         }
 
         return $estado;
+    }
+
+    public static function SuspenderUnoPorIdBD($id)
+    {
+        return   Empleado::ModificarEstadoBD($id,Empleado::ESTADO_SUSPENDIDO);;
     }
 
     public static function ObtenerListaPorCargoBD($unCargo)
@@ -227,46 +280,13 @@ class Empleado extends Usuario
             $unEmpleado->SetId($unArrayAsosiativo['id']);
             $unEmpleado->SetCargo($unArrayAsosiativo['idDeCargo']);
             $unEmpleado->SetFechaDeRegistro(new DateTime($dataUsuario['fechaDeRegistro']));
+            $unEmpleado->SetEstado(['estado']);
           
         }
         
         return $unEmpleado ;
     }
 
-
-    public static function BuscarEmpleadoPorId($listaDeEmpleados,$id)
-    {
-        $unaEmpleadoABuscar = null; 
-        $index = Empleado::ObtenerIndicePorId($listaDeEmpleados,$id);
-        if($index > 0 )
-        {
-            $unaEmpleadoABuscar = $listaDeEmpleados[$index];
-        }
-
-        return  $unaEmpleadoABuscar;
-    }
-
-     public static function ObtenerIndicePorId($listaDeEmpleados,$id)
-    {
-        $index = -1;
-       
-        if(isset($listaDeEmpleados)  && isset($id))
-        {
-            $leght = count($listaDeEmpleados); 
-            for ($i=0; $i < $leght; $i++) { 
-         
-                if($listaDeEmpleados[$i]->id == $id)
-                {
-                    $index = $i;
-                    break;
-                }
-            }
-        }
-
-        return $index;
-    }
-
-    
     public static function ToStringList($listaDeEmpleados)
     {
         $strLista = null; 
@@ -331,6 +351,18 @@ class Empleado extends Usuario
         }
 
         return  $mensaje;
+    }
+
+    protected function SetEstado($estadoDelEmpeado)
+    {
+        $estado = false;
+        if(isset($estado))
+        {
+            $this->estado = $estadoDelEmpeado;
+            $estado = true;
+        }
+
+        return  $estado ;
     }
 
     

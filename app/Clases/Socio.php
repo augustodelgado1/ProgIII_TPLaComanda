@@ -9,14 +9,16 @@ class Socio extends Usuario
 {
     private $id;
 
-    public function __construct($mail,$clave,$nombre,$apellido) {
-        parent::__construct($mail,$clave,$nombre,$apellido,"Socio");
+    public function __construct($mail,$clave,$nombre,$apellido,$dni) {
+        parent::__construct($mail,$clave,$nombre,$apellido,$dni,"Socio");
     }
 
-    public static function DarDeAltaUnSocio($mail,$clave,$nombre,$apellido)
+    public static function DarDeAltaUnSocio($mail,$clave,$nombre,$apellido,$dni)
     {
         $estado = false;
-        $unSocio = new Socio($mail,$clave,$nombre,$apellido);
+        $unSocio = new Socio($mail,$clave,$nombre,$apellido,$dni);
+        $unSocio->AgregarBD();
+
         return $estado;
     }
 
@@ -36,39 +38,64 @@ class Socio extends Usuario
         return $estado;
     }
 
-    
-    public static function BuscarSocioPorIdBD($idDeSocio)
+    public static function BorrarUnoPorIdBD($idDeSocio)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unSocio = null;
+        $estado = false;
+        $arrayDeSocio = Socio::ObtenerArrayDeSocioPorId($idDeSocio);
+       
+        if(isset($unObjetoAccesoDato) && isset($arrayDeSocio))
+        {
+            parent::BorrarUnoPorIdBD($arrayDeSocio['idDeUsuario']);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Socio as s where s.id = :id");
+            $consulta->bindValue(':id',$idDeSocio,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
 
+        return  $estado;
+    }
+    
+    public static function ModificarUnoBD($idDeSocio,$mail,$clave,$nombre,$apellido,$dni)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        $arrayDeSocio = Socio::ObtenerArrayDeSocioPorId($idDeSocio);
+       
+        if(isset($unObjetoAccesoDato) && isset($arrayDeSocio))
+        {
+            $estado = parent::ModificarUnoBD($arrayDeSocio['idDeUsuario'],$mail,$clave,$nombre,$apellido,$dni);
+        }
+
+        return  $estado;
+    }
+
+    private static function ObtenerArrayDeSocioPorId($idDeSocio)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+       
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Socio as s where s.id = :idDeSocio");
             $consulta->bindValue(':idDeSocio',$idDeSocio,PDO::PARAM_STR);
             $consulta->execute();
-            $unSocio = Socio::CrearUnSocio($consulta->fetch(PDO::FETCH_ASSOC));
         }
 
-        return  $unSocio;
+        return  $consulta->fetch(PDO::FETCH_ASSOC);;
     }
 
-    public static function BuscarPorNombreBD($nombre)
+    
+    public static function BuscarSocioPorIdBD($idDeSocio)
     {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unSocio = null;
+        $data = Socio::ObtenerArrayDeSocioPorId($idDeSocio);
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($data))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Socio as s where s.nombre = :nombre");
-            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
-            $consulta->execute();
-            $unSocio = Socio::CrearUnSocio($consulta->fetch(PDO::FETCH_ASSOC));
+            $unSocio = Socio::CrearUnSocio($data);
         }
 
         return  $unSocio;
     }
-
     public static function ListarBD()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -79,8 +106,6 @@ class Socio extends Usuario
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Socio");
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            
-            
             $listaDeSocioes = Socio::CrearLista($data);
         }
 
@@ -96,7 +121,11 @@ class Socio extends Usuario
 
         if(isset($unArrayAsosiativo) && isset($dataUsuario) && $unArrayAsosiativo !== false)
         {
-            $unSocio = new Socio($dataUsuario['email'],$dataUsuario['clave'],$dataUsuario['nombre'],$dataUsuario['apellido']);
+            $unSocio = new Socio($dataUsuario['email'],
+            $dataUsuario['clave'],
+            $dataUsuario['nombre'],
+            $dataUsuario['apellido'],
+            $dataUsuario['dni']);
             $unSocio->SetId($unArrayAsosiativo['id']);
             $unSocio->SetFechaDeRegistro($dataUsuario['fechaDeRegistro']);
         }
@@ -126,49 +155,6 @@ class Socio extends Usuario
         return   $listaDeSocioes;
     }
 
-    public static function BuscarSocioPorId($listaDeSocios,$id)
-    {
-        $unaSocioABuscar = null; 
-        $index = Socio::ObtenerIndicePorId($listaDeSocios,$id);
-        if($index > 0 )
-        {
-            $unaSocioABuscar = $listaDeSocios[$index];
-        }
-
-        return  $unaSocioABuscar;
-    }
-
-     public static function ObtenerIndicePorId($listaDeSocios,$id)
-    {
-        $index = -1;
-       
-        if(isset($listaDeSocios)  && isset($id))
-        {
-            $leght = count($listaDeSocios); 
-            for ($i=0; $i < $leght; $i++) { 
-         
-                if($listaDeSocios[$i]->id == $id)
-                {
-                    $index = $i;
-                    break;
-                }
-            }
-        }
-
-        return $index;
-    }
-
-    public function Equals($unSocio)
-    {
-        $estado = false;
- 
-        if(isset($unSocio))
-        {
-            $estado =  $unSocio->id === $this->id;
-        }
-        return  $estado ;
-    }
-
     #Setters
     private function SetId($id)
     {
@@ -182,14 +168,8 @@ class Socio extends Usuario
         return  $estado ;
     }
 
-    #Getters
-    public function GetId()
-    {
-        return  $this->id;
-    }
-
     #Mostrar
-     public static function ToStringList($listaDeSocioes)
+    public static function ToStringList($listaDeSocioes)
     {
         $strLista = null; 
 
@@ -205,28 +185,8 @@ class Socio extends Usuario
         return   $strLista;
     }
 
-    #Filtrar
+   
 
-    public static function FiltrarPorEstado($listaDePedidos,$estado)
-    {
-        $listaFiltrada = null;
-
-        if(isset($listaDePedidos) && isset($estado) && count($listaDePedidos) > 0)
-        {
-            $listaFiltrada =  [];
-
-            foreach($listaDePedidos as $unPedido)
-            {
-                
-                if(strcasecmp($unPedido->estado,$estado) === 0)
-                {
-                    array_push($listaFiltrada,$unPedido);
-                }
-            }
-        }
-
-        return  $listaFiltrada;
-    }
 
     //  public static function EscribirJson($listaDeSocio,$claveDeArchivo)
     //  {

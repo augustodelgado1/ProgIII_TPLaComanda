@@ -38,6 +38,57 @@ class EmpleadoController
 
         return $response;
     }
+    public static function ModificarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+        $unCargo = Cargo::BuscarCargoPorDescripcionBD($data['cargo']) ;  
+        $mensaje = 'no se pudo dar modificar';
+
+        if(Empleado::ModificarUnEmpleadoBD($data['id'],$data['email'],$data['clave'],$data['nombre'],
+        $data['apellido'],$data['dni'],$unCargo))
+        {
+            $mensaje = 'El Socio se registro correctamente';
+        }
+        
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function BorrarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+
+        $mensaje = 'no se pudo dar de alta';
+
+        if(Empleado::BorrarUnoPorIdBD($data['id']))
+        {
+            $mensaje = 'El Socio se registro correctamente';
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    public static function SuspenderUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+
+        $mensaje = 'no se pudo dar de alta';
+
+        if(Empleado::SuspenderUnoPorIdBD($data['id']))
+        {
+            $mensaje = 'El Usuario se registro correctamente';
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
 
      // d- Cantidad de operaciones de cada uno por separado.
 

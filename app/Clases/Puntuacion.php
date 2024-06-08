@@ -6,29 +6,27 @@ require_once './db/AccesoDatos.php';
 
 class Puntuacion 
 {
+    public const ESTADO_POSITIVO = "positivo";
+    public const ESTADO_NEGATIVO = "negativo";
     private $id;
     private $idDeEncuesta;
-    private $idDeCategoria;
+    private $descripcion;
     private $puntuacion;
     private $estado;
    
-    public function __construct($idDeEncuesta,$idDeCategoria,$puntuacion) 
+    public function __construct($idDeEncuesta,$descripcion,$puntuacion) 
     {
         $this->SetPuntuacion($puntuacion);
-        $this->idDeCategoria = $idDeCategoria;
+        $this->descripcion = $descripcion;
         $this->idDeEncuesta = $idDeEncuesta;
         $this->ObtenerEstado();
     }
     
-    public static function DarDeAltaUnPuntuacion($idDeEncuesta,$idDeCategoria,$puntuacion)
+    public static function DarDeAltaUnPuntuacion($idDeEncuesta,$descripcion,$puntuacion)
     {
         $estado = false;
-        $unPuntuacion = new Puntuacion($idDeEncuesta,$idDeCategoria,$puntuacion);
-      
-        if(empty($unPuntuacion->puntuacion) == false && empty($unPuntuacion->idDeCategoria) == false )
-        {
-            $estado = $unPuntuacion->AgregarBD();
-        }
+        $unPuntuacion = new Puntuacion($idDeEncuesta,$descripcion,$puntuacion);
+        $estado = $unPuntuacion->AgregarBD();
 
         return $estado;
     }
@@ -38,11 +36,13 @@ class Puntuacion
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
+     
+       
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Puntuacion (idDeCategoria,puntuacion,idDeEncuesta,estado) 
-            values (:idDeCategoria,:puntuacion,:idDeEncuesta,:estado)");
-            $consulta->bindValue(':idDeCategoria',$this->idDeCategoria,PDO::PARAM_INT);
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Puntuacion (descripcion,puntuacion,idDeEncuesta,estado) 
+            values (:descripcion,:puntuacion,:idDeEncuesta,:estado)");
+            $consulta->bindValue(':descripcion',$this->descripcion,PDO::PARAM_STR);
             $consulta->bindValue(':puntuacion',$this->puntuacion,PDO::PARAM_INT);
             $consulta->bindValue(':idDeEncuesta',$this->idDeEncuesta,PDO::PARAM_INT);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
@@ -51,23 +51,6 @@ class Puntuacion
 
         return $estado;
     }
-
-    
-    public static function BuscarPuntuacionPorIdBD($idDePuntuacion)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unPuntuacion = null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion as p where p.id = :idDePuntuacion");
-            $consulta->bindValue(':idDePuntuacion',$idDePuntuacion,PDO::PARAM_INT);
-            $consulta->execute();
-            $unPuntuacion = Puntuacion::CrearUnPuntuacion($consulta->fetch(PDO::FETCH_ASSOC));
-        }
-
-        return  $unPuntuacion;
-    }
     public static function FiltrarPorIdDeEncuestaBD($idDeEncuesta)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -75,7 +58,8 @@ class Puntuacion
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion as p where p.idDeEncuesta = :idDeEncuesta");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion 
+            as p where p.idDeEncuesta = :idDeEncuesta");
             $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
@@ -84,17 +68,37 @@ class Puntuacion
 
         return  $listaDePuntuaciones;
     }
-    public static function FiltrarPorIdDeCategoriaBD($listaDePuntuaciones,$idDeCategoria)
-    {
-        $listaFiltrada = null;
 
-        if(isset($listaDePuntuaciones) && isset($idDeCategoria) && count($listaDePuntuaciones) > 0)
+    public static function BuscarPordescripcionBD($listaDePuntuaciones,$descripcion)
+    {
+        $unaPuntuacionBuscar = null;
+
+        if(isset($listaDePuntuaciones) && isset($descripcion) && count($listaDePuntuaciones) > 0)
         {
             $listaFiltrada =  [];
 
             foreach($listaDePuntuaciones as $unaPuntuacion)
             {
-                if($unaPuntuacion->idDeCategoria === $idDeCategoria)
+                if(strcasecmp($unaPuntuacion->descripcion,$descripcion) === 0)
+                {
+                    $unaPuntuacionBuscar = $unaPuntuacion;
+                }
+            }
+        }
+
+        return  $unaPuntuacionBuscar;
+    }
+    public static function FiltrarPordescripcionBD($listaDePuntuaciones,$descripcion)
+    {
+        $listaFiltrada = null;
+
+        if(isset($listaDePuntuaciones) && isset($descripcion) && count($listaDePuntuaciones) > 0)
+        {
+            $listaFiltrada =  [];
+
+            foreach($listaDePuntuaciones as $unaPuntuacion)
+            {
+                if(strcasecmp($unaPuntuacion->descripcion,$descripcion) == 0)
                 {
                     array_push($listaFiltrada,$unaPuntuacion);
                 }
@@ -133,9 +137,9 @@ class Puntuacion
         
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            $unPuntuacion = new Puntuacion($unArrayAsosiativo['descripcion'],
+            $unPuntuacion = new Puntuacion($unArrayAsosiativo['idDeEncuesta'],
             $unArrayAsosiativo['descripcion'],
-            $unArrayAsosiativo['descripcion']);
+            $unArrayAsosiativo['puntuacion']);
             $unPuntuacion->SetId($unArrayAsosiativo['id']);
         }
         
@@ -153,7 +157,6 @@ class Puntuacion
             {
                 $unPuntuacion = Puntuacion::CrearUnPuntuacion($unArray);
                 
-                
                 if(isset($unPuntuacion))
                 {
                     array_push($listaDePuntuaciones,$unPuntuacion);
@@ -162,19 +165,6 @@ class Puntuacion
         }
 
         return   $listaDePuntuaciones;
-    }
-
-   
-
-    public function Equals($unPuntuacion)
-    {
-        $estado = false;
- 
-        if(isset($unPuntuacion))
-        {
-            $estado =  $unPuntuacion->id === $this->id;
-        }
-        return  $estado ;
     }
 
     #Setters
@@ -192,7 +182,9 @@ class Puntuacion
     private function SetPuntuacion($puntuacion)
     {
         $estado = false;
-        if(isset($puntuacion) && $puntuacion >= 0 && $puntuacion <= 10 )
+        if(isset($puntuacion) 
+        && $puntuacion >= 0 
+        && $puntuacion <= 10 )
         {
             $this->puntuacion = $puntuacion;
             $estado = true;
@@ -220,7 +212,7 @@ class Puntuacion
     }
 
     #Mostrar
-     public static function ToStringList($listaDePuntuaciones)
+    public static function ToStringList($listaDePuntuaciones)
     {
         $strLista = null; 
 
@@ -238,7 +230,8 @@ class Puntuacion
 
     public function ToString()
     {
-        return "descripcion: ".'<br>';
+        return "Descripcion: ".$this->descripcion.'<br>'. 
+               "Puntaje: ".$this->puntuacion.'<br>';
     }
 
     //  public static function EscribirJson($listaDePuntuacion,$claveDeArchivo)

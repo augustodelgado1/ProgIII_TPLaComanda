@@ -54,6 +54,27 @@ class Mesa
 
         return  $unMesa;
     }
+    public static function FiltarMesaPuntuadas()
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeMesas = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT m.id , m.codigo , m.estado 
+            FROM `mesa` as m 
+            JOIN `orden` as o ON o.idDeMesa = m.id 
+            JOIN `encuesta` as e ON e.idDeOrden = o.id 
+            JOIN `puntuacion` as p ON p.idDeEncuesta = e.id 
+            WHERE p.descripcion = :descripcion");
+            $consulta->bindValue(':descripcion',"Mesa",PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeMesas = Mesa::CrearLista($data);
+        }
+
+        return  $listaDeMesas;
+    }
     public static function BuscarMesaPorIdBD($idDeMesa)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -135,6 +156,7 @@ class Mesa
     {
         $unMesa = null;
 
+   
         if(isset($data))
         {
             $unaMesa = new Mesa();
@@ -148,7 +170,7 @@ class Mesa
     private static function CrearLista($data)
     {
         $listaDeEmpleados = null;
-        if(isset($data))
+        if(isset($data) && $data !== false)
         {
             $listaDeEmpleados = [];
 
@@ -237,11 +259,27 @@ class Mesa
 
         return   $strLista;
     }
+    public static function MostarComentarios($listaDeMesas)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeMesas) )
+        {
+            $strLista  = "Mesas".'<br>';
+            foreach($listaDeMesas as $unaMesa)
+            {
+                $strLista .= $unaMesa->ToString().'<br>'.
+                Orden::MostarComentariosPorCategoria($unaMesa->ObtenerListaDeOrdenes(),"Mesa");
+            }
+        }
+
+        return   $strLista;
+    }
 
     public function ToString()
     {
         return 
-        "Codigo: ".strtoupper($this->codigo).'<br>'
+        "Mesa: ".strtoupper($this->codigo).'<br>'
         ."Estado: ".$this->estado.'<br>';
     }
 

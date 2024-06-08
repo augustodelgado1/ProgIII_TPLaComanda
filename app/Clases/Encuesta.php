@@ -4,39 +4,36 @@
 
 require_once './db/AccesoDatos.php';
 require_once './Clases/Puntuacion.php';
+require_once './Clases/Orden.php';
 
 class Encuesta 
 {
     private $id;
+    private $nombreDelCliente;
     private $unaOrden;
     private $mensaje;
     private $estado;
    
-    public function __construct($unaOrden,$mensaje) 
+    public function __construct($unaOrden,$nombreDelCliente,$mensaje) 
     {
         $this->SetMensaje($mensaje);
         $this->unaOrden = $unaOrden;
         // $this->ObtenerEstado();
     }
 
+   
+
+
     public function ObtenerListaDePuntuaciones()
     {
        return Puntuacion::FiltrarPorIdDeEncuestaBD($this->id);
     }
-
-    
-
-    public static function DarDeAltaUnEncuesta($idDeOrden,$mensaje)
+    public static function DarDeAlta($idDeOrden,$nombreDelCliente,$mensaje)
     {
-        $estado = false;
-        $unEncuesta = new Encuesta($idDeOrden,$mensaje);
-      
-        if(empty($unEncuesta->mensaje) == false )
-        {
-            $estado = $unEncuesta->AgregarBD();
-        }
+        $unaEncuesta = new Encuesta($idDeOrden,$nombreDelCliente,$mensaje);
+        $idDeEncuesta = $unaEncuesta->AgregarBD();
 
-        return $estado;
+       return $idDeEncuesta;
     }
 
     #BaseDeDatos
@@ -44,17 +41,20 @@ class Encuesta
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
+        $idDeEncuesta = null;
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Encuesta (mensaje,idDeOrden,estado) 
-            values (:mensaje,:idDeOrden,:estado)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Encuesta (nombreDelCliente,mensaje,idDeOrden,estado) 
+            values (:nombreDelCliente,:mensaje,:idDeOrden,:estado)");
             $consulta->bindValue(':mensaje',$this->mensaje,PDO::PARAM_STR);
+            $consulta->bindValue(':nombreDelCliente',$this->mensaje,PDO::PARAM_STR);
             $consulta->bindValue(':idDeOrden',$this->unaOrden->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
-            $estado = $consulta->execute();
+            $consulta->execute();
+            $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
         }
 
-        return $estado;
+        return $idDeEncuesta;
     }
     public static function BuscarEncuestaPorIdBD($idDeEncuesta)
     {
@@ -64,12 +64,28 @@ class Encuesta
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta as e where e.id = :idDeEncuesta");
-            $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
             $consulta->execute();
             $unEncuesta = Encuesta::CrearUnEncuesta($consulta->fetch(PDO::FETCH_ASSOC));
         }
 
         return  $unEncuesta;
+    }
+    public static function FiltrarPorIdDeOrdenBD($idDeOrden)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeEncuestas = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta as e where e.idDeOrden = :idDeOrden");
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $consulta->execute();
+            $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
+          
+        }
+
+        return  $listaDeEncuestas;
     }
 
     public static function ListarBD()
@@ -96,7 +112,8 @@ class Encuesta
         
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            $unEncuesta = new Encuesta($unArrayAsosiativo['idDeOrden'],$unArrayAsosiativo['mensaje']);
+            $unEncuesta = new Encuesta($unArrayAsosiativo['idDeOrden'],$unArrayAsosiativo['nombreDelCliente'],
+            $unArrayAsosiativo['mensaje']);
             $unEncuesta->SetId($unArrayAsosiativo['id']);
             $unEncuesta->SetEstado($unArrayAsosiativo['estado']);
         }
@@ -209,9 +226,37 @@ class Encuesta
     }
 
     #Getters
-    public function Getmensaje()
+    public function GetMensaje()
     {
         return  $this->mensaje;
+    }
+    public function GetNombreDelCliente()
+    {
+        return  $this->nombreDelCliente;
+    }
+    public function GetStrPuntajeDeMesa()
+    {
+       $unaPuntuacion = Puntuacion::BuscarPorDescripcionBD($this->ObtenerListaDePuntuaciones(),"Mesa");
+       $mensaje = "no se encontraron puntuaciones";
+        if(isset( $unaPuntuacion))
+        {
+            $mensaje = $unaPuntuacion->ToString();
+        }
+        
+        return  $mensaje;
+    }
+
+    public function GetStrPuntuacion()
+    {
+        $listaDePuntuaciones = $this->ObtenerListaDePuntuaciones();
+
+        $mensaje = "no se encontraron puntuaciones";
+        if(isset($listaDePuntuaciones) && count($listaDePuntuaciones) > 0)
+        {
+            $mensaje = Puntuacion::ToStringList($listaDePuntuaciones);
+        }
+
+        return  $mensaje ;
     }
 
     public function GetId()
@@ -226,10 +271,35 @@ class Encuesta
 
         if(isset($listaDeEncuestaes) )
         {
-            $strLista = "Encuestaes".'<br>';
+            $strLista = "Encuestas".'<br>';
             foreach($listaDeEncuestaes as $unEncuesta)
             {
+              
                 $strLista .= $unEncuesta->ToString().'<br>';
+            }
+        }
+
+        return   $strLista;
+    }
+     public static function MostrarSoloComentariosPorCategoria($listaDeEncuestaes,$categoria)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeEncuestaes) )
+        {
+            $strLista = "Comentarios".'<br>';
+            foreach($listaDeEncuestaes as $unEncuesta)
+            {
+                $unaPuntuacion = Puntuacion::BuscarPorDescripcionBD($unEncuesta->ObtenerListaDePuntuaciones(),$categoria);
+
+                if(isset($unaPuntuacion))
+                {
+                    $strLista .= "Nombre del Cliente: ".$unEncuesta->nombreDelCliente.'<br>'.
+                    "Puntuacion".'<br>'.
+                    $unaPuntuacion->ToString().
+                    "Comentario: ".$unEncuesta->mensaje.'<br>'.'<br>';
+                }
+                
             }
         }
 
@@ -238,7 +308,11 @@ class Encuesta
 
     public function ToString()
     {
-        return "mensaje: ".$this->mensaje.'<br>';
+        return
+        "Nombre del Cliente: ".$this->nombreDelCliente.'<br>'.
+        $this->GetStrPuntuacion(). 
+        "Comentario: ".$this->mensaje.'<br>';
+       
     }
 
     //  public static function EscribirJson($listaDeEncuesta,$claveDeArchivo)

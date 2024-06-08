@@ -4,7 +4,7 @@
 
 require_once './db/AccesoDatos.php';
 
- class Usuario 
+abstract class Usuario 
 {
     private $id;
     private $mail;
@@ -14,9 +14,6 @@ require_once './db/AccesoDatos.php';
     private $apellido;
     private $fechaDeRegistro;
     private $dni;
-    private $estado;
-
-    
 
    
     public function __construct($mail,$clave,$nombre,$apellido,$dni,$rol = null) {
@@ -27,7 +24,6 @@ require_once './db/AccesoDatos.php';
         $this->SetRol($rol);
         $this->SetDni($dni);
         $this->fechaDeRegistro = new DateTime('now') ;
-        $this->estado = "activo"; 
     }
 
     public static function GetListaDeEmpleados()
@@ -45,43 +41,43 @@ require_once './db/AccesoDatos.php';
 
  
 
-    protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
-    {
-        $unUsuario  = null;
+    // protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
+    // {
+    //     $unUsuario  = null;
        
-        if(isset($unArrayAsosiativo))
-        {
-            $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
-            $unArrayAsosiativo['apellido'],  $unArrayAsosiativo['rol']);
-            $unUsuario->SetId($unArrayAsosiativo['id']);
-           if(isset($unArrayAsosiativo['fechaDeRegistro']))
-           {
-             $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
-           }
-            $unUsuario->SetEstado($unArrayAsosiativo['estado']);
-        }
+    //     if(isset($unArrayAsosiativo))
+    //     {
+    //         $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
+    //         $unArrayAsosiativo['apellido'],  $unArrayAsosiativo['rol']);
+    //         $unUsuario->SetId($unArrayAsosiativo['id']);
+    //        if(isset($unArrayAsosiativo['fechaDeRegistro']))
+    //        {
+    //          $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
+    //        }
+    //         $unUsuario->SetEstado($unArrayAsosiativo['estado']);
+    //     }
        
-        return $unUsuario;
-    }
+    //     return $unUsuario;
+    // }
 
-    protected static function CrearLista($data)
-    {
-        $listaDeUsuarios = null;
-        if(isset($data))
-        {
-            $listaDeUsuarios = [];
-            foreach($data as $unArray)
-            {
-                $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($unArray);
-                if(isset($unUsuario))
-                {
-                    array_push($listaDeUsuarios,$unUsuario);
-                }
-            }
-        }
+    // protected static function CrearLista($data)
+    // {
+    //     $listaDeUsuarios = null;
+    //     if(isset($data))
+    //     {
+    //         $listaDeUsuarios = [];
+    //         foreach($data as $unArray)
+    //         {
+    //             $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($unArray);
+    //             if(isset($unUsuario))
+    //             {
+    //                 array_push($listaDeUsuarios,$unUsuario);
+    //             }
+    //         }
+    //     }
 
-        return   $listaDeUsuarios;
-    }
+    //     return   $listaDeUsuarios;
+    // }
     protected function AgregarBD()
     {
         $idDeUsuario = null;
@@ -89,8 +85,8 @@ require_once './db/AccesoDatos.php';
 
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,nombre,apellido,dni,estado,rol) 
-            values (:email,:clave,:fechaDeRegistro,:nombre,:apellido,:dni,:estado,:rol)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,nombre,apellido,dni,rol) 
+            values (:email,:clave,:fechaDeRegistro,:nombre,:apellido,:dni,:rol)");
             $consulta->bindValue(':email',$this->mail,PDO::PARAM_STR);
             $consulta->bindValue(':clave',$this->clave,PDO::PARAM_STR);
             $consulta->bindValue(':rol',$this->rol,PDO::PARAM_STR);
@@ -98,7 +94,6 @@ require_once './db/AccesoDatos.php';
             $consulta->bindValue(':apellido',$this->apellido,PDO::PARAM_STR);
             $consulta->bindValue(':fechaDeRegistro',$this->fechaDeRegistro->format('y-m-d H:i:s'),PDO::PARAM_STR);
             $consulta->bindValue(':dni',$this->dni,PDO::PARAM_STR);
-            $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $consulta->execute();
             $idDeUsuario =  $objAccesoDatos->ObtenerUltimoID();
         }
@@ -147,58 +142,46 @@ require_once './db/AccesoDatos.php';
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-
-            
         }
 
         return  $data;
     }
-   
-    public static function ObtenerUnUsuarioPorDniBD($dni)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data= null;
-
-        if(isset($unObjetoAccesoDato) && isset($dni))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.dni = :dni");
-            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-        }
-
-        return  $data;
-    }
-   
-    public static function BorrarUnUsuarioPorDniBD($dni)
+    public static function BorrarUnoPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
 
-        if(isset($unObjetoAccesoDato) && isset($dni))
+        if(isset($unObjetoAccesoDato) && isset($id))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Usuario as u where u.dni = :dni");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Usuario as u where u.id = :id");
+            $consulta->bindValue(':dni',$id,PDO::PARAM_INT);
+            $estado= $consulta->execute();
+        }
+
+        return  $estado;
+    }
+    public static function ModificarUnoBD($id,$mail,$clave,$nombre,$apellido,$dni)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `usuario` 
+            SET `email`= :mail,`clave`= :clave,`nombre`= :nombre,`apellido`= :apellido,`dni`= :dni 
+            Where id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':mail',$mail,PDO::PARAM_STR);
+            $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
+            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta->bindValue(':apellido',$apellido,PDO::PARAM_STR);
             $consulta->bindValue(':dni',$dni,PDO::PARAM_STR);
             $estado= $consulta->execute();
         }
 
         return  $estado;
     }
-    public static function SuspenderUnUsuarioPorDniBD($dni)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado= false;
-        if(isset($unObjetoAccesoDato) && isset($dni))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u SET u.estado = :estado
-            where u.dni = :dni");
-            $consulta->bindValue(':dni',$dni,PDO::PARAM_STR);
-            $consulta->bindValue(':estado',"Suspendido",PDO::PARAM_STR);
-            $estado = $consulta->execute();  
-        }
-
-        return  $estado;
-    }
+   
    
  
 
@@ -237,92 +220,7 @@ require_once './db/AccesoDatos.php';
 
     //Modificar
 
-    public function ModificarDniPorDniBD($dniAnterior,$dniNuevo)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-     
-        if(isset($unObjetoAccesoDato) && isset($dniAnterior) && Usuario::ValidadorDni($dniNuevo))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
-            SET u.dni = :dniNuevo 
-            where u.dni = :dni");
-            $consulta->bindValue(':dniNuevo',$dniNuevo,PDO::PARAM_STR);
-            $consulta->bindValue(':dni',$dniAnterior,PDO::PARAM_INT);
-            $estado =  $consulta->execute();
-        }
-
-        return  $estado;
-    }
-    public function ModificarNombrePorDniBD($dni,$nombre)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-     
-        if(isset($unObjetoAccesoDato) && isset($dni) && Usuario::ValidadorStr($nombre))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
-            SET u.nombre = :nombre 
-            where u.dni = :dni");
-            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
-            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
-            $estado =  $consulta->execute();
-        }
-
-        return  $estado;
-    }
-    public function ModificarApellidoPorDniBD($dni,$apellido)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-     
-        if(isset($unObjetoAccesoDato) && isset($dni) && Usuario::ValidadorStr($apellido))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
-            SET u.apellido = :apellido 
-            where u.dni = :dni");
-            $consulta->bindValue(':apellido',$apellido,PDO::PARAM_STR);
-            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
-            $estado =  $consulta->execute();
-        }
-
-        return  $estado;
-    }
-    public function ModificarClavePorDniBD($dni,$clave)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-     
-        if(isset($unObjetoAccesoDato) && isset($dni) && Usuario::ValidadorClave(array("clave" => $clave)))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
-            SET u.clave = :clave 
-            where u.dni = :dni");
-            $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
-            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
-            $estado = $consulta->execute();
-        }
-
-        return  $estado;
-    }
-    public static function ModificarEmailPorDniBD($dni,$email)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-     
-        if(isset($unObjetoAccesoDato) && isset($dni) && Usuario::ValidadorEmail(array("email" => $email)))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Usuario as u 
-            SET u.email = :email 
-            where u.dni = :dni");
-            $consulta->bindValue(':email',$email,PDO::PARAM_STR);
-            $consulta->bindValue(':dni',$dni,PDO::PARAM_INT);
-            $estado = $consulta->execute();
-        }
-
-        return  $estado;
-    }
-
+    
     public static function CrearUnCodigoAlfaNumerico($cantidadDeCaracteres)
     {
         $codigoAlfaNumerico = null;
@@ -362,8 +260,7 @@ require_once './db/AccesoDatos.php';
     {
         return      "Email: ".$this->mail.'<br>'.
           "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
-        "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>'.
-        "Estado: ".$this->estado.'<br>';
+        "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>';
     }
 
     public function Equals($unUsuario)
@@ -459,17 +356,7 @@ require_once './db/AccesoDatos.php';
 
         return $estado;
     }
-    protected function SetEstado($estadoDelUsuario)
-    {
-        $estado = false;
-        if(isset($estado))
-        {
-            $this->estado = $estadoDelUsuario;
-            $estado = true;
-        }
-
-        return  $estado ;
-    }
+    
 
     //Getters
     public function GetMail()
@@ -545,21 +432,6 @@ require_once './db/AccesoDatos.php';
         return $estado;
     }
     
-    public static function ToStringList($listaDeUsuarios)
-    {
-        $strLista = null; 
-
-        if(isset($listaDeUsuarios) )
-        {
-            $strLista = "Usuarios".'<br>';
-            foreach($listaDeUsuarios as $unUsuario)
-            {
-                $strLista .= $unUsuario->ToString().'<br>';
-            }
-        }
-
-        return   $strLista;
-    }
     public static function ValidadorEmail($data)
     {
         $estado = false; 
