@@ -8,20 +8,70 @@ require_once 'Sector.php';
 class Cargo 
 {
     private $id;
-    private $trabajo;
+    private $descripcion;
     private $idDeSector;
 
-   
-    public function __construct($id,$trabajo,$idDeSector) {
-        $this->id = $id;
-        $this->trabajo = $trabajo;
-        $this->idDeSector = $idDeSector;
+
+    public function __construct($descripcion,$unSector) {
+        $this->descripcion = $descripcion;
+        $this->idDeSector = $unSector;
+    }
+    public function AgregarBD()
+    {
+        $estado = false;
+        $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
+        $idDeEncuesta = null;
+        if(isset($objAccesoDatos))
+        {
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Cargo (descripcion,idDeSector) 
+            values (:descripcion,:idDeSector)");
+            $consulta->bindValue(':descripcion',$this->descripcion,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
+            $consulta->execute();
+            $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
+        }
+
+        return $idDeEncuesta;
+    }
+
+    public static function ModificarUnoBD($id,$descripcion,$idDeSector)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Cargo as c
+            SET `descripcion`= :descripcion,
+            `idDeSector`= :idDeSector,
+            Where c.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_STR);
+            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    public static function BorrarUnoPorIdBD($id)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Cargo as c where c.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
     private function SetSector($idDeSector)
     {
-        $unSector =  Sector::BuscarSectorPorIdBD($idDeSector);
         $estado  = false;
-        if(isset( $unSector))
+        if(isset( $idDeSector))
         {
             $this->idDeSector = $idDeSector;
         }
@@ -105,10 +155,10 @@ class Cargo
         
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            $unCargo = new Cargo($unArrayAsosiativo['id'],
-            $unArrayAsosiativo['descripcion'],$unArrayAsosiativo['idDeSector']);
+            $unCargo = new Cargo($unArrayAsosiativo['descripcion'],$unArrayAsosiativo['idDeSector']);
             $unCargo->SetId($unArrayAsosiativo['id']);
             $unCargo->SetSector($unArrayAsosiativo['idDeSector']);
+            $unCargo->SetDescripcion( $unArrayAsosiativo['descripcion']);
         }
         
         return $unCargo ;
@@ -134,26 +184,6 @@ class Cargo
 
         return   $listaDeRoles;
     }
-  
-     public static function ObtenerIndicePorId($listaDeCargos,$id)
-    {
-        $index = -1;
-       
-        if(isset($listaDeCargos)  && isset($id))
-        {
-            $leght = count($listaDeCargos); 
-            for ($i=0; $i < $leght; $i++) { 
-         
-                if($listaDeCargos[$i]->id === $id)
-                {
-                    $index = $i;
-                    break;
-                }
-            }
-        }
-
-        return $index;
-    }
 
     public function Equals($unCargo)
     {
@@ -178,6 +208,17 @@ class Cargo
 
         return  $estado ;
     }
+    private function SetDescripcion($descripcion)
+    {
+        $estado = false;
+        if(isset($descripcion))
+        {
+            $this->descripcion = $descripcion;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
 
    
 
@@ -189,7 +230,7 @@ class Cargo
     }
     public function GetDescripcion()
     {
-        return  $this->trabajo;
+        return  $this->descripcion;
     }
     public function GetSector()
     {

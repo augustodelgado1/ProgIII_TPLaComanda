@@ -19,10 +19,14 @@ class Mesa
 
     
 
-    
+    public function __construct($codigo) 
+    {
+        $this->$codigo = $codigo;
+        $this->estado = 'cerrada';
+    }
 
     #BaseDeDatos
-    protected function AgregarBD()
+    public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
@@ -35,6 +39,44 @@ class Mesa
         }
 
         return $estado;
+    }
+
+    // private $id;
+    // private $codigo;
+    // private $estado;
+    public static function ModificarUnoBD($id,$codigo,$estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Mesa as m
+            SET `codigo`= :codigo,
+                `estado`= :estado,
+            Where m.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':nombreDelCliente',$codigo,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    public static function BorrarUnoPorIdBD($id)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Mesa as m where m.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
    
 
@@ -157,12 +199,11 @@ class Mesa
 
     private static function CrearUnaMesa($data)
     {
-        $unMesa = null;
+        $unaMesa = null;
 
-   
         if(isset($data))
         {
-            $unaMesa = new Mesa();
+            $unaMesa = new Mesa($data['codigo']);
             $unaMesa->SetId($data['id']);
             $unaMesa->SetCodigo($data['codigo']);
             $unaMesa->SetEstado($data['estado']);
@@ -294,7 +335,7 @@ class Mesa
         $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
 
-        if(in_array($unaOrden,$unaMesa->ObtenerListaDeOrdenes()))
+        if($unaOrden->ValidarOrdenIngresada( $unaMesa->GetId()))
         {
             $estado = true;
         }

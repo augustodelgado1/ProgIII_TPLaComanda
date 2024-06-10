@@ -2,10 +2,10 @@
 
 <?php
 
-require_once './Clases/TipoDeProducto.php';
 require_once './Clases/Sector.php';
+require_once './Clases/Cargo.php';
 
-class TipoDeProductoController 
+class CargoController 
 {
   
     public static function CargarUno($request, $response, array $args)
@@ -13,14 +13,13 @@ class TipoDeProductoController
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un TipoDeProducto';
         $unSector = Sector::BuscarPorDescripcionBD($data['sector']) ;   
-        
-
-        
+    
         if(isset($data) && isset($unSector))
         {
             $mensaje = 'no se pudo dar de alta';
-
-            if(TipoDeProducto::DarDeAlta($data['nombre'],$unSector))
+            $unCargo = new Cargo($data['descripcion'],$unSector->GetId());
+            
+            if($unCargo->AgregarBD())
             {
                 $mensaje = 'El TipoDeProducto se dio de alta';
             }
@@ -39,7 +38,7 @@ class TipoDeProductoController
        
         $mensaje = 'no se pudo dar modificar';
 
-        if(TipoDeProducto::ModificarUnoBD($data['id'],$data['descripcion'],$data['idDeSector']))
+        if(Cargo::ModificarUnoBD($data['id'],$data['descripcion'],$data['idDeSector']))
         {
             $mensaje = 'El Socio se registro correctamente';
         }
@@ -55,9 +54,9 @@ class TipoDeProductoController
 
         $mensaje = 'no se pudo dar de alta';
 
-        if(TipoDeProducto::BorrarUnoPorIdBD($data['id']))
+        if(Cargo::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'El Cargo se registro correctamente';
         }
 
         $response->getBody()->write($mensaje);

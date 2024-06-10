@@ -3,7 +3,7 @@
 <?php
 require_once './Clases/Pedido.php';
 
-class SectorController extends Sector
+class SectorController
 {
   
     public static function CargarUno($request, $response, array $args)
@@ -15,16 +15,48 @@ class SectorController extends Sector
         {
             $mensaje = 'no se pudo dar de alta';
            
-            $unSector = new Sector();
+            $unSector = new Sector($data['descripcion']);
 
-            if($unSector->SetDescripcion($data['descripcion']) 
-            && $unSector->AgregarBD())
+            if($unSector->AgregarBD())
             {
                 $mensaje = 'El Sector se dio de alta';
             }
         }
 
         $response->getBody()->write($mensaje);
+        return $response;
+    }
+
+    public static function ModificarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'no se pudo dar modificar';
+
+        if(Sector::ModificarUnoBD($data['id'],$data['descripcion']))
+        {
+            $mensaje = 'El Socio se registro correctamente';
+        }
+        
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function BorrarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+
+        $mensaje = 'no se pudo dar de alta';
+
+        if(Sector::BorrarUnoPorIdBD($data['id']))
+        {
+            $mensaje = 'El Socio se registro correctamente';
+        }
+
+        $response->getBody()->write($mensaje);
+
+
         return $response;
     }
 

@@ -1,37 +1,29 @@
 
 
 <?php
+require_once './Clases/Pedido.php';
 
-require_once './Clases/TipoDeProducto.php';
-require_once './Clases/Sector.php';
-
-class TipoDeProductoController 
+class PuntuacionController 
 {
-  
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un TipoDeProducto';
-        $unSector = Sector::BuscarPorDescripcionBD($data['sector']) ;   
-        
-
-        
-        if(isset($data) && isset($unSector))
+        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Sector';
+        if(isset($data))
         {
             $mensaje = 'no se pudo dar de alta';
+           
 
-            if(TipoDeProducto::DarDeAlta($data['nombre'],$unSector))
+            if(Puntuacion::DarDeAltaUnPuntuacion($data['idDeEncuesta'],$data['descripcion'],$data['puntuacion']))
             {
-                $mensaje = 'El TipoDeProducto se dio de alta';
+                $mensaje = 'El Sector se dio de alta';
             }
         }
 
-
         $response->getBody()->write($mensaje);
-
-
         return $response;
     }
+
 
     public static function ModificarUno($request, $response, array $args)
     {
@@ -39,7 +31,7 @@ class TipoDeProductoController
        
         $mensaje = 'no se pudo dar modificar';
 
-        if(TipoDeProducto::ModificarUnoBD($data['id'],$data['descripcion'],$data['idDeSector']))
+        if(Puntuacion::ModificarUnoBD($data['id'],$data['descripcion'],$data['puntuacion'],$data['idDeEncuesta']))
         {
             $mensaje = 'El Socio se registro correctamente';
         }
@@ -55,7 +47,7 @@ class TipoDeProductoController
 
         $mensaje = 'no se pudo dar de alta';
 
-        if(TipoDeProducto::BorrarUnoPorIdBD($data['id']))
+        if(Puntuacion::BorrarUnoPorIdBD($data['id']))
         {
             $mensaje = 'El Socio se registro correctamente';
         }
@@ -65,7 +57,6 @@ class TipoDeProductoController
 
         return $response;
     }
-
    
 }
 

@@ -11,7 +11,7 @@ require_once './Clases/Pedido.php';
 // d- Los cancelados.
 
 
-class PedidoController extends Pedido
+class PedidoController 
 {
   
     public static function CargarUno($request, $response, array $args)
@@ -23,12 +23,11 @@ class PedidoController extends Pedido
         $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']) ;     
 
-
-         
-        if(isset($unProducto ) && isset($unaOrden) &&  $unProducto !== false)
+        if(isset($unProducto ) && isset($unaOrden) )
         {
-           
-            if(Pedido::Alta($unaOrden,$unProducto))
+            $unPedido = new Pedido($unaOrden->GetId(),$unProducto->GetId());
+            
+            if($unPedido->AgregarBD())
             {
                 $mensaje = 'Se dio de alta correctamente';
             }

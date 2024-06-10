@@ -11,16 +11,25 @@ class Producto
     private $tipoDeProducto;
     private $precio;
 
+    public function __construct($nombre,$tipoDeProducto,$precio) 
+    {
+        $this->nombre = $nombre;
+        $this->tipoDeProducto = $tipoDeProducto;
+        $this->precio = $precio;
+    }
+
     public function ToString()
     {
         return 
         "Nombre: ".$this->nombre.'<br>'.
         "Precio: ".$this->precio.'<br>'
-        ."TipoDeProducto: ".$this->tipoDeProducto->GetNombre().'<br>';
+        ."TipoDeProducto: ".$this->GetTipo()->GetDescripcion().'<br>';
     }
 
     
-    protected function AgregarBD()
+
+    
+    public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
@@ -28,14 +37,52 @@ class Producto
         if(isset($objAccesoDatos))
         {
          
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Producto (nombre,idDeTipo,precio) values (:nombre,:tipoDeProducto,:precio)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Producto (nombre,idDeTipo,precio) 
+            values (:nombre,:tipoDeProducto,:precio)");
             $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
-            $consulta->bindValue(':tipoDeProducto',$this->tipoDeProducto->GetId(),PDO::PARAM_INT);
+            $consulta->bindValue(':tipoDeProducto',$this->tipoDeProducto,PDO::PARAM_INT);
             $consulta->bindValue(':precio',$this->precio);
             $estado = $consulta->execute();
         }
 
         return $estado;
+    }
+
+    public static function ModificarUnoBD($id,$nombre,$tipoDeProducto,$precio)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Producto as p
+            SET `nombre`= :nombre,
+            `tipoDeProducto`= :tipoDeProducto,
+            `precio`= :precio,
+            Where p.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta->bindValue(':tipoDeProducto',$tipoDeProducto,PDO::PARAM_INT);
+            $consulta->bindValue(':precio',$precio);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    public static function BorrarUnoPorIdBD($idDeProducto)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Producto as p where p.id = :id");
+            $consulta->bindValue(':id',$idDeProducto,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
     public static function FiltrarPorTipoDeProductoBD($tipo)
     {
@@ -45,7 +92,7 @@ class Producto
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Producto as p where p.idDeTipo = :tipo");
-            $consulta->bindValue(':tipo',$tipo->GetId());
+            $consulta->bindValue(':tipo',$tipo);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $listaDeProductos = Producto::CrearLista($data);
@@ -118,11 +165,9 @@ class Producto
      
         if(isset($unArrayAsosiativo))
         {
-            $unProducto = new Producto();
+            $unProducto = new Producto($unArrayAsosiativo['nombre'],
+            $unArrayAsosiativo['idDeTipo'],$unArrayAsosiativo['precio']);
             $unProducto->SetId($unArrayAsosiativo['id']);
-            $unProducto->SetNombre($unArrayAsosiativo['nombre']);
-            $unProducto->SetPrecio($unArrayAsosiativo['precio']);
-            $unProducto->SetIdTipoDeProducto($unArrayAsosiativo['idDeTipo']);
         }
         
         return $unProducto ;
@@ -174,7 +219,7 @@ class Producto
  
         if(isset($unProducto))
         {
-            $estado =  strcasecmp($unProducto->tipoDeProducto->GetDescripcion(),$this->tipoDeProducto->GetDescripcion())  === 0 &&
+            $estado =  strcasecmp($unProducto->GetTipo()->GetDescripcion(),$this->GetTipo()->GetDescripcion())  === 0 &&
                        strcasecmp($unProducto->nombre,$this->nombre) === 0;
         }
         return  $estado ;
@@ -248,7 +293,7 @@ class Producto
 
     public function GetTipo()
     {
-        return  $this->tipoDeProducto;
+        return TipoDeProducto::BuscarTipoDeProductoPorIdBD($this->tipoDeProducto);
     }
 
     public static function ToStringList($listaDeProducto)

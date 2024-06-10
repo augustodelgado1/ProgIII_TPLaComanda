@@ -13,17 +13,9 @@ class Socio extends Usuario
         parent::__construct($mail,$clave,$nombre,$apellido,$dni,"Socio");
     }
 
-    public static function DarDeAltaUnSocio($mail,$clave,$nombre,$apellido,$dni)
-    {
-        $estado = false;
-        $unSocio = new Socio($mail,$clave,$nombre,$apellido,$dni);
-        $unSocio->AgregarBD();
-
-        return $estado;
-    }
-
+   
     #BaseDeDatos
-    protected function AgregarBD()
+    public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();

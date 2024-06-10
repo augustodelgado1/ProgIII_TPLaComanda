@@ -24,9 +24,9 @@ class EmpleadoController
         $unCargo = Cargo::BuscarCargoPorDescripcionBD($data['cargo']) ;   
         if(isset($data))
         {
-            $mensaje = 'no se pudo dar de alta';
+            $unEmpleado = new Empleado($data['email'],$data['clave'],$data['nombre'],$data['apellido'],$data['dni'],$unCargo->GetId());
 
-            if(Empleado::DarDeAltaUnEmpleado($data['email'],$data['clave'],$data['nombre'],$data['apellido'],$data['dni'],$unCargo))
+            if($unEmpleado->AgregarBD())
             {
                 $mensaje = 'El Empleado se dio de alta';
             }
@@ -75,10 +75,30 @@ class EmpleadoController
     public static function SuspenderUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-
+      
+        $unEmpleado = Empleado::BuscarPorIdBD($data['id']);
         $mensaje = 'no se pudo dar de alta';
 
-        if(Empleado::SuspenderUnoPorIdBD($data['id']))
+        if(isset($unEmpleado)
+        && $unEmpleado->ModificarEstadoBD(Empleado::ESTADO_SUSPENDIDO))
+        {
+            $mensaje = 'El Usuario se registro correctamente';
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function DespedirUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+      
+        $unEmpleado = Empleado::BuscarPorIdBD($data['id']);
+        $mensaje = 'no se pudo dar de alta';
+
+        if(isset($unEmpleado)
+        && $unEmpleado->ModificarEstadoBD(Empleado::ESTADO_DESPEDIDO))
         {
             $mensaje = 'El Usuario se registro correctamente';
         }
@@ -115,6 +135,52 @@ class EmpleadoController
 
         return $response;
     }
+    public static function ListarSuspendidos($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        
+        $mensaje = 'Hubo un error  al intentar listar los Clientes';
+        
+        $listaDeEmpleados = Empleado::FiltrarPorEstadoBD(Empleado::ESTADO_SUSPENDIDO);
+
+
+        if(isset($listaDeEmpleados))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeEmpleados) > 0)
+            {
+                $mensaje = Empleado::ToStringList($listaDeEmpleados);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function ListarBorrados($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        
+        $mensaje = 'Hubo un error  al intentar listar los Clientes';
+        
+        $listaDeEmpleados = Empleado::FiltrarPorEstadoBD(Empleado::ESTADO_DESPEDIDO);
+
+
+        if(isset($listaDeEmpleados))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeEmpleados) > 0)
+            {
+                $mensaje = Empleado::ToStringList($listaDeEmpleados);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
 
    
 
@@ -127,7 +193,7 @@ class EmpleadoController
         if(isset($unEmpleado))
         {
             $listaDePedidos = $unEmpleado->GetSector()->ObtenerListaDePedidos();
-            $listaDePedidosPendientes = Pedido::FiltrarPorEstado($listaDePedidos,"pendiente");
+            $listaDePedidosPendientes = Pedido::FiltrarPorEstado($listaDePedidos,Pedido::ESTADO_INICIAL);
 
             if(isset($listaDePedidosPendientes))
             {
@@ -152,7 +218,7 @@ class EmpleadoController
         $mensaje = 'Hubo un error  al intentar listar los empleados';
         $unCargo= Cargo::BuscarCargoPorDescripcionBD($data['cargo']) ;       
         
-        $listaDeEmpleados = Empleado::ObtenerListaPorCargoBD($unCargo);
+        $listaDeEmpleados = Empleado::FiltrarPorCargoBD($unCargo->GetId());
         
 
         if(isset($listaDeEmpleados))

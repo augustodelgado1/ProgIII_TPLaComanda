@@ -13,6 +13,8 @@ require_once './Controller/OrdenController.php';
 require_once './Controller/PedidoController.php';
 require_once './Controller/EncuestaController.php';
 require_once './Controller/SocioController.php';
+require_once './Controller/CargoController.php';
+require_once './Controller/PuntuacionController.php';
 
 
 require_once './middlewares/ValidadorMiddleware.php';
@@ -45,6 +47,7 @@ use Slim\Routing\RouteCollectorProxy;
 
 $app = AppFactory::create();
 
+date_default_timezone_set('America/Argentina/Buenos_Aires');
 
 $app->group('/prueva', function (RouteCollectorProxy $grupoDeRutas) 
 {
@@ -52,54 +55,9 @@ $app->group('/prueva', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->post('[/]',function($request, $response, array $args) 
 	{
 		
-		$data = $request->getParsedBody();
-		$unTipoDeProducto = TipoDeProducto::BuscarPorNombreBD($data['tipoDeProducto']) ;
-		$listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipoDeProducto) ; 
-        $unProducto = Producto::BuscarPorNombre($listaFiltrada,"milanesa napolitana");
-		$horaEstimada = $data['horaEstimada'];
-        $minutosEstimada = $data['minutosEstimados'];
-
-		$unaOrden = Orden::BuscarPorCodigoBD('0gp2p');
-		$unPedido = Pedido::Alta($unaOrden ,$unProducto);
-		
-		
-		$unPedido->SetTiempoEstimado(DateInterval::createFromDateString($horaEstimada.' hours '.$minutosEstimada .' Minutes'));
-		
-		
 		return $response;
 	}
 );
-});
-
-
-$app->group('/Mesa', function (RouteCollectorProxy $grupoDeRutas) 
-{
-	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->get('[/]',\MesaController::class.':Listar');
-	$grupoDeRutas->group('/comentarios',function (RouteCollectorProxy $grupoDeRutas)
-	{
-		$grupoDeRutas->get('[/]',\MesaController::class.':ListarComentariosPositivosDeLasMesas');
-		$grupoDeRutas->get('/{negativo}',\MesaController::class.':ListarComentariosNegativosDeLasMesas');
-	});
-
-	$grupoDeRutas->group('/estado',function (RouteCollectorProxy $grupoDeRutas)
-	{
-		$grupoDeRutas->post('[/]',\MesaController::class.':SetEstadoInicial');
-		$grupoDeRutas->put('[/]',\MesaController::class.':SetEstadoServirComida');
-		$grupoDeRutas->put('/{pagar}',\MesaController::class.':SetEstadoPagarOrden');
-		$grupoDeRutas->delete('[/]',\MesaController::class.':SetEstadoCerrarMesa');
-	});
-
-
-	$grupoDeRutas->post('[/]',\MesaController::class.':CargarUno');
-
-});
-
-$app->group('/sector', function (RouteCollectorProxy $grupoDeRutas) 
-{
-	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->get('[/]',\SectorController::class.':Listar');
-	$grupoDeRutas->post('[/]',\SectorController::class.':CargarUno');
 });
 
 $app->group('/usuario', function (RouteCollectorProxy $grupoDeRutas) 
@@ -134,7 +92,7 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 	->add(new ValidadorMiddleware(array(Usuario::class.'ValidadorDni'),"Debe ingresar un dni valido"));
 	// ->add(new ValidarUsuarioMiddleware($unUsuario,array(Usuario::class.'ValidadorRolSocio'),"Debe ser socio para ingresar"));
 
-	$grupoDeRutas->delete('/{eliminar}',\EmpleadoController::class.':EliminarUno');
+	$grupoDeRutas->delete('[/]',\EmpleadoController::class.':EliminarUno');
 
 	$grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	//LISTADOS
@@ -160,6 +118,10 @@ $app->group('/producto', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->post('[/]',\ProductoController::class.':CargarUno');
 	$grupoDeRutas->get('[/]',\ProductoController::class.':Listar');
 	$grupoDeRutas->get('/{tipo}',\ProductoController::class.':ListarPorTipoDeProducto');
+
+	$grupoDeRutas->put('[/]',\ProductoController::class.':ModificarUno');
+	$grupoDeRutas->delete('[/]',\ProductoController::class.':BorrarUno');
+	
 });
 
 $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas) 
@@ -199,7 +161,10 @@ $app->group('/orden', function (RouteCollectorProxy $grupoDeRutas)
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\OrdenController::class.':CargarUno');
-	$grupoDeRutas->get('[/]',\OrdenController::class.':ListarUno');
+	$grupoDeRutas->get('/{obtener}',\OrdenController::class.':ListarUno');
+	$grupoDeRutas->put('[/]',\OrdenController::class.':ModificarUno');
+	$grupoDeRutas->delete('[/]',\OrdenController::class.':BorrarUno');
+	$grupoDeRutas->get('[/]',\OrdenController::class.':Listar');
 });
 
 
@@ -207,11 +172,70 @@ $app->group('/encuesta', function (RouteCollectorProxy $grupoDeRutas)
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\EncuestaController::class.':CargarUno');
+	$grupoDeRutas->put('[/]',\EncuestaController::class.':ModificarUno');
+	$grupoDeRutas->delete('[/]',\EncuestaController::class.':BorrarUno');
 	$grupoDeRutas->get('[/]',\EncuestaController::class.':Listar');
 });
 
+$app->group('/cargo', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	$grupoDeRutas->get('[/]',\CargoController::class.':Listar');
+	$grupoDeRutas->post('[/]',\CargoController::class.':CargarUno');
+	$grupoDeRutas->put('[/]',\CargoController::class.':ModificarUno');
+	$grupoDeRutas->delete('[/]',\CargoController::class.':EliminarUno');
+});
+
+$app->group('/tipoDeProducto', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	$grupoDeRutas->get('[/]',\TipoDeProductoController::class.':Listar');
+	$grupoDeRutas->post('[/]',\TipoDeProductoController::class.':CargarUno');
+	$grupoDeRutas->put('[/]',\TipoDeProductoController::class.':ModificarUno');
+	$grupoDeRutas->delete('[/]',\TipoDeProductoController::class.':EliminarUno');
+});
+
+$app->group('/puntuacion', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	$grupoDeRutas->get('[/]',\PuntuacionController::class.':Listar');
+	$grupoDeRutas->post('[/]',\PuntuacionController::class.':CargarUno');
+	$grupoDeRutas->put('[/]',\PuntuacionController::class.':ModificarUno');
+	$grupoDeRutas->delete('[/]',\PuntuacionController::class.':EliminarUno');
+});
+
+$app->group('/sector', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	$grupoDeRutas->get('[/]',\SectorController::class.':Listar');
+	$grupoDeRutas->post('[/]',\SectorController::class.':CargarUno');
+	$grupoDeRutas->put('[/]',\SectorController::class.':ModificarUno');
+	$grupoDeRutas->delete('[/]',\SectorController::class.':EliminarUno');
+});
+
+$app->group('/Mesa', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	$grupoDeRutas->get('[/]',\MesaController::class.':Listar');
+	$grupoDeRutas->group('/comentarios',function (RouteCollectorProxy $grupoDeRutas)
+	{
+		$grupoDeRutas->get('[/]',\MesaController::class.':ListarComentariosPositivosDeLasMesas');
+		$grupoDeRutas->get('/{negativo}',\MesaController::class.':ListarComentariosNegativosDeLasMesas');
+	});
+
+	$grupoDeRutas->group('/estado',function (RouteCollectorProxy $grupoDeRutas)
+	{
+		$grupoDeRutas->post('[/]',\MesaController::class.':SetEstadoInicial');
+		$grupoDeRutas->put('[/]',\MesaController::class.':SetEstadoServirComida');
+		$grupoDeRutas->put('/{pagar}',\MesaController::class.':SetEstadoPagarOrden');
+		$grupoDeRutas->delete('[/]',\MesaController::class.':SetEstadoCerrarMesa');
+	});
 
 
+	$grupoDeRutas->post('[/]',\MesaController::class.':CargarUno');
+	$grupoDeRutas->delete('[/]',\SectorController::class.':EliminarUno');
+
+});
 
 
 $app->run();

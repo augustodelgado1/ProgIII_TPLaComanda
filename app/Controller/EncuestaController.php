@@ -37,6 +37,44 @@ class EncuestaController
 
         return $response;
     }
+    // private $id;
+    // private $nombreDelCliente;
+    // private $idDeOrden;
+    // private $mensaje;
+    // private $estado;
+    public static function ModificarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+        $mensaje = 'no se pudo dar modificar';
+
+        if(Encuesta::ModificarUnoBD($data['id'],$data['nombreDelCliente'],$unaOrden->GetId(),$data['mensaje']))
+        {
+            $mensaje = 'El Socio se registro correctamente';
+        }
+        
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function BorrarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+
+        $mensaje = 'no se pudo dar de alta';
+
+        if(Encuesta::BorrarUnoPorIdBD($data['id']))
+        {
+            $mensaje = 'El Socio se registro correctamente';
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
 
     public static function Listar($request, $response, array $args)
     {

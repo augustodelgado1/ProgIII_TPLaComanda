@@ -46,7 +46,7 @@ class Encuesta implements IFileManejadorCSV
             $consulta = $objAccesoDatos->RealizarConsulta("Insert into Encuesta (nombreDelCliente,mensaje,idDeOrden,estado) 
             values (:nombreDelCliente,:mensaje,:idDeOrden,:estado)");
             $consulta->bindValue(':mensaje',$this->mensaje,PDO::PARAM_STR);
-            $consulta->bindValue(':nombreDelCliente',$this->mensaje,PDO::PARAM_STR);
+            $consulta->bindValue(':nombreDelCliente',$this->nombreDelCliente,PDO::PARAM_STR);
             $consulta->bindValue(':idDeOrden',$this->idDeOrden,PDO::PARAM_INT);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $consulta->execute();
@@ -54,6 +54,43 @@ class Encuesta implements IFileManejadorCSV
         }
 
         return $idDeEncuesta;
+    }
+
+    public static function ModificarUnoBD($id,$nombreDelCliente,$mensaje,$idDeOrden)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato) )
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Encuesta as e
+            SET `nombreDelCliente`= :nombreDelCliente,
+            `mensaje`= :mensaje,
+            `idDeOrden`= :idDeOrden,
+            Where e.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':nombreDelCliente',$nombreDelCliente,PDO::PARAM_STR);
+            $consulta->bindValue(':mensaje',$mensaje,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    public static function BorrarUnoPorIdBD($idDeEncuesta)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Encuesta as e where e.id = :id");
+            $consulta->bindValue(':id',$idDeEncuesta,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
     public static function BuscarEncuestaPorIdBD($idDeEncuesta)
     {

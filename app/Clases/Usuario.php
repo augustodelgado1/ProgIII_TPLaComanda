@@ -25,7 +25,7 @@ abstract class Usuario
         $this->SetDni($dni);
         $this->fechaDeRegistro = new DateTime('now') ;
     }
-    protected function AgregarBD()
+    public function AgregarBD()
     {
         $idDeUsuario = null;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();

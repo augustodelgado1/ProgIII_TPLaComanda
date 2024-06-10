@@ -15,7 +15,7 @@ class Orden
     private $id;
     private $codigo;
     private $nombreDelCliente;
-    private $unaMesa;
+    private $idDeMesa;
     private $fechaDeOrden;
     private $rutaDeLaImagen;
     private $nombreDeLaImagen;
@@ -23,16 +23,16 @@ class Orden
     private $tiempoTotal;
     private $estado;
 
-   
-    protected function DarDeAlta()
+    public function __construct($nombreDelCliente,$idDeMesa,$rutaDeLaImagen = null,$nombreDeLaImagen = null) 
     {
-        $estado = false;
+        $this->idDeMesa = $idDeMesa;
+        $this->nombreDelCliente = $nombreDelCliente;
         $this->fechaDeOrden = new DateTime('now');
         $this->estado = "activa";
         $this->costoTotal = 0;
         $this->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
-        $estado = $this->AgregarBD();
-        return $estado;
+        $this->SetImagen($rutaDeLaImagen,$nombreDeLaImagen);
+        $this->CalcularTiempoTotal();
     }
     private function CalcularCostoTotal()
     {
@@ -122,7 +122,7 @@ class Orden
     #BaseDeDatos
 
 
-    protected function AgregarBD()
+    public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
@@ -132,7 +132,7 @@ class Orden
             values (:codigo,:nombreDelCliente,:idDeMesa,:fechaDeOrden,:costoTotal,:tiempoTotal,:estado,:rutaDeLaImagen,:nombreDeLaImagen)");
             $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_STR);
             $consulta->bindValue(':nombreDelCliente',$this->nombreDelCliente,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeMesa',$this->unaMesa->GetId(),PDO::PARAM_INT);
+            $consulta->bindValue(':idDeMesa',$this->idDeMesa,PDO::PARAM_INT);
             $consulta->bindValue(':fechaDeOrden',$this->fechaDeOrden->format("y-m-d"),PDO::PARAM_STR);
             $consulta->bindValue(':estado',$this->GetEstado(),PDO::PARAM_STR);
             $consulta->bindValue(':costoTotal',$this->costoTotal);
@@ -143,6 +143,42 @@ class Orden
         }
 
         return $estado;
+    }
+    public static function ModificarUnoBD($id,$nombreDelCliente,$idDeMesa)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato) && isset($arrayDeEmpleado))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden as o
+            SET `nombreDelCliente`= :nombreDelCliente,
+            `idDeMesa`= :idDeMesa,
+            `rutaDeLaImagen`= :rutaDeLaImagen,
+            `nombreDeLaImagen`= :nombreDeLaImagen,
+            Where o.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':nombreDelCliente',$nombreDelCliente,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    public static function BorrarUnoPorIdBD($id)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Orden as o where o.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
 
     
@@ -254,14 +290,13 @@ class Orden
         
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            $unaOrden = new Orden();
+            $unaOrden = new Orden($unArrayAsosiativo['nombreDelCliente'],$unArrayAsosiativo['idDeMesa'],
+            $unArrayAsosiativo['rutaDeLaImagen'],$unArrayAsosiativo['nombreDeLaImagen']);
             $unaOrden->SetId($unArrayAsosiativo['id']);
             $unaOrden->SetCodigo($unArrayAsosiativo['codigo']);
-            $unaOrden->SetIdMesa($unArrayAsosiativo['idDeMesa']);
             $unaOrden->SetNombreDelCliente($unArrayAsosiativo['nombreDelCliente']);
             $unaOrden->SetFechaDeOrden($unArrayAsosiativo['fechaDeOrden']);
             $unaOrden->SetCostoTotal($unArrayAsosiativo['costoTotal']);
-            $unaOrden->SetImagen($unArrayAsosiativo['rutaDeLaImagen'],$unArrayAsosiativo['nombreDeLaImagen']);
         }
         
         return $unaOrden ;
@@ -388,17 +423,10 @@ class Orden
 
     private function SetIdMesa($idDeMesa)
     {
-        $unaMesa =  Mesa::BuscarMesaPorIdBD($idDeMesa);
-        $estado  = Orden::SetMesa($unaMesa);
-
-        return $estado;
-    }
-    protected function SetMesa($unaMesa)
-    {
         $estado = false;
-        if(isset($unaMesa))
+        if(isset($idDeMesa))
         {
-            $this->unaMesa = $unaMesa;
+            $this->idDeMesa = $idDeMesa;
             $estado = true;
         }
 
@@ -423,11 +451,15 @@ class Orden
     {
         return  $this->id;
     }
+    public function GetMesa()
+    {
+        return  Mesa::BuscarMesaPorIdBD($this->idDeMesa);
+    }
 
     public function GetStrTiempoEstimado()
     {
         $mensaje = "No definido";
-
+        $this->CalcularTiempoTotal();
         if(isset($this->tiempoTotal) 
         && ($this->tiempoTotal->h > 0 || $this->tiempoTotal->m > 0) )
         {
@@ -458,7 +490,7 @@ class Orden
     {
         $ListaDePedidos = $this->ObtenerListaDePedidos();
 
-        $mensaje = "no se encontraron puntuaciones";
+        $mensaje = "no se encontraron pedidos";
         if(isset($ListaDePedidos) && count($ListaDePedidos) > 0)
         {
             $mensaje = Pedido::ToStringList($ListaDePedidos);
@@ -470,9 +502,9 @@ class Orden
     public function ToString()
     {
         return "Codigo: ".strtoupper($this->codigo).'<br>'.
-        "Pedido:".$this->GetStrPedidos().'<br>'.
+        "Pedido: ".'<br>'.$this->GetStrPedidos().'<br>'.
         "Tiempo Total De Espera: ".$this->GetStrTiempoEstimado().
-        "Mesa: ".'<br>'.$this->unaMesa->ToString().'<br>';
+        "Mesa: ".'<br>'.$this->GetMesa()->ToString().'<br>';
     }
 
     public static function MostarComentariosPorCategoria($listaDeOrdenes,$categoria)

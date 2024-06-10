@@ -8,11 +8,14 @@ class Sector
 {
     private $id;
     private $descripcion;
-   
 
+    public function __construct($descripcion) 
+    {
+        $this->descripcion = $descripcion;
+    }
 
     #BaseDeDatos
-    protected function AgregarBD()
+    public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
@@ -24,6 +27,39 @@ class Sector
         }
 
         return $estado;
+    }
+
+    public static function ModificarUnoBD($id,$descripcion)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato) )
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Sector as s
+            SET `descripcion`= :descripcion,
+            Where s.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    public static function BorrarUnoPorIdBD($idDeSector)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Sector as s where s.id = :id");
+            $consulta->bindValue(':id',$idDeSector,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
 
     
@@ -117,9 +153,8 @@ class Sector
         
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            $unSector = new Sector();
+            $unSector = new Sector($unArrayAsosiativo['descripcion']);
             $unSector->SetId($unArrayAsosiativo['id']);
-            $unSector->SetDescripcion($unArrayAsosiativo['descripcion']);
         }
         
         return $unSector ;

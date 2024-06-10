@@ -7,7 +7,7 @@ require_once './Clases/TipoDeProducto.php';
 require_once './Clases/Orden.php';
 
 
-class ProductoController extends Producto
+class ProductoController 
 {
   
     public static function CargarUno($request, $response, array $args)
@@ -20,12 +20,9 @@ class ProductoController extends Producto
         if(isset($data))
         {
             $mensaje = 'no se pudo dar de alta';
-            $unProducto =  new Producto();
+            $unProducto =  new Producto($data['nombre'],$data['precio'],$unTipoDeProducto->GetId());
            
-            if($unProducto->SetNombre($data['nombre']) &&
-            $unProducto->SetPrecio($data['precio']) &&  
-            $unProducto->SetTipoDeProducto($unTipoDeProducto) 
-            && $unProducto->AgregarBD())
+            if($unProducto->AgregarBD())
             {
                 $mensaje = 'El Producto se dio de alta <br>'.$unProducto->ToString();
             }

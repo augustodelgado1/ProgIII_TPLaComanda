@@ -51,6 +51,41 @@ class TipoDeProducto
         return $estado;
     }
 
+    public static function ModificarUnoBD($id,$descripcion,$idDeSector)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE TipoDeProducto as t
+            SET `descripcion`= :descripcion,
+            `idDeSector`= :idDeSector,
+            Where t.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_STR);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    public static function BorrarUnoPorIdBD($idDeTipoDeProducto)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM TipoDeProducto as t where t.id = :id");
+            $consulta->bindValue(':id',$idDeTipoDeProducto,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
     public static function BuscarTipoDeProductoPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -58,7 +93,7 @@ class TipoDeProducto
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as T where t.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as t where t.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
@@ -198,7 +233,7 @@ class TipoDeProducto
     }
   
     //Getters
-    public function GetNombre()
+    public function GetDescripcion()
     {
         return  $this->nombre;
     }

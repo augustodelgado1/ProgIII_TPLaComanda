@@ -7,16 +7,10 @@ require_once 'Producto.php';
 require_once 'Orden.php';
 require_once 'File.php';
 
-date_default_timezone_set('America/Argentina/Buenos_Aires');
+
 class Pedido 
 {
-    public const ESTADO_INICIAL = "pendiente";
-    public const ESTADO_INTERMEDIO = "en preparacion";
-    public const ESTADO_FINAL = "listo para servir";
-    public const ESTADO_CANCELADO = "cancelado";
-    public const ESTADO_TIEMPO_NOCUMPLIDO = "no cumplido";
-    public const ESTADO_TIEMPO_CUMPLIDO = "cumplido";
-    public const ESTADO_TIEMPO_INDETERMINADO = "indeterminado";
+    
     private $id;
     private $orden;
     private $idDeSector;
@@ -30,27 +24,26 @@ class Pedido
     private $importeTotal;
     private $estado;
     private $estadoDelTiempo;
-   
-    public static function Alta($orden,$unProducto)
-    {
-        
-        $unPedido = new Pedido();
-      
-        if($unPedido->SetProducto($unProducto) && $unPedido->SetOrden($orden) 
-        && $unPedido->ObtenerSector() !== null)
-        {
-            $unPedido->numeroDePedido = rand(100,1000);
-            $unPedido->SetEstado(Pedido::ESTADO_INICIAL);
-            $unPedido->fechaDelPedido = new DateTime("now");
-            $unPedido->estadoDelTiempo = Pedido::ESTADO_TIEMPO_INDETERMINADO;
-            $unPedido->AgregarBD();
-        }
 
-        return $unPedido;
+    public const ESTADO_INICIAL = "pendiente";
+    public const ESTADO_INTERMEDIO = "en preparacion";
+    public const ESTADO_FINAL = "listo para servir";
+    public const ESTADO_CANCELADO = "cancelado";
+    public const ESTADO_TIEMPO_NOCUMPLIDO = "no cumplido";
+    public const ESTADO_TIEMPO_CUMPLIDO = "cumplido";
+    public const ESTADO_TIEMPO_INDETERMINADO = "indeterminado";
+
+    public function __construct($idDeOrden,$idDeProducto) 
+    {
+        $this->numeroDePedido = rand(100,1000);
+        $this->orden = $idDeOrden;
+        $this->unProducto = $idDeProducto;
+        $this->estado = Pedido::ESTADO_INICIAL;
+        $this->fechaDelPedido = new DateTime("now");
+        $this->estadoDelTiempo = Pedido::ESTADO_TIEMPO_INDETERMINADO;
     }
 
-    
-    private function AgregarBD()
+    public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
@@ -61,8 +54,8 @@ class Pedido
             values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:importeTotal,fechaDelPedido,:estado,:estadoDelTiempo)");
             $consulta->bindValue(':numeroDePedido',$this->numeroDePedido,PDO::PARAM_INT);
             $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
-            $consulta->bindValue(':idDeLaOrden',$this->orden->GetId(),PDO::PARAM_INT);
-            $consulta->bindValue(':idDeProducto',$this->unProducto->GetId(),PDO::PARAM_INT);
+            $consulta->bindValue(':idDeLaOrden',$this->orden,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeProducto',$this->unProducto,PDO::PARAM_INT);
             $consulta->bindValue(':importeTotal',$this->importeTotal);
             $consulta->bindValue(':fechaDelPedido',$this->fechaDelPedido->format('y-m-d'),PDO::PARAM_STR);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
@@ -72,10 +65,46 @@ class Pedido
 
         return $estado;
     }
+    public static function ModificarUnoBD($id,$idDeOrden,$idDeProducto,$estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p
+            SET `codigo`= :codigo,
+                `idDeOrden`= :idDeOrden,
+                `idDeProducto`= :idDeProducto,
+            Where p.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeProducto',$idDeProducto,PDO::PARAM_INT);
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    public static function BorrarUnoPorIdBD($id)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Pedido as p where p.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
 
     // $unPedido->ModificarIdDeEmpleadoBD($unEmpleado->GetId());
     // $unPedido->ModificarEstadoBD(Pedido::ESTADO_INTERMEDIO);
-    protected function ModificarIdDeEmpleadoBD($idDeEmpleado)
+    public function ModificarIdDeEmpleadoBD($idDeEmpleado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = null;
@@ -92,7 +121,7 @@ class Pedido
 
         return  $estado;
     }
-    protected function ModificarEstadoBD($estado)
+    public function ModificarEstadoBD($estado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = null;
@@ -109,7 +138,7 @@ class Pedido
 
         return  $estado;
     }
-    protected function ModificarTiempoEstimadoBD($tiempoEstimado)
+    public function ModificarTiempoEstimadoBD($tiempoEstimado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
@@ -126,7 +155,7 @@ class Pedido
 
         return  $estado;
     }
-    protected function EvaluarEstadoDelTiempo()
+    public function EvaluarEstadoDelTiempo()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
@@ -144,7 +173,7 @@ class Pedido
 
         return  $estado;
     }
-        protected function ModificarTiempoDeInicioBD($tiempoInicio)
+        public function ModificarTiempoDeInicioBD($tiempoInicio)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
@@ -161,7 +190,7 @@ class Pedido
 
         return  $estado;
     }
-    protected function ModificarTiempoDeFinalizacionBD($tiempoDeFinalizacion)
+    public function ModificarTiempoDeFinalizacionBD($tiempoDeFinalizacion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = null;
@@ -387,8 +416,8 @@ class Pedido
         if(isset($unPedido))
         {
           
-            $unArray = array($unPedido->id,$unPedido->orden->GetId(),$unPedido->idDeSector,
-            $unPedido->numeroDePedido,$unPedido->unProducto->GetId(),
+            $unArray = array($unPedido->id,$unPedido->orden,$unPedido->idDeSector,
+            $unPedido->numeroDePedido,$unPedido->unProducto,
             $unPedido->fechaDelPedido,$unPedido->tiempoEstimado,$unPedido->tiempoDeInicio,
             $unPedido->tiempoDeFinalizacion,$unPedido->importeTotal,$unPedido->estado,$unPedido->estadoDelTiempo);
 
@@ -426,11 +455,9 @@ class Pedido
 
         if(isset($data))
         {
-            $unaPedido = new Pedido();
+            $unaPedido = new Pedido($data['idDeOrden'],$data['idDeProducto']);
             $unaPedido->SetId($data['id']);
-            $unaPedido->SetIdOrden($data['idDeOrden']);
             $unaPedido->SetEmpleado($data['idDeEmpleado']);
-            $unaPedido->SetIdProducto($data['idDeProducto']);
             $unaPedido->SetNumeroDePedido($data['numeroDePedido']);
 
             if(isset($data['tiempoEstimado']) 
@@ -483,16 +510,6 @@ class Pedido
             }
     
             return  $listafiltrada;
-    }
-    public function Equals($unPedido)
-    {
-        $estado = false;
- 
-        if(isset($unPedido))
-        {
-            $estado =  $unPedido->unProducto->Equals($this->unProducto);
-        }
-        return  $estado ;
     }
 
     //Setters
@@ -570,51 +587,34 @@ class Pedido
     }
     private function SetIdSector($idDeSector)
     {
-        $unSector =  Sector::BuscarSectorPorIdBD($idDeSector);
-        $estado  = false;
-        if(isset( $unSector))
+        $estado = false;
+        if(isset( $idDeSector))
         {
             $this->idDeSector = $idDeSector;
-        }
-
-        return $estado;
-    }
-    private function SetIdProducto($idDeProducto)
-    {
-        $unProducto =  Producto::BuscarProductoPorIdBD($idDeProducto);
-        $estado  = Pedido::SetProducto($unProducto);
-        return $estado;
-    }
- 
-
-    private function SetProducto($unProducto)
-    {
-        $estado = false;
-        if(isset( $unProducto))
-        {
-            $this->unProducto = $unProducto;
             $estado = true;
         }
 
         return  $estado ;
     }
+    private function SetIdProducto($idDeProducto)
+    {
+        $estado = false;
+        if(isset( $idDeProducto))
+        {
+            $this->unProducto = $idDeProducto;
+            $estado = true;
+        }
+
+        return  $estado ;
+      
+    }
+
     private function SetEstadoDelTiempo($estadoDelTiempo)
     {
         $estado = false;
         if(isset( $estadoDelTiempo))
         {
             $this->estadoDelTiempo = $estadoDelTiempo;
-            $estado = true;
-        }
-
-        return  $estado ;
-    }
-    private function SetOrden($unaOrden)
-    {
-        $estado = false;
-        if(isset($unaOrden))
-        {
-            $this->orden = $unaOrden;
             $estado = true;
         }
 
@@ -633,8 +633,14 @@ class Pedido
     }
     private function SetIdOrden($idDeOrden)
     {
-        $unaOrden =  Orden::BuscarOrdenPorIdBD($idDeOrden);
-        $estado  = Pedido::SetOrden($unaOrden);
+        $estado = false;
+        if(isset($idDeOrden))
+        {
+            $this->orden = $idDeOrden;
+            $estado = true;
+        }
+
+        
         return $estado;
     }
 
@@ -679,6 +685,14 @@ class Pedido
     {
         return  $this->numeroDePedido;
     }
+    public function GetProducto()
+    {
+        return  Producto::BuscarProductoPorIdBD($this->unProducto);
+    }
+    public function GetOrden()
+    {
+        return  Orden::BuscarOrdenPorIdBD($this->orden);;
+    }
     public function GetStrEstadoDelTiempo()
     {
         $mensaje = "";
@@ -710,8 +724,8 @@ class Pedido
     {
         return 
         "Tiempo de preparacion estimado: ".$this->GetStrTiempoEstimado().'<br>'.
-        "Cliente que lo pidio: ".$this->orden->GetNombreDelCliente().'<br>'.
-        "Producto Pedido: ".'<br>'.$this->unProducto->ToString().'<br>'.
+        "Cliente que lo pidio: ".$this->GetOrden()->GetNombreDelCliente().'<br>'.
+        "Producto Pedido: ".'<br>'.$this->GetProducto()->ToString().'<br>'.
         "importe Total: ".$this->GetImporteTotal().'<br>'
         ."Estado: ".$this->estado.'<br>';
     }
@@ -741,7 +755,7 @@ class Pedido
 
         if(isset($this->unProducto))
         {
-            $this->importeTotal =  $this->unProducto->GetPrecio();
+            $this->importeTotal =  $this->GetProducto()->GetPrecio();
         }
 
         return $this->importeTotal;
@@ -752,7 +766,7 @@ class Pedido
         $this->idDeSector = null;
         if(isset($this->unProducto))
         {
-            $this->idDeSector =  $this->unProducto->GetTipo()->GetSector();
+            $this->idDeSector =  $this->GetProducto()->GetTipo()->GetSector();
         }
 
         return $this->idDeSector ;
@@ -813,7 +827,7 @@ class Pedido
         {
             foreach ($listaDePedidos as $unPedido) 
             {
-                if($unProducto->Equals($unPedido->unProducto))
+                if($unProducto->Equals($unPedido->GetProducto()))
                 {
                     $cantidad++;
                 }

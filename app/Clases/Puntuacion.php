@@ -32,7 +32,7 @@ class Puntuacion
     }
 
     #BaseDeDatos
-    private function AgregarBD()
+    public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
@@ -50,6 +50,43 @@ class Puntuacion
         }
 
         return $estado;
+    }
+
+    public static function ModificarUnoBD($id,$descripcion,$puntuacion,$idDeEncuesta)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Puntuacion as p
+            SET `descripcion`= :descripcion,
+            `puntuacion`= :puntuacion,
+            `idDeEncuesta`= :idDeEncuesta,
+            Where p.id=:id");
+            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
+            $consulta->bindValue(':id',$id,PDO::PARAM_STR);
+            $consulta->bindValue(':puntuacion',$puntuacion,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
+    public static function BorrarUnoPorIdBD($idDePuntuacion)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Puntuacion as p where p.id = :id");
+            $consulta->bindValue(':id',$idDePuntuacion,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
     public static function FiltrarPorIdDeEncuestaBD($idDeEncuesta)
     {

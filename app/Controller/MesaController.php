@@ -16,7 +16,7 @@ require_once './Clases/Puntuacion.php';
 // h- Mejores comentarios.
 // i- Peores comentarios
 
-class MesaController extends Mesa
+class MesaController 
 {
   
     public static function CargarUno($request, $response, array $args)
@@ -24,10 +24,9 @@ class MesaController extends Mesa
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Mesa';
 
-        $unaMesa = new Mesa();
+        $unaMesa = new Mesa(Usuario::CrearUnCodigoAlfaNumerico(5));
 
-        if($unaMesa->SetCodigo(Usuario::CrearUnCodigoAlfaNumerico(5)) 
-        && $unaMesa->SetEstado('cerrada') &&  $unaMesa->AgregarBD())
+        if($unaMesa->AgregarBD())
         {
             $mensaje = 'La Mesa Se Creo Perfectamente: <br>'.$unaMesa->ToString();
         }
@@ -61,7 +60,7 @@ class MesaController extends Mesa
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigioDeMesa']);
+        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
        
         if(isset($unMesa))
         {
@@ -79,7 +78,7 @@ class MesaController extends Mesa
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigioDeMesa']);
+        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
        
         if(isset($unMesa))
         {
@@ -97,7 +96,7 @@ class MesaController extends Mesa
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigioDeMesa']);
+        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
        
         if(isset($unMesa))
         {
@@ -115,11 +114,11 @@ class MesaController extends Mesa
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigioDeMesa']);
+        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
        
         if(isset($unMesa))
         {
-            $unMesa->ModificarEstadoBD(Mesa::ESTADO_INTERMEDIO);
+            $unMesa->ModificarEstadoBD(Mesa::ESTADO_FINAL);
         }
 
         $response->getBody()->write($mensaje);

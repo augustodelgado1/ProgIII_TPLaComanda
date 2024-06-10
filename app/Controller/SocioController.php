@@ -33,8 +33,9 @@ class SocioController
      
         $mensaje = 'no se pudo dar de alta';
 
-        if(Socio::DarDeAltaUnSocio($data['email'],$data['clave'],$data['nombre'] ,
-        $data['apellido'],$data['dni']))
+        $unSocio = new Socio($data['email'],$data['clave'],$data['nombre'],$data['apellido'],$data['dni']);
+
+        if($unSocio->AgregarBD())
         {
             $mensaje = 'El Socio se registro correctamente';
         }
