@@ -21,7 +21,7 @@ class EncuestaController
     {
         $data = $request->getParsedBody();
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
-        $idDeEncuesta = Encuesta::DarDeAlta($unaOrden,$data['nombreDelCliente'],$data['mensaje']);
+        $idDeEncuesta = Encuesta::DarDeAlta($unaOrden->GetId(),$data['nombreDelCliente'],$data['mensaje']);
         $mensaje = 'no se pudo dar de alta';
         
 

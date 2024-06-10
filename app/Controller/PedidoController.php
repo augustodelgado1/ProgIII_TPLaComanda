@@ -28,7 +28,7 @@ class PedidoController extends Pedido
         if(isset($unProducto ) && isset($unaOrden) &&  $unProducto !== false)
         {
            
-            if(Pedido::Alta( $unaOrden,$unProducto))
+            if(Pedido::Alta($unaOrden,$unProducto))
             {
                 $mensaje = 'Se dio de alta correctamente';
             }
@@ -67,7 +67,7 @@ class PedidoController extends Pedido
     {
         // $data = $request->getHeaders();
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
-        $listaDePedidos = Pedido::FiltrarPorEstadoBD('pendiente');
+        $listaDePedidos = Pedido::FiltrarPorEstadoBD(Pedido::ESTADO_INICIAL);
 
         if(isset($listaDePedidos))
         {
@@ -105,6 +105,26 @@ class PedidoController extends Pedido
 
         return $response;
     }
+    public static function ListarNoEntregadoEnElTimpoEstipulado($request, $response, array $args)
+    {
+        // $data = $request->getHeaders();
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $listaDePedidos = Pedido::FiltrarPorEstadoDelTiempoBD(PEDIDO::ESTADO_TIEMPO_NOCUMPLIDO);
+
+        if(isset($listaDePedidos))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDePedidos) > 0)
+            {
+                $mensaje = Pedido::ToStringList($listaDePedidos);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
 
 
     public static function PreapararUnPedido($request, $response, array $args)
@@ -114,7 +134,7 @@ class PedidoController extends Pedido
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
         $unPedido = Pedido::BuscarPedidoPorNumeroDePedidoBD($data['numeroDePedido']);
-        $unEmpleado = Empleado::ObtenerUnoPorIdBD($data['idDeEmpleado']);
+        $unEmpleado = Empleado::BuscarPorIdBD($data['idDeEmpleado']);
         $horaEstimada = $data['horaEstimada'];
         $minutosEstimada = $data['minutosEstimados'];
 
@@ -161,6 +181,91 @@ class PedidoController extends Pedido
         if(isset($unPedido))
         {
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_CANCELADO);
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+   
+    public static function EscribirListaEnCsv($request, $response, array $args)
+    { 
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'Hubo un error al intentar guardar la listar ';  
+       
+        $listaAGuardar = Pedido::ObtenerListaBD();
+        $estado = Pedido::EscribirCsv($data['nombreDelArchivo'],$listaAGuardar);
+       
+        if($estado )
+        {
+            $mensaje = 'Se guardo correctamente'; 
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function LeerListaEnCsv($request, $response, array $args)
+    { 
+        $data = $request->getQueryParams();
+       
+        $mensaje = 'Hubo un error al intentar guardar la listar ';  
+      
+        $listaDePedidos = Pedido::LeerCsv($data['nombreDelArchivo']);
+       
+        if(isset($listaDePedidos))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDePedidos) > 0)
+            {
+                $mensaje = Pedido::ToStringList($listaDePedidos);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function ListarElPedidoMasVendido($request, $response, array $args)
+    { 
+        $data = $request->getQueryParams();
+       
+        $mensaje = 'Hubo un error al intentar obtener el mas vendido ';  
+        $listaDePedidos = Pedido::ObtenerListaBD();
+        // $listaDePedidos = Pedido::FiltrarPorFechaDePedidoBD($data['fechaIngresada']);
+        $listaDeProducto = Producto::ObtenerListaBD();
+
+        $unPedido = Pedido::BuscarElPedidoMasVendido($listaDeProducto, $listaDePedidos );
+       
+        if(isset($unPedido))
+        {
+            $mensaje = "El Pedido mas Vendido es ".$unPedido->ToString();
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function ListarElPedidoMenosVendido($request, $response, array $args)
+    { 
+        $data = $request->getQueryParams();
+       
+        $mensaje = 'Hubo un error al intentar obtener el mas vendido ';  
+      
+        $listaDePedidos = Pedido::ObtenerListaBD();
+        // $listaDePedidos = Pedido::FiltrarPorFechaDePedidoBD($data['fechaIngresada']);
+        $listaDeProducto = Producto::ObtenerListaBD();
+        $unPedido = Pedido::BuscarElPedidoMasVendido($listaDeProducto, $listaDePedidos );
+
+        if(isset($unPedido))
+        {
+            $cantidad = Pedido::ContarProductosVendidos($listaDePedidos ,$unPedido->GetProducto());
+            $mensaje = "El Pedido mas Vendido es ".$unPedido->ToString(). "<br> y la cantidad es ".$cantidad;
         }
 
         $response->getBody()->write($mensaje);

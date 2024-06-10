@@ -19,11 +19,8 @@ class TipoDeProducto
     {
         $estado = false;
         $unaTipoDeProducto = new TipoDeProducto($nombre,$setor);
-      
-        if(empty($unaTipoDeProducto->nombre) == false)
-        {
-            $estado = $unaTipoDeProducto->AgregarBD();
-        }
+        $estado = $unaTipoDeProducto->AgregarBD();
+        
 
         return $estado;
     }
@@ -237,7 +234,7 @@ class TipoDeProducto
     public function ToString()
     {
         return "nombre: ".$this->nombre.'<br>';
-       }
+    }
         
 
     //  public static function EscribirJson($listaDeTipoDeProducto,$claveDeArchivo)

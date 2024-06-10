@@ -178,6 +178,41 @@ class Orden
 
         return  $listaDeOrdenes;
     }
+    public function VerificarIdDeMesa($idDeMesa)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o 
+            where o.id = :id and o.idDeMesa = :idDeMesa");
+            $consulta->bindValue(':idDeMesa',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $estado = $data !== null && count($data) > 0;
+        }
+
+        return  $estado;
+    }
+    public static function FiltrarPorImporteBD($importe)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeOrdenes = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.importe = :importe");
+            $consulta->bindValue(':importe',$importe);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeOrdenes = Orden::CrearLista($data);
+        }
+
+        return  $listaDeOrdenes;
+    }
+  
     public static function BuscarPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -396,7 +431,7 @@ class Orden
         if(isset($this->tiempoTotal) 
         && ($this->tiempoTotal->h > 0 || $this->tiempoTotal->m > 0) )
         {
-            $mensaje = $this->tiempoTotal->format('%h hours %i minutes');;
+            $mensaje = $this->tiempoTotal->format('H')." horas y ".$this->tiempoTotal->format('i')." minutos";
         }
 
         return  $mensaje;
@@ -419,9 +454,23 @@ class Orden
         return   $strLista;
     }
 
+    public function GetStrPedidos()
+    {
+        $ListaDePedidos = $this->ObtenerListaDePedidos();
+
+        $mensaje = "no se encontraron puntuaciones";
+        if(isset($ListaDePedidos) && count($ListaDePedidos) > 0)
+        {
+            $mensaje = Pedido::ToStringList($ListaDePedidos);
+        }
+
+        return  $mensaje ;
+    }
+
     public function ToString()
     {
         return "Codigo: ".strtoupper($this->codigo).'<br>'.
+        "Pedido:".$this->GetStrPedidos().'<br>'.
         "Tiempo Total De Espera: ".$this->GetStrTiempoEstimado().
         "Mesa: ".'<br>'.$this->unaMesa->ToString().'<br>';
     }
@@ -444,6 +493,29 @@ class Orden
         return   $strLista;
     }
 
+    public static function FiltrarEntreDosFechas($listaDeOrdenes,$fechaDesde,$fechaHasta)
+    {
+       
+        $listaDefiltrada = null;
+
+        if(isset($listaDeOrdenes) && $fechaDesde <= $fechaHasta)
+        {
+            $listaDefiltrada = [];
+
+            foreach ($listaDeOrdenes as $unaOrden) 
+            {
+                if($unaOrden->fechaDeOrden >= $fechaDesde 
+                && $unaOrden->fechaDeOrden <= $fechaHasta)
+                {
+                    array_push($listaDefiltrada,$unaOrden);
+                }
+                
+            }
+        }
+
+        return  $listaDeOrdenes;
+    }
+
     public static function ValidarOrdenIngresada($data)
     {
         $estado = false;
@@ -455,6 +527,73 @@ class Orden
 
         return $estado;
     }
+
+    public static function BuscarElMayorImporte($listaDeOrdenes)
+    { 
+        $importe = 0;
+        $flag = false;
+        $mayor =null;
+
+        if(isset($listaDeOrdenes))
+        {
+            foreach ($listaDeOrdenes as $unaOrden) 
+            {
+                $importe = $unaOrden->importeTotal;
+
+                if($mayor >  $importe || $flag === false)
+                {
+                    $mayor =  $importe;
+                    $flag = true;
+                }
+                
+            }
+        }
+
+        return $mayor;
+    }
+    public static function BuscarElMenorImporte($listaDeOrdenes)
+    {
+        $importe = 0;
+        $flag = false;
+        $menor =null;
+
+        if(isset($listaDeOrdenes))
+        {
+            foreach ($listaDeOrdenes as $unaOrden) 
+            {
+                $importe = $unaOrden->importeTotal;
+
+                if($menor <  $importe || $flag === false)
+                {
+                    $menor =  $importe;
+                    $flag = true;
+                }
+                
+            }
+        }
+
+        return $menor;
+    }
+    public static function ObtenerFacturacionTotal($listaDeOrdenes)
+    {
+        $acumulador = -1;
+
+        if(isset($listaDeOrdenes))
+        {
+            $acumulador = 0;
+            foreach ($listaDeOrdenes as $unaOrden) 
+            {
+                if($unaOrden->importeTotale > 0)
+                {
+                    $acumulador +=  $unaOrden->importeTotal;
+                }
+                
+            }
+        }
+
+        return $acumulador;
+    }
+ 
     //  public static function EscribirJson($listaDeOrden,$claveDeArchivo)
     //  {
     //      $estado = false; 

@@ -5,6 +5,7 @@
 require_once './db/AccesoDatos.php';
 require_once 'Producto.php';
 require_once 'Orden.php';
+require_once 'File.php';
 
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 class Pedido 
@@ -13,12 +14,16 @@ class Pedido
     public const ESTADO_INTERMEDIO = "en preparacion";
     public const ESTADO_FINAL = "listo para servir";
     public const ESTADO_CANCELADO = "cancelado";
+    public const ESTADO_TIEMPO_NOCUMPLIDO = "no cumplido";
+    public const ESTADO_TIEMPO_CUMPLIDO = "cumplido";
+    public const ESTADO_TIEMPO_INDETERMINADO = "indeterminado";
     private $id;
     private $orden;
     private $idDeSector;
     private $idDeEmpleado;
     private $numeroDePedido;
     private $unProducto;
+    private $fechaDelPedido;
     private $tiempoEstimado;
     private $tiempoDeInicio;
     private $tiempoDeFinalizacion;
@@ -36,6 +41,8 @@ class Pedido
         {
             $unPedido->numeroDePedido = rand(100,1000);
             $unPedido->SetEstado(Pedido::ESTADO_INICIAL);
+            $unPedido->fechaDelPedido = new DateTime("now");
+            $unPedido->estadoDelTiempo = Pedido::ESTADO_TIEMPO_INDETERMINADO;
             $unPedido->AgregarBD();
         }
 
@@ -50,14 +57,16 @@ class Pedido
         if(isset($objAccesoDatos))
         {
             $consulta = $objAccesoDatos->RealizarConsulta("
-            Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,importeTotal,estado) 
-            values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:importeTotal,:estado)");
+            Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,importeTotal,fechaDelPedido,estado,estadoDelTiempo) 
+            values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:importeTotal,fechaDelPedido,:estado,:estadoDelTiempo)");
             $consulta->bindValue(':numeroDePedido',$this->numeroDePedido,PDO::PARAM_INT);
-            $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
+            $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
             $consulta->bindValue(':idDeLaOrden',$this->orden->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':idDeProducto',$this->unProducto->GetId(),PDO::PARAM_INT);
             $consulta->bindValue(':importeTotal',$this->importeTotal);
+            $consulta->bindValue(':fechaDelPedido',$this->fechaDelPedido->format('y-m-d'),PDO::PARAM_STR);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
+            $consulta->bindValue(':estadoDelTiempo',$this->estadoDelTiempo,PDO::PARAM_STR);
             $estado = $consulta->execute();
         }
 
@@ -185,6 +194,42 @@ class Pedido
 
         return  $unPedido;
     }
+
+    public static function FiltrarPorFechaDePedidoBD($fechaDePedido)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaFiltrada= null;
+
+        if(isset($unObjetoAccesoDato) && isset($fechaDePedido))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido 
+            as p where p.fechaDePedido = :fechaDePedido");
+            $consulta->bindValue(':fechaDePedido',$fechaDePedido->format('y-m-d'),PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $listaFiltrada =  Pedido::CrearLista($data);
+        }
+
+        return $listaFiltrada;
+    }
+    public static function FiltrarPorEstadoDelTiempoBD($estadoDelTiempo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaFiltrada= null;
+
+        if(isset($unObjetoAccesoDato) && isset($estadoDelTiempo))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido 
+            as p where p.estadoDelTiempo = :estadoDelTiempo");
+            $consulta->bindValue(':estadoDelTiempo',$estadoDelTiempo,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $listaFiltrada =  Pedido::CrearLista($data);
+        }
+
+        return $listaFiltrada;
+    }
+ 
     public static function FiltrarPedidosPorIdDeOrdenBD($idDeOrden)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -252,27 +297,7 @@ class Pedido
         return  $listaDePedidos;
     }
 
-    public static function ModificarEstadoDeMesaBD($idDePedido,$estado)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unPedido = null;
-
-        if(isset($unObjetoAccesoDato) && isset($idDePedido) && isset($estado))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
-            SET estado = :estado 
-            where p.id = :idDePedido");
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
-            $consulta->bindValue(':idDePedido',$idDePedido,PDO::PARAM_INT);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unPedido =  Pedido::CrearUnaPedido($data);
-        }
-
-        return  $unPedido;
-    }
-
-   
+    
     public static function ObtenerListaBD()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -280,13 +305,25 @@ class Pedido
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido");
-            $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $data = Pedido::ObtenerListaDeArrayBD(PDO::FETCH_ASSOC);
             $listaDePedidos = Pedido::CrearLista($data);
         }
 
         return  $listaDePedidos;
+    }
+    public static function ObtenerListaDeArrayBD($mode)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $data = null;
+
+        if(isset($unObjetoAccesoDato) && isset($mode))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido");
+            $consulta->execute();
+            $data = $consulta->fetchAll($mode);
+        }
+
+        return  $data;
     }
 
     #end
@@ -326,6 +363,58 @@ class Pedido
                     array_push($listaDeEmpleados,$unEmpleado);
                 }
             }
+        }
+
+        return   $listaDeEmpleados;
+    }
+
+  
+    public static function EscribirCsv($nombreDeArchivo,$listaDePedidos)
+    {
+        $estado = false;
+        
+        if(isset($nombreDeArchivo) && isset($listaDePedidos))
+        {
+            $estado = File::EscribirGenerico($listaDePedidos,$nombreDeArchivo,array(__CLASS__,'EscribirUnoCsv'));
+        }
+
+        return   $estado;
+    }
+    public static function EscribirUnoCsv($unPedido,$unArchivo)
+    {
+        $estado = false;
+        
+        if(isset($unPedido))
+        {
+          
+            $unArray = array($unPedido->id,$unPedido->orden->GetId(),$unPedido->idDeSector,
+            $unPedido->numeroDePedido,$unPedido->unProducto->GetId(),
+            $unPedido->fechaDelPedido,$unPedido->tiempoEstimado,$unPedido->tiempoDeInicio,
+            $unPedido->tiempoDeFinalizacion,$unPedido->importeTotal,$unPedido->estado,$unPedido->estadoDelTiempo);
+
+            $estado = fputcsv($unArchivo,$unArray);
+        }
+
+        return   $estado;
+    }
+    public static function ValidarNombreDelArchivo($data)
+    {
+    
+        return  isset($data['nombreDelArchivo']);
+    }
+    public static function ValidarExistenciaDelArchivo($data)
+    {
+        return  file_exists($data['nombreDelArchivo']);
+    }
+
+    public static function LeerCsv($nombreDeArchivo)
+    {
+        $listaDeEmpleados = null;
+        $data = File::LeerArchivoCsv($nombreDeArchivo);
+        
+        if(isset($data))
+        {
+            $listaDeEmpleados = Pedido::CrearLista($data);
         }
 
         return   $listaDeEmpleados;
@@ -395,33 +484,6 @@ class Pedido
     
             return  $listafiltrada;
     }
-
-  
-
-    // public function BuscarElMayor()
-    // {
-    //     $cantidadMayor = null;
-    //     $flag = false;
-    //     $listaDeProductos = Pedido::ObtenerListaDeProductosPedidos($listaDePedidos);
-        
-    //     if(isset($listaDeProductos) && isset($listaDeProductos))
-    //     {
-    //         foreach($listaDeProductos as $unProducto)
-    //         {
-    //             $cantidad = Producto::ContarProductos($listaDePedidos,$unProducto);
-
-                
-    //             if($cantidad > $cantidadMayor || $flag === false)
-    //             {
-    //                 $cantidadMayor = $cantidad;
-    //                 $flag = true;
-    //             }
-    //         }
-    //     }
-    // }
-   
-    
-
     public function Equals($unPedido)
     {
         $estado = false;
@@ -617,9 +679,9 @@ class Pedido
     {
         return  $this->numeroDePedido;
     }
-    public function GetEstadoDelTiempo()
+    public function GetStrEstadoDelTiempo()
     {
-        $mensaje = "No se entrego en el tiempo estimado";
+        $mensaje = "";
         if($this->estadoDelTiempo)
         {
             $mensaje = "Se entrego en el tiempo estimado";
@@ -656,17 +718,17 @@ class Pedido
 
     private function SeEntregoEnElTimpoEstimado()
     {
-        $this->estadoDelTiempo = false;
+        $this->estadoDelTiempo = Pedido::ESTADO_TIEMPO_INDETERMINADO;
 
         $diferencia = $this->tiempoDeInicio->diff($this->tiempoDeFinalizacion);
 
         if(isset($diferencia))
         {
-            $this->estadoDelTiempo  = true;
+            $this->estadoDelTiempo  = Pedido::ESTADO_TIEMPO_CUMPLIDO;
             if($diferencia->h > $this->tiempoEstimado->h 
             || ($diferencia->h === $this->tiempoEstimado->h && $diferencia->i >  $this->tiempoEstimado->i)  )
             {
-                $this->estadoDelTiempo  = false;
+                $this->estadoDelTiempo  = Pedido::ESTADO_TIEMPO_NOCUMPLIDO;
             }
         }
         
@@ -696,193 +758,91 @@ class Pedido
         return $this->idDeSector ;
     }
 
+    public static function BuscarElPedidoMasVendido($listaDeProductos ,$listaDePedidos)
+    { 
+        $cantidad = 0;
+        $flag = false;
+        $mayor =null;
 
-  
+        if(isset($listaDePedidos))
+        {
+            foreach ($listaDeProductos as $unProducto) 
+            {
+                $cantidad = Pedido::ContarProductosVendidos($listaDePedidos,$unProducto);
 
-    //  public static function EscribirJson($listaDePedido,$claveDeArchivo)
-    //  {
-    //      $estado = false; 
- 
-    //      if(isset($listaDePedido))
-    //      {
-    //          $estado =  Json::EscribirEnArrayJson($listaDePedido,$claveDeArchivo,JSON_PRETTY_PRINT);
-    //      }
-    //      return  $estado;
-    //  }
- 
-    //  public static function LeerJson($claveDeArchivo)
-    //  {
-    //      return Pedido::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
-    //  }
- 
-    //  private static function DeserializarListaJson($listaDeArrayAsosiativos)
-    //  {
-    //      $listaDePedido = null; 
-    //      $unPedido = null;
-    //      if(isset($listaDeArrayAsosiativos))
-    //      {
-    //          $listaDePedido = [];
- 
-    //          foreach($listaDeArrayAsosiativos as $unArrayAsosiativo)
-    //          {
-    //              $unPedido = Pedido::DeserializarUnPedidoPorArrayAsosiativo($unArrayAsosiativo);
-    //              if(isset($unPedido))
-    //              {
-    //                  array_push($listaDePedido,$unPedido);
-    //              }
-                 
-    //          }
-    //      }
- 
-    //      return  $listaDePedido ;
-    //  }
+                if($mayor > $cantidad || $flag === false)
+                {
+                    $mayor = $cantidad;
+                    $flag = true;
+                }
+                
+            }
+        }
 
-    
+        return $mayor;
+    }
+    public static function BuscarElPedidoMenosVendido($listaDeProductos,$listaDePedidos)
+    {
+        $cantidad = 0;
+        $flag = false;
+        $menor =null;
+        
+        if(isset($listaDePedidos) && isset($listaDeProductos))
+        {
+            foreach ($listaDeProductos as $unProducto) 
+            {
+                $cantidad = Pedido::ContarProductosVendidos($listaDePedidos,$unProducto);
 
+                if($menor < $cantidad || $flag === false)
+                {
+                    $menor = $cantidad;
+                    $flag = true;
+                }
+                
+            }
+        }
 
-    // public function SetCuponDeDescuento($cuponDeDescuento)
-    // {
-    //     $estado = false;
-    //     if(isset($cuponDeDescuento))
-    //     {
-    //         $this->cuponDeDescuento = $cuponDeDescuento;
-    //         $estado = true;
-    //     }
+        return $menor;
+    }
+    public static function ContarProductosVendidos($listaDePedidos,$unProducto)
+    {
+       $unPedido = null;
+       $cantidad = 0;
+        
+        if(isset($listaDePedidos) && isset($unProducto))
+        {
+            foreach ($listaDePedidos as $unPedido) 
+            {
+                if($unProducto->Equals($unPedido->unProducto))
+                {
+                    $cantidad++;
+                }
+            }
+        }
 
-    //     return  $estado ;
-    // }
+        return $unPedido;
+    }
+    public static function BuscarPorCantidad($listaDePedidos,$cantidad)
+    {
+       $unPedido = null;
+      
+        
+        if(isset($listaDePedidos) && isset($unProducto))
+        {
+            foreach ($listaDePedidos as $unPedidoDelaLista) 
+            {
+                $cantidadVendida = Pedido::ContarProductosVendidos($listaDePedidos,$unPedidoDelaLista->unProducto);
 
-    // public function GetCuponDeDescuento()
-    // {
-    //     return  $this->cuponDeDescuento;
-    // }
+                if($cantidadVendida === $cantidad)
+                {
+                    $unPedido = $unPedidoDelaLista;
+                    break;
+                }
+            }
+        }
 
-    
-   
-
-
-   
-
-    // public static function CompararPorclave($unPedido,$otroPedido)
-    // {
-    //     $retorno = 0;
-    //     $comparacion = strcmp($unPedido->clave,$otroPedido->clave);
-
-    //     if( $comparacion  > 0)
-    //     {
-    //         $retorno = 1;
-    //     }else{
-
-    //         if( $comparacion < 0)
-    //         {
-    //             $retorno = -1;
-    //         }
-    //     }
-
-    //     return $retorno ;
-    // }
-
-    // public static function BuscarPedidoPorId($listaDePedido,$id)
-    // {
-    //     $unaPedidoABuscar = null; 
-
-    //     if(isset($listaDePedido) )
-    //     {
-    //         foreach($listaDePedido as $unaPedido)
-    //         {
-    //             if($unaPedido->id == $id)
-    //             {
-    //                 $unaPedidoABuscar = $unaPedido; 
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     return  $unaPedidoABuscar;
-    // }
-
-    // public function __construct($mail,$unProducto,$clave,$unPedido,$ruta = null,$claveDeLaImagen = null) {
-    //     $this->clave = $clave;
-    //     $this->unPedido = $unPedido;
-    //     $this->mail = $mail;
-    //     $this->unProducto = $unProducto;
-    //     $this->fechaDeRegistro = date("Y-m-d");
-    //     $this->SetId(Pedido::ObtenerIdAutoIncremental());
-    //     $this->SetImagen($ruta,$claveDeLaImagen);
-    // }
-    
-   
-
-   
-    
-
-
-    // public function CambiarRutaDeLaImagen($nuevaRuta)
-    // {
-    //     $estado = false;
-
-    //     if(rename($this->rutaDeLaImagen.$this->claveDeLaImagen,$nuevaRuta.$this->claveDeLaImagen))
-    //     {
-    //         $this->rutaDeLaImagen = $nuevaRuta;
-    //         $estado = true;
-    //     }
-
-    //     return $estado;
-    // }
-
-   
-
-    // public static function BuscarPedidoPorId($listaDePedidos,$id)
-    // {
-    //     $unaPedidoABuscar = null; 
-
-    //     if(isset($listaDePedidos)  
-    //     && isset($id) )
-    //     {
-    //         foreach($listaDePedidos as $unaPedido)
-    //         {
-    //             if($unaPedido->id == $id)
-    //             {
-    //                 $unaPedidoABuscar = $unaPedido; 
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     return  $unaPedidoABuscar;
-    // }
-  
-    
-
-//Filtrar
-
-
-
-
-     //  //Contar
- 
-    //  public static function ContarPorUnaFecha($listaDePedido,$fecha)
-    //  {
-    //      $filtraPorUnaFecha = null;
-    //      $cantidad = -1;
- 
-    //      if(isset($listaDePedido) && isset($fecha))
-    //      {
-    //          $cantidad = 0;
- 
-    //          foreach($listaDePedido as $unaPedido)
-    //          {
-    //              if($unaPedido::$fechaDePedido == $fecha)
-    //              {
-    //                  $cantidad++;
-    //              }
-    //          }
-    //      }
- 
-    //      return  $filtraPorUnaFecha;
-    //  }
-
-   
+        return $unPedido;
+    }
 }
 
 

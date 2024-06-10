@@ -75,8 +75,6 @@ class Puntuacion
 
         if(isset($listaDePuntuaciones) && isset($descripcion) && count($listaDePuntuaciones) > 0)
         {
-            $listaFiltrada =  [];
-
             foreach($listaDePuntuaciones as $unaPuntuacion)
             {
                 if(strcasecmp($unaPuntuacion->descripcion,$descripcion) === 0)

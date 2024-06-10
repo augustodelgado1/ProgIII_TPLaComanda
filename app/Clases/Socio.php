@@ -59,14 +59,39 @@ class Socio extends Usuario
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
-        $arrayDeSocio = Socio::ObtenerArrayDeSocioPorId($idDeSocio);
        
         if(isset($unObjetoAccesoDato) && isset($arrayDeSocio))
         {
-            $estado = parent::ModificarUnoBD($arrayDeSocio['idDeUsuario'],$mail,$clave,$nombre,$apellido,$dni);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `usuario` 
+            JOIN Socio s ON s.id = u.id
+            SET `email`= :mail,`clave`= :clave,`nombre`= :nombre,`apellido`= :apellido,`dni`= :dni 
+            Where s.id=:id");
+            $consulta->bindValue(':id',$idDeSocio,PDO::PARAM_INT);
+            $consulta->bindValue(':mail',$mail,PDO::PARAM_STR);
+            $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
+            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta->bindValue(':apellido',$apellido,PDO::PARAM_STR);
+            $consulta->bindValue(':dni',$dni,PDO::PARAM_STR);
+            $estado= $consulta->execute();
         }
 
         return  $estado;
+    }
+
+    public static function BuscarPorIdBD($id)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $data= null;
+
+        if(isset($unObjetoAccesoDato) && isset($id))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Socio as e where e.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->execute();
+            Socio::CrearUnSocio($consulta->fetch(PDO::FETCH_ASSOC));
+        }
+
+        return  $data;
     }
 
     private static function ObtenerArrayDeSocioPorId($idDeSocio)
@@ -80,22 +105,9 @@ class Socio extends Usuario
             $consulta->execute();
         }
 
-        return  $consulta->fetch(PDO::FETCH_ASSOC);;
+        return  $consulta->fetch(PDO::FETCH_ASSOC);
     }
 
-    
-    public static function BuscarSocioPorIdBD($idDeSocio)
-    {
-        $unSocio = null;
-        $data = Socio::ObtenerArrayDeSocioPorId($idDeSocio);
-
-        if(isset($data))
-        {
-            $unSocio = Socio::CrearUnSocio($data);
-        }
-
-        return  $unSocio;
-    }
     public static function ListarBD()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -117,7 +129,7 @@ class Socio extends Usuario
     private static function CrearUnSocio($unArrayAsosiativo)
     {
         $unSocio = null;
-        $dataUsuario = Usuario::ObtenerUnUsuarioPorIdBD($unArrayAsosiativo['idDeUsuario']);
+        $dataUsuario = Usuario::BuscarPorIdBD($unArrayAsosiativo['idDeUsuario']);
 
         if(isset($unArrayAsosiativo) && isset($dataUsuario) && $unArrayAsosiativo !== false)
         {
@@ -133,7 +145,7 @@ class Socio extends Usuario
         return $unSocio ;
     }
 
-    protected static function CrearLista($data)
+    private static function CrearLista($data)
     {
         $listaDeSocioes = null;
         if(isset($data))

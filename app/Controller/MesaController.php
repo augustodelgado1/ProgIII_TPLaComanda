@@ -55,24 +55,17 @@ class MesaController extends Mesa
         return $response;
     }
 
-    public static function ListarPedidos($request, $response, array $args)
-    {
-        $data = $request->getHeaders();
-        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
-        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
-    
-        if(in_array($unaOrden,$unaMesa->ObtenerListaDeOrdenes()))
+    public static function SetEstadoCerrarMesa($request, $response, array $args)
+    { 
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+       
+        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigioDeMesa']);
+       
+        if(isset($unMesa))
         {
-            $listaDePedidos =  $unaOrden->ObtenerListaDePedidos();
-            $mensaje = 'Hubo un error  al intentar listar pedidos'; 
-            if(isset($listaDePedidos))
-            {
-                $mensaje = "la lista esta vacia";
-                if(count($listaDePedidos) > 0)
-                {
-                    $mensaje = Pedido::ToStringList($listaDePedidos);
-                }
-            }
+            $unMesa->ModificarEstadoBD(Mesa::ESTADO_CERRADO);
         }
 
         $response->getBody()->write($mensaje);
@@ -80,6 +73,62 @@ class MesaController extends Mesa
 
         return $response;
     }
+    public static function SetEstadoInicial($request, $response, array $args)
+    { 
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+       
+        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigioDeMesa']);
+       
+        if(isset($unMesa))
+        {
+            $unMesa->ModificarEstadoBD(Mesa::ESTADO_INICIAL);
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function SetEstadoServirComida($request, $response, array $args)
+    { 
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+       
+        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigioDeMesa']);
+       
+        if(isset($unMesa))
+        {
+            $unMesa->ModificarEstadoBD(Mesa::ESTADO_INTERMEDIO);
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function SetEstadoPagarOrden($request, $response, array $args)
+    { 
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+       
+        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigioDeMesa']);
+       
+        if(isset($unMesa))
+        {
+            $unMesa->ModificarEstadoBD(Mesa::ESTADO_INTERMEDIO);
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+   
 
     public static function ListarComentariosPositivosDeLasMesas($request, $response, array $args)
     {
@@ -115,6 +164,28 @@ class MesaController extends Mesa
             {
                 $mensaje = Mesa::MostarComentarios($listaDeMesas);
             }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    // g- Lo que facturó entre dos fechas dadas.
+
+    public static function ListarFacturacionEntreDosFechas($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+
+        $listaFiltrada = Orden::FiltrarEntreDosFechas($unaMesa->ObtenerListaDeOrdenes(),$data['fechaInicial'],$data['fechaFinal']);
+        $facturacionTotal = Orden::ObtenerFacturacionTotal($listaFiltrada);
+        
+        if($facturacionTotal > 0)
+        {
+            $mensaje = "lo que facturo la mesa ".$data['codigoDeMesa']." desde ".$data['fechaInicial'].' hasta '.$data['fechaFinal'].' es '.$facturacionTotal;
+            
         }
 
         $response->getBody()->write($mensaje);

@@ -135,7 +135,8 @@ class Producto
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Producto as p where LOWER(p.nombre) = LOWER(:nombre)");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Producto 
+            as p where LOWER(p.nombre) = LOWER(:nombre)");
             $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
             $consulta->execute();
             $unSector = $consulta->fetch(PDO::FETCH_ASSOC);
@@ -144,26 +145,6 @@ class Producto
         }
 
         return  $unSector;
-    }
-  
-     public static function ObtenerIndicePorId($listaDeProductos,$id)
-    {
-        $index = -1;
-       
-        if(isset($listaDeProductos)  && isset($id))
-        {
-            $leght = count($listaDeProductos); 
-            for ($i=0; $i < $leght; $i++) { 
-         
-                if($listaDeProductos[$i]->id === $id)
-                {
-                    $index = $i;
-                    break;
-                }
-            }
-        }
-
-        return $index;
     }
 
     public static function BuscarPorNombre($listaDeProductos,$nombre)

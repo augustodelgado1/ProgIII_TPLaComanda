@@ -98,7 +98,7 @@ class EmpleadoController
         
         $mensaje = 'Hubo un error  al intentar listar los Clientes';
         
-        $listaDeEmpleados = Empleado::ObternerListaBD();
+        $listaDeEmpleados = Empleado::ListarBD();
 
 
         if(isset($listaDeEmpleados))
@@ -122,7 +122,7 @@ class EmpleadoController
     {
         $data = $request->getHeaders();
         $mensaje = 'Hubo un error al intentar listar los Pedidos';
-        $unEmpleado = Empleado::ObtenerUnoPorIdBD($data['idDeEmpeado']);
+        $unEmpleado = Empleado::BuscarPorIdBD($data['idDeEmpeado']);
        
         if(isset($unEmpleado))
         {

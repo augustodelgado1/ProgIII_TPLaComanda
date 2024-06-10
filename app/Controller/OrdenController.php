@@ -58,29 +58,18 @@ class OrdenController extends Orden
         return $response;
     }
 
-    public static function ListarPedidos($request, $response, array $args)
+    public static function ListarUno($request, $response, array $args)
     {
         $data = $request->getHeaders();
-        $mensaje = 'el numero de orden es incorrecto';  
+        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
-
     
-        if(isset($unaOrden))
+        if($unaOrden->VerificarIdDeMesa($unaMesa->GetId()))
         {
-            $listaDePedidos =  $unaOrden->ObtenerListaDePedidos();
-            $mensaje = 'Hubo un error  al intentar listar pedidos'; 
-            if(isset($listaDePedidos))
-            {
-                $mensaje = "la lista esta vacia";
-                if(count($listaDePedidos) > 0)
-                {
-                    $mensaje = Pedido::ToStringList($listaDePedidos);
-                }
-            }
+            $mensaje = 'Usted pidio: <br><br>'.$unaOrden->ToString(); 
         }
 
         $response->getBody()->write($mensaje);
-
 
         return $response;
     }

@@ -91,22 +91,23 @@ class Mesa
 
         return  $unMesa;
     }
-    public static function ModificarEstadoDeMesaBD($idDeMesa,$estado)
+
+    
+    public function ModificarEstadoBD($estado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unMesa = null;
+        $estado = false;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && $this->SetEstado($estado))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Mesa as m SET estado = :estado where m.id = :idDeMesa");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Mesa 
+            as m SET estado = :estado where m.id = :idDeMesa");
             $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unMesa =  Mesa::CrearUnaMesa($data);
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $estado = $consulta->execute();
         }
 
-        return  $unMesa;
+        return  $estado;
     }
 
     public function ObtenerListaDeOrdenes()
@@ -149,6 +150,8 @@ class Mesa
 
         return  $listaDeMesas;
     }
+
+   
 
     #end
 
@@ -224,7 +227,9 @@ class Mesa
     protected function SetEstado($estadoDelaMesa)
     {
         $estado = false;
-        if(isset($estado))
+        $array = array(Mesa::ESTADO_INICIAL,Mesa::ESTADO_INTERMEDIO,Mesa::ESTADO_FINAL,Mesa::ESTADO_CERRADO);
+
+        if(isset($estado) && in_array($estadoDelaMesa,$array))
         {
             $this->estado = $estadoDelaMesa;
             $estado = true;
@@ -308,6 +313,7 @@ class Mesa
 
         return $estado;
     }
+   
   
 
     //  public static function EscribirJson($listaDeMesa,$claveDeArchivo)

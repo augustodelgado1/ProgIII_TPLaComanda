@@ -14,19 +14,26 @@ class UsuarioController
         if(isset($data) )
         {
             $unUsuario = Usuario::BuscarEmailUnUsuarioBD($data['email']);
+             $otroUsuario = Usuario::BuscarClaveUnUsuarioBD($data['clave']);
 
-           
-            $mensaje = 'el mail no existe';
-            if(isset($unUsuario))
+            if(isset($unUsuario) && isset($otroUsuario) &&
+             $otroUsuario['email'] === $unUsuario['email'] 
+            && $otroUsuario['clave'] === $unUsuario['clave']
+            && $otroUsuario['id'] === $unUsuario['id'])
             {
-                $otroUsuario = Usuario::BuscarClaveUnUsuarioBD($data['clave']);
-                $mensaje = 'la clave es incorrecta';
                 
-                if(isset($otroUsuario) && $unUsuario->Equals($otroUsuario))
+                if($otroUsuario['rol'] !== 'Socio')
                 {
-                    $mensaje = 'Se logio Perfectamente';
+                    $unUsuario = new Empleado($otroUsuario['email'],$otroUsuario['clave'],$otroUsuario['nombre'],
+                    $otroUsuario['apellido'],$otroUsuario['dni'],$otroUsuario['cargo']);
+                }
+                else
+                {
+                    $unUsuario = new Socio($otroUsuario['email'],$otroUsuario['clave'],$otroUsuario['nombre'],
+                    $otroUsuario['apellido'],$otroUsuario['dni']);
                 }
             }
+            
 
         }
 

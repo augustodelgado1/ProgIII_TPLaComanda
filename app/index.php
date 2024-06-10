@@ -12,7 +12,7 @@ require_once './Controller/TipoDeProductoController.php';
 require_once './Controller/OrdenController.php';
 require_once './Controller/PedidoController.php';
 require_once './Controller/EncuestaController.php';
-
+require_once './Controller/SocioController.php';
 
 
 require_once './middlewares/ValidadorMiddleware.php';
@@ -82,6 +82,15 @@ $app->group('/Mesa', function (RouteCollectorProxy $grupoDeRutas)
 		$grupoDeRutas->get('/{negativo}',\MesaController::class.':ListarComentariosNegativosDeLasMesas');
 	});
 
+	$grupoDeRutas->group('/estado',function (RouteCollectorProxy $grupoDeRutas)
+	{
+		$grupoDeRutas->post('[/]',\MesaController::class.':SetEstadoInicial');
+		$grupoDeRutas->put('[/]',\MesaController::class.':SetEstadoServirComida');
+		$grupoDeRutas->put('/{pagar}',\MesaController::class.':SetEstadoPagarOrden');
+		$grupoDeRutas->delete('[/]',\MesaController::class.':SetEstadoCerrarMesa');
+	});
+
+
 	$grupoDeRutas->post('[/]',\MesaController::class.':CargarUno');
 
 });
@@ -96,9 +105,6 @@ $app->group('/sector', function (RouteCollectorProxy $grupoDeRutas)
 $app->group('/usuario', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	//Post
-	$grupoDeRutas->post('[/]',\UsuarioController::class.':CargarUno')
-	->add(new ValidadorMiddleware(array(Usuario::class,'ValidadorClave'),"Debe ingresar una clave valida"))
-	->add(new ValidadorMiddleware(array(Usuario::class,'ValidadorEmail'),"Debe ingresar un email valido"));;
 	
 	$grupoDeRutas->post('/{login}',\UsuarioController::class.':Login')
 	->add(new ValidadorMiddleware(array(Usuario::class,'ValidadorClave'),"Debe ingresar una clave valida"))
@@ -106,7 +112,7 @@ $app->group('/usuario', function (RouteCollectorProxy $grupoDeRutas)
 	
 	//Get
 	$grupoDeRutas->get('[/]',\UsuarioController::class.':Listar');
-	$grupoDeRutas->put('[/]',\EmpleadoController::class.':ModificarUno');
+	
 });
 
 // 2do Sprint ( Entrega 10 de Junio)
@@ -137,7 +143,10 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 
 $app->group('/socio', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	$grupoDeRutas->post('[/]',\SocioController::class.':CargarUno');
+	$grupoDeRutas->post('[/]',\SocioController::class.':CargarUno')
+	->add(new ValidadorMiddleware(array(Usuario::class,'ValidadorClave'),"Debe ingresar una clave valida"))
+	->add(new ValidadorMiddleware(array(Usuario::class,'ValidadorEmail'),"Debe ingresar un email valido"));
+
 	$grupoDeRutas->put('[/]',\SocioController::class.':ModificarUno');
 	$grupoDeRutas->delete('[/]',\SocioController::class.':EliminarUno');
 	$grupoDeRutas->get('[/]',\SocioController::class.':Listar');
@@ -162,20 +171,35 @@ $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->delete('[/]',\PedidoController::class.':CancelarUnPedido');
 	$grupoDeRutas->get('[/]',\PedidoController::class.':Listar');
 
-});
+	$grupoDeRutas->group('/csv', function (RouteCollectorProxy $grupoDeRutas) 
+	{
+		$grupoDeRutas->post('[/]',\PedidoController::class.':EscribirListaEnCsv')
+		->add(new ValidadorMiddleware(array(Pedido::class,'ValidarNombreDelArchivo'),"Debe ingresar el nombre de archivo"));
+		
+		$grupoDeRutas->get('[/]',\PedidoController::class.':LeerListaEnCsv')
+		->add(new ValidadorMiddleware(array(Pedido::class,'ValidarExistenciaDelArchivo'),"el archvivo no existe"))
+		->add(new ValidadorMiddleware(array(Pedido::class,'ValidarNombreDelArchivo'),"Debe ingresar nombre de un archivo"));
+	});
 
-$app->group('/tipoDeProducto', function (RouteCollectorProxy $grupoDeRutas) 
-{
-	$grupoDeRutas->post('[/]',\TipoDeProductoController::class.':CargarUno');
-	$grupoDeRutas->get('[/]',\TipoDeProductoController::class.':Listar');
-});
+	$grupoDeRutas->group('/listado', function (RouteCollectorProxy $grupoDeRutas) 
+	{
+		$grupoDeRutas->get('[/]',\PedidoController::class.':ListarNoEntregadoEnElTimpoEstipulado');
+		$grupoDeRutas->get('/{cancelado}',\PedidoController::class.':ListarCancelados');
 
+		$grupoDeRutas->group('/venta', function (RouteCollectorProxy $grupoDeRutas) 
+		{
+			$grupoDeRutas->get('[/]',\PedidoController::class.':ListarElPedidoMasVendido');
+			$grupoDeRutas->get('/{menos}',\PedidoController::class.':ListarElPedidoMenosVendido');
+		});
+		
+	});
+});
 
 $app->group('/orden', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\OrdenController::class.':CargarUno');
-	$grupoDeRutas->get('/{pedidos}',\OrdenController::class.':ListarPedidos');
+	$grupoDeRutas->get('[/]',\OrdenController::class.':ListarUno');
 });
 
 

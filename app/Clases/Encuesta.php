@@ -5,24 +5,23 @@
 require_once './db/AccesoDatos.php';
 require_once './Clases/Puntuacion.php';
 require_once './Clases/Orden.php';
+require_once './Clases/File.php';
+require_once './interfaces/IFileManejadorCSV';
 
-class Encuesta 
+class Encuesta implements IFileManejadorCSV
 {
     private $id;
     private $nombreDelCliente;
-    private $unaOrden;
+    private $idDeOrden;
     private $mensaje;
     private $estado;
    
-    public function __construct($unaOrden,$nombreDelCliente,$mensaje) 
+    public function __construct($idDeOrden,$nombreDelCliente,$mensaje) 
     {
         $this->SetMensaje($mensaje);
-        $this->unaOrden = $unaOrden;
-        // $this->ObtenerEstado();
+        $this->idDeOrden = $idDeOrden;
+        $this->nombreDelCliente = $nombreDelCliente;
     }
-
-   
-
 
     public function ObtenerListaDePuntuaciones()
     {
@@ -48,7 +47,7 @@ class Encuesta
             values (:nombreDelCliente,:mensaje,:idDeOrden,:estado)");
             $consulta->bindValue(':mensaje',$this->mensaje,PDO::PARAM_STR);
             $consulta->bindValue(':nombreDelCliente',$this->mensaje,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeOrden',$this->unaOrden->GetId(),PDO::PARAM_INT);
+            $consulta->bindValue(':idDeOrden',$this->idDeOrden,PDO::PARAM_INT);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $consulta->execute();
             $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
@@ -91,7 +90,7 @@ class Encuesta
     public static function ListarBD()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDeEncuestaes= null;
+        $listaDeEncuestaes = null;
 
         if(isset($unObjetoAccesoDato))
         {
@@ -102,6 +101,45 @@ class Encuesta
         }
 
         return  $listaDeEncuestaes;
+    }
+
+    public static function EscribirCsv($nombreDeArchivo,$listaDeEncuesta)
+    {
+        $estado = false;
+        
+        if(isset($nombreDeArchivo) && isset($listaDeEncuesta))
+        {
+            $estado = File::EscribirGenerico($listaDeEncuesta,$nombreDeArchivo,array(__CLASS__,'EscribirUnoCsv'));
+        }
+
+        return   $estado;
+    }
+    
+    public static function EscribirUnoCsv($unaEncuesta,$unArchivo)
+    {
+        $estado = false;
+        
+        if(isset($unaEncuesta))
+        {
+            $unArray = array($unaEncuesta->id,$unaEncuesta->nombreDelCliente,$unaEncuesta->idDeOrden,
+            $unaEncuesta->mensaje,$unaEncuesta->estado);
+            $estado  = fputcsv($unArchivo,$unArray);
+        }
+
+        return   $estado;
+    }
+
+    public static function LeerCsv($rutaArchivo)
+    {
+        $listaDeEncuesta = null;
+        $data = File::LeerArchivoCsv($rutaArchivo);
+        
+        if(isset($data))
+        {
+            $listaDeEncuesta = Encuesta::CrearLista($data);
+        }
+
+        return   $listaDeEncuesta;
     }
 
     #end
@@ -234,18 +272,6 @@ class Encuesta
     {
         return  $this->nombreDelCliente;
     }
-    public function GetStrPuntajeDeMesa()
-    {
-       $unaPuntuacion = Puntuacion::BuscarPorDescripcionBD($this->ObtenerListaDePuntuaciones(),"Mesa");
-       $mensaje = "no se encontraron puntuaciones";
-        if(isset( $unaPuntuacion))
-        {
-            $mensaje = $unaPuntuacion->ToString();
-        }
-        
-        return  $mensaje;
-    }
-
     public function GetStrPuntuacion()
     {
         $listaDePuntuaciones = $this->ObtenerListaDePuntuaciones();

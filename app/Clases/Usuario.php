@@ -25,59 +25,6 @@ abstract class Usuario
         $this->SetDni($dni);
         $this->fechaDeRegistro = new DateTime('now') ;
     }
-
-    public static function GetListaDeEmpleados()
-    {
-        return Usuario::FiltrarPorRolBD("Empleado");
-    }
-    public static function GetListaDeSocios()
-    {
-        return Usuario::FiltrarPorRolBD("Socio");
-    }
-    public static function GetListaDeClientes()
-    {
-        return Usuario::FiltrarPorRolBD("Cliente");
-    }
-
- 
-
-    // protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
-    // {
-    //     $unUsuario  = null;
-       
-    //     if(isset($unArrayAsosiativo))
-    //     {
-    //         $unUsuario = new Usuario($unArrayAsosiativo['email'],$unArrayAsosiativo['clave'],$unArrayAsosiativo['nombre'],
-    //         $unArrayAsosiativo['apellido'],  $unArrayAsosiativo['rol']);
-    //         $unUsuario->SetId($unArrayAsosiativo['id']);
-    //        if(isset($unArrayAsosiativo['fechaDeRegistro']))
-    //        {
-    //          $unUsuario->SetFechaDeRegistro(new DateTime($unArrayAsosiativo['fechaDeRegistro']));
-    //        }
-    //         $unUsuario->SetEstado($unArrayAsosiativo['estado']);
-    //     }
-       
-    //     return $unUsuario;
-    // }
-
-    // protected static function CrearLista($data)
-    // {
-    //     $listaDeUsuarios = null;
-    //     if(isset($data))
-    //     {
-    //         $listaDeUsuarios = [];
-    //         foreach($data as $unArray)
-    //         {
-    //             $unUsuario = Usuario::CrearUnoPorArrayAsosiativo($unArray);
-    //             if(isset($unUsuario))
-    //             {
-    //                 array_push($listaDeUsuarios,$unUsuario);
-    //             }
-    //         }
-    //     }
-
-    //     return   $listaDeUsuarios;
-    // }
     protected function AgregarBD()
     {
         $idDeUsuario = null;
@@ -101,7 +48,7 @@ abstract class Usuario
 
         return $idDeUsuario;
     }
-    public static function ObtenerListaDeUsuarios()
+    public static function ListarBD()
     {
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeUsuario = null;
@@ -115,23 +62,7 @@ abstract class Usuario
 
         return $listaDeUsuario;
     }
-    public static function FiltrarPorRolBD($rol)
-    {
-        $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDeUsuario = null;
-
-        if(isset($objAccesoDatos) && isset($rol) )
-        {
-            $consulta = $objAccesoDatos->RealizarConsulta("Select * From Usuario as u where LOWER(u.rol) = LOWER(:rol)");
-            $consulta->bindValue(':rol',$rol,PDO::PARAM_STR);
-            $consulta->execute();
-            $listaDeUsuario = $consulta->fetchAll(Pdo::FETCH_ASSOC);
-        }
-
-        return $listaDeUsuario;
-    }
-
-    public static function ObtenerUnUsuarioPorIdBD($id)
+    public static function BuscarPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $data= null;
@@ -160,32 +91,7 @@ abstract class Usuario
 
         return  $estado;
     }
-    public static function ModificarUnoBD($id,$mail,$clave,$nombre,$apellido,$dni)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
 
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `usuario` 
-            SET `email`= :mail,`clave`= :clave,`nombre`= :nombre,`apellido`= :apellido,`dni`= :dni 
-            Where id=:id");
-            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
-            $consulta->bindValue(':mail',$mail,PDO::PARAM_STR);
-            $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
-            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
-            $consulta->bindValue(':apellido',$apellido,PDO::PARAM_STR);
-            $consulta->bindValue(':dni',$dni,PDO::PARAM_STR);
-            $estado= $consulta->execute();
-        }
-
-        return  $estado;
-    }
-   
-   
- 
-
-    
     public static function BuscarEmailUnUsuarioBD($mail)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -193,7 +99,8 @@ abstract class Usuario
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where LOWER(u.email) = LOWER(:email)");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u 
+            where LOWER(u.email) = LOWER(:email)");
             $consulta->bindValue(':email',$mail,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
@@ -232,8 +139,8 @@ abstract class Usuario
 
             $codigoAlfaNumerico = "";
 
-            for ($i=0; $i < $cantidadDeCaracteres; $i++) { 
-
+            for ($i=0; $i < $cantidadDeCaracteres; $i++) 
+            { 
                 $codigoAlfaNumerico .= $caraceteres[rand(0,$len-1)];
             }
         }
@@ -431,6 +338,7 @@ abstract class Usuario
 
         return $estado;
     }
+ 
     
     public static function ValidadorEmail($data)
     {

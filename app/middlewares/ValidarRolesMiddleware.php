@@ -18,10 +18,8 @@ class ValidarRolesMiddleware
     }
     public function __invoke(Request $request, RequestHandler $handler)
     {   
-        
-
         $response = new Response();
-        $unUsuario = Usuario::ObtenerUnUsuarioPorIdBD($this->idDeUsuario);
+        $unUsuario = Usuario::BuscarPorIdBD($this->idDeUsuario);
     
         if (in_array($unUsuario->GetRolDeUsuario(),$this->listaDeRoles)) 
         {
@@ -31,8 +29,6 @@ class ValidarRolesMiddleware
             $payload = $this->mensajeDeError;
             $response->getBody()->write($payload);
         }
-        
-        
 
         return $response->withHeader('Content-Type', 'application/json');
     }
