@@ -15,15 +15,7 @@ class TipoDeProducto
         $this->idDeSector = $sector;
     }
 
-    public static function DarDeAlta($nombre,$setor)
-    {
-        $estado = false;
-        $unaTipoDeProducto = new TipoDeProducto($nombre,$setor);
-        $estado = $unaTipoDeProducto->AgregarBD();
-        
-
-        return $estado;
-    }
+   
 
 
     private function SetSector($idDeSector)
@@ -36,7 +28,7 @@ class TipoDeProducto
 
         return $estado;
     }
-    private function AgregarBD()
+    public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();

@@ -19,19 +19,12 @@ class UsuarioController
             if(isset($unUsuario) && isset($otroUsuario) &&
              $otroUsuario['email'] === $unUsuario['email'] 
             && $otroUsuario['clave'] === $unUsuario['clave']
-            && $otroUsuario['id'] === $unUsuario['id'])
+            && $otroUsuario['id'] === $unUsuario['id']
+            && $otroUsuario['estado'] !==  Usuario::ESTADO_SUSPENDIDO 
+            && $otroUsuario['estado'] !==  Usuario::ESTADO_BORRADO)
             {
                 
-                if($otroUsuario['rol'] !== 'Socio')
-                {
-                    $unUsuario = new Empleado($otroUsuario['email'],$otroUsuario['clave'],$otroUsuario['nombre'],
-                    $otroUsuario['apellido'],$otroUsuario['dni'],$otroUsuario['cargo']);
-                }
-                else
-                {
-                    $unUsuario = new Socio($otroUsuario['email'],$otroUsuario['clave'],$otroUsuario['nombre'],
-                    $otroUsuario['apellido'],$otroUsuario['dni']);
-                }
+               
             }
             
 

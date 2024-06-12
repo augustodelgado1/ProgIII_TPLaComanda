@@ -7,19 +7,15 @@ require_once 'Cargo.php';
 
 class Empleado extends Usuario
 {
-    public const ESTADO_ACTIVO = "activo";
-    public const ESTADO_SUSPENDIDO = "suspendido";
-    public const ESTADO_DESPEDIDO = "inactivo";
+   
     private $id;
     private $cargo;
-    private $estado;
-   
    
     public function __construct($mail,$clave,$nombre,$apellido,$dni,$cargo) {
         
         parent::__construct($mail,$clave,$nombre,$apellido,$dni,"Empleado");
         $this->cargo = $cargo;
-        $this->estado = Empleado::ESTADO_ACTIVO;
+        
     }
 
     public function ObtenerListaDePedidos()
@@ -39,31 +35,40 @@ class Empleado extends Usuario
 
         return $cantidad;
     }
-
    
     public static function BorrarUnoPorIdBD($idDeEmpleado)
     {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
         $arrayDeEmpleado = Empleado::ObtenerArrayDeEmpleadoPorId($idDeEmpleado);
        
-        if(isset($unObjetoAccesoDato) && isset($arrayDeEmpleado))
+        if(isset($arrayDeEmpleado))
         {
-            parent::BorrarUnoPorIdBD($arrayDeEmpleado['idDeUsuario']);
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Empleado as e where e.id = :id");
-            $consulta->bindValue(':id',$idDeEmpleado,PDO::PARAM_INT);
-            $estado = $consulta->execute();
+            $estado = parent::BorrarUnoPorIdBD($arrayDeEmpleado['idDeUsuario']);
         }
 
         return  $estado;
     }
+    public static function SuspenderUnoPorIdBD($idDeEmpleado)
+    {
+        $estado = false;
+        $arrayDeEmpleado = Empleado::ObtenerArrayDeEmpleadoPorId($idDeEmpleado);
+
+        if(isset($arrayDeEmpleado))
+        {
+            $estado =  Usuario::ModificarEstadoBD($arrayDeEmpleado['idDeUsuario'],Usuario::ESTADO_SUSPENDIDO);
+        }
+
+        return  $estado;
+    }
+   
+   
     
     public static function ModificarUnEmpleadoBD($idDeEmpleado,$mail,$clave,$nombre,$apellido,$dni,$cargo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
        
-        if(isset($unObjetoAccesoDato) && isset($arrayDeEmpleado))
+        if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `usuario` 
             JOIN Empleado e ON e.id = u.id
@@ -96,22 +101,7 @@ class Empleado extends Usuario
 
         return  $estado;
     }
-    public function ModificarEstadoBD($estado)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-
-        if(isset($unObjetoAccesoDato) && $this->SetEstado($estado))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Empleado` SET estado = :estado Where id=:id");
-            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
-            $estado= $consulta->execute();
-        }
-
-        return  $estado;
-    }
-
+  
     private static function ObtenerArrayDeEmpleadoPorId($idDeEmpleado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -139,19 +129,6 @@ class Empleado extends Usuario
         if(isset($idDecargo))
         {
             $this->cargo = $idDecargo;
-        }
-
-        return $estado;
-    }
-
-    public static function DarDeAltaUnEmpleado($mail,$clave,$nombre,$apellido,$dni,$cargo)
-    {
-        $estado = false;
-        $unEmpleado = new Empleado($mail,$clave,$nombre,$apellido,$dni,$cargo);
-
-        if(empty($unEmpleado->cargo) == false)
-        {
-            $estado = $unEmpleado->AgregarBD();
         }
 
         return $estado;
@@ -232,15 +209,15 @@ class Empleado extends Usuario
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Empleado as e where e.estado = :estado");
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $listaDeTipos= Empleado::CrearLista($data);
+            parent::FiltrarPorEstadoBD($estado);
+
+
         }
 
         return $listaDeTipos;
     }
+
+    
     
     protected static function CrearLista($data)
     {
@@ -369,17 +346,7 @@ class Empleado extends Usuario
         return  $mensaje;
     }
 
-    protected function SetEstado($estadoDelEmpeado)
-    {
-        $estado = false;
-        if(isset($estado))
-        {
-            $this->estado = $estadoDelEmpeado;
-            $estado = true;
-        }
-
-        return  $estado ;
-    }
+   
 
     
     //  public static function EscribirJson($listaDeEmpleado,$claveDeArchivo)

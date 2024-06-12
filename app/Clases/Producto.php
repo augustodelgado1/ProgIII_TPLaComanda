@@ -4,6 +4,7 @@
 
 require_once './db/AccesoDatos.php';
 require_once 'TipoDeProducto.php';
+require_once 'Util.php';
 class Producto 
 {
     private $id;
@@ -254,7 +255,7 @@ class Producto
     {
         $estado = false;
        
-        if(isset($nombre) && Usuario::VerificarQueContengaSoloLetras($nombre))
+        if(isset($nombre) && Util::VerificarQueContengaSoloLetras($nombre))
         {
             $this->nombre = $nombre;
             $estado = true;
@@ -293,6 +294,7 @@ class Producto
 
     public function GetTipo()
     {
+        
         return TipoDeProducto::BuscarTipoDeProductoPorIdBD($this->tipoDeProducto);
     }
 

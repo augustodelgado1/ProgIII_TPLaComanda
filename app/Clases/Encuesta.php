@@ -6,9 +6,8 @@ require_once './db/AccesoDatos.php';
 require_once './Clases/Puntuacion.php';
 require_once './Clases/Orden.php';
 require_once './Clases/File.php';
-require_once './interfaces/IFileManejadorCSV';
 
-class Encuesta implements IFileManejadorCSV
+class Encuesta 
 {
     private $id;
     private $nombreDelCliente;
@@ -27,16 +26,10 @@ class Encuesta implements IFileManejadorCSV
     {
        return Puntuacion::FiltrarPorIdDeEncuestaBD($this->id);
     }
-    public static function DarDeAlta($idDeOrden,$nombreDelCliente,$mensaje)
-    {
-        $unaEncuesta = new Encuesta($idDeOrden,$nombreDelCliente,$mensaje);
-        $idDeEncuesta = $unaEncuesta->AgregarBD();
-
-       return $idDeEncuesta;
-    }
+    
 
     #BaseDeDatos
-    private function AgregarBD()
+    public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
@@ -116,6 +109,25 @@ class Encuesta implements IFileManejadorCSV
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta as e where e.idDeOrden = :idDeOrden");
             $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $consulta->execute();
+            $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
+          
+        }
+
+        return  $listaDeEncuestas;
+    }
+    public static function FiltrarPorPuntucionBD($descripcion,$estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeEncuestas = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta e
+            JOIN Puntuacion p ON p.idDeEncuesta = e.id
+            WHERE LOWER(p.descripcion) = LOWER(:descripcion) AND LOWER(p.estado) = LOWER(:estado)");
+            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
             $consulta->execute();
             $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
           
@@ -218,18 +230,6 @@ class Encuesta implements IFileManejadorCSV
         }
 
         return   $listaDeEncuestaes;
-    }
-
-    public static function BuscarEncuestaPorId($listaDeEncuestas,$id)
-    {
-        $unaEncuestaABuscar = null; 
-        $index = Encuesta::ObtenerIndicePorId($listaDeEncuestas,$id);
-        if($index > 0 )
-        {
-            $unaEncuestaABuscar = $listaDeEncuestas[$index];
-        }
-
-        return  $unaEncuestaABuscar;
     }
 
      public static function ObtenerIndicePorId($listaDeEncuestas,$id)
@@ -367,6 +367,26 @@ class Encuesta implements IFileManejadorCSV
         }
 
         return   $strLista;
+    }
+
+    public static function FiltrarPorLista($unaLista,$otraLista)
+    {
+        $listaFiltrada = null;
+
+        if(isset($otraLista) && isset($unaLista))
+        {
+            $listaFiltrada =  [];
+
+            foreach($unaLista as $unaEncuestaDeLaLista)
+            {
+                if(Encuesta::ObtenerIndicePorId($otraLista,$unaEncuestaDeLaLista->id) < 0)
+                {
+                    array_push($listaFiltrada,$unaEncuestaDeLaLista);
+                }
+            }
+        }
+
+        return  $listaFiltrada;
     }
 
     public function ToString()
@@ -548,7 +568,7 @@ class Encuesta implements IFileManejadorCSV
 
 //Filtrar
 
-    // public static function FiltrarPizzaPorTipo($listaDePizzas,$tipo)
+    // public static function FiltrarPorLista($listaDePizzas,$tipo)
     // {
     //     $listaDeTipoDePizza = null;
 

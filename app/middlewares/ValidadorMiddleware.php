@@ -15,7 +15,7 @@ class ValidadorMiddleware
     }
     public function __invoke(Request $request, RequestHandler $handler)
     {   
-        $parametros = $request->getQueryParams();
+        $parametros = $request->getParsedBody();
 
         $response = new Response();
      

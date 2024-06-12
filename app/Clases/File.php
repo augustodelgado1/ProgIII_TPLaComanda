@@ -53,29 +53,6 @@ class File
 
         return   $listaDeLineas ;
     }
-
-    public static function EscribirListaDeArray($lista,$nombreDeArchivo)
-    {
-        $estado = false;
-        $unArchivo = fopen($nombreDeArchivo,"w");
-
-        if(isset( $unArchivo) && isset($lista)){
-            
-            $estado = true;
-            
-            foreach($lista as $unArray )
-            {
-
-                if(!fputcsv($unArchivo,$unArray))
-                {
-                    $estado = false;
-                    break;
-                }
-            }
-        }
-
-        return $estado;
-    }
     public static function EscribirGenerico($lista,$nombreDeArchivo,$funcEscribirUno)
     {
         $estado = false;
@@ -98,6 +75,17 @@ class File
 
         return $estado;
     }
+
+    public static function ValidarNombreDelArchivo($data)
+    {
+    
+        return  isset($data['nombreDelArchivo']);
+    }
+    public static function ValidarExistenciaDelArchivo($data)
+    {
+        return  file_exists($data['nombreDelArchivo']);
+    }
+
 
 
     

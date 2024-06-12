@@ -20,7 +20,7 @@ class ProductoController
         if(isset($data))
         {
             $mensaje = 'no se pudo dar de alta';
-            $unProducto =  new Producto($data['nombre'],$data['precio'],$unTipoDeProducto->GetId());
+            $unProducto =  new Producto($data['nombre'],$unTipoDeProducto->GetId(),$data['precio']);
            
             if($unProducto->AgregarBD())
             {

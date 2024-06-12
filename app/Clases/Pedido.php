@@ -41,23 +41,26 @@ class Pedido
         $this->estado = Pedido::ESTADO_INICIAL;
         $this->fechaDelPedido = new DateTime("now");
         $this->estadoDelTiempo = Pedido::ESTADO_TIEMPO_INDETERMINADO;
+        $this->ObtenerSector();
+        $this->CalcularImporteTotal();
     }
 
     public function AgregarBD()
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
+
         if(isset($objAccesoDatos))
         {
             $consulta = $objAccesoDatos->RealizarConsulta("
-            Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,importeTotal,fechaDelPedido,estado,estadoDelTiempo) 
-            values (:numeroDePedido,:idDeLaOrden,:idDeSector,:idDeProducto,:importeTotal,fechaDelPedido,:estado,:estadoDelTiempo)");
+           Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,importeTotal,fechaDePedido,estado,estadoDelTiempo) 
+        values (:numeroDePedido,:idDeOrden,:idDeSector,:idDeProducto,:importeTotal,:fechaDePedido,:estado,:estadoDelTiempo)");
             $consulta->bindValue(':numeroDePedido',$this->numeroDePedido,PDO::PARAM_INT);
             $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
-            $consulta->bindValue(':idDeLaOrden',$this->orden,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeOrden',$this->orden,PDO::PARAM_INT);
             $consulta->bindValue(':idDeProducto',$this->unProducto,PDO::PARAM_INT);
             $consulta->bindValue(':importeTotal',$this->importeTotal);
-            $consulta->bindValue(':fechaDelPedido',$this->fechaDelPedido->format('y-m-d'),PDO::PARAM_STR);
+            $consulta->bindValue(':fechaDePedido',$this->fechaDelPedido->format('y-m-d'),PDO::PARAM_STR);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $consulta->bindValue(':estadoDelTiempo',$this->estadoDelTiempo,PDO::PARAM_STR);
             $estado = $consulta->execute();
@@ -275,6 +278,38 @@ class Pedido
 
         return  $listaFiltrada;
     }
+    public static function ContarPedidosPorIdDeOrdenBD($idDeOrden)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $cantidadTotal = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeOrden))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalPedidos FROM Pedido as p where p.idDeOrden = :idDeOrden");
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $cantidadTotal =  $data['totalPedidos'];
+        }
+
+        return  $cantidadTotal;
+    }
+    public static function ContarPedidosPorIdDeProductoBD($idDeProducto)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $cantidadTotal = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeProducto))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalPedidos FROM Pedido as p where p.idDeProducto = :idDeProducto");
+            $consulta->bindValue(':idDeProducto',$idDeProducto,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $cantidadTotal =  $data['totalPedidos'];
+        }
+
+        return  $cantidadTotal;
+    }
     public static function FiltrarPorIdDeEmpleadoBD($idDeEmpleado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -379,22 +414,24 @@ class Pedido
     }
     private static function CrearLista($data)
     {
-        $listaDeEmpleados = null;
+        $listaDePedidos = null;
         if(isset($data))
         {
-            $listaDeEmpleados = [];
+            $listaDePedidos = [];
 
             foreach($data as $unArray)
             {
-                $unEmpleado = Pedido::CrearUnaPedido($unArray);
-                if(isset($unEmpleado))
+                $unPedido = Pedido::CrearUnaPedido($unArray);
+                if(isset($unPedido))
                 {
-                    array_push($listaDeEmpleados,$unEmpleado);
+                    array_push($listaDePedidos,$unPedido);
                 }
             }
+
+           
         }
 
-        return   $listaDeEmpleados;
+        return   $listaDePedidos;
     }
 
   
@@ -426,16 +463,7 @@ class Pedido
 
         return   $estado;
     }
-    public static function ValidarNombreDelArchivo($data)
-    {
-    
-        return  isset($data['nombreDelArchivo']);
-    }
-    public static function ValidarExistenciaDelArchivo($data)
-    {
-        return  file_exists($data['nombreDelArchivo']);
-    }
-
+   
     public static function LeerCsv($nombreDeArchivo)
     {
         $listaDeEmpleados = null;
@@ -455,6 +483,7 @@ class Pedido
 
         if(isset($data))
         {
+           
             $unaPedido = new Pedido($data['idDeOrden'],$data['idDeProducto']);
             $unaPedido->SetId($data['id']);
             $unaPedido->SetEmpleado($data['idDeEmpleado']);
@@ -471,6 +500,8 @@ class Pedido
             $unaPedido->SetIdSector($data['idDeSector']);
             $unaPedido->SetEstado($data['estado']);
             $unaPedido->SetEstadoDelTiempo($data['estadoDelTiempo']);
+
+            
         }
 
         return  $unaPedido;
@@ -857,6 +888,27 @@ class Pedido
 
         return $unPedido;
     }
+    public static function MostrarProductos($listaDePedidos)
+    {
+       $strLista = null;
+      
+        if(isset($listaDePedidos))
+        {
+            $strLista = "";
+            foreach ($listaDePedidos as $unPedidoDelaLista) 
+            {
+                $unProducto = $unPedidoDelaLista->GetProducto();
+                if(isset($unProducto))
+                {
+                    $strLista .= $unProducto->ToString();
+                }
+            }
+        }
+
+        return $strLista;
+    }
+
+    
 }
 
 

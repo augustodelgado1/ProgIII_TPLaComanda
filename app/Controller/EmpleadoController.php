@@ -75,12 +75,9 @@ class EmpleadoController
     public static function SuspenderUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-      
-        $unEmpleado = Empleado::BuscarPorIdBD($data['id']);
         $mensaje = 'no se pudo dar de alta';
 
-        if(isset($unEmpleado)
-        && $unEmpleado->ModificarEstadoBD(Empleado::ESTADO_SUSPENDIDO))
+        if(Empleado::SuspenderUnoPorIdBD($data['id']))
         {
             $mensaje = 'El Usuario se registro correctamente';
         }
@@ -90,26 +87,6 @@ class EmpleadoController
 
         return $response;
     }
-    public static function DespedirUno($request, $response, array $args)
-    {
-        $data = $request->getParsedBody();
-      
-        $unEmpleado = Empleado::BuscarPorIdBD($data['id']);
-        $mensaje = 'no se pudo dar de alta';
-
-        if(isset($unEmpleado)
-        && $unEmpleado->ModificarEstadoBD(Empleado::ESTADO_DESPEDIDO))
-        {
-            $mensaje = 'El Usuario se registro correctamente';
-        }
-
-        $response->getBody()->write($mensaje);
-
-
-        return $response;
-    }
-
-
      // d- Cantidad de operaciones de cada uno por separado.
 
     public static function Listar($request, $response, array $args)
@@ -141,8 +118,7 @@ class EmpleadoController
         
         $mensaje = 'Hubo un error  al intentar listar los Clientes';
         
-        $listaDeEmpleados = Empleado::FiltrarPorEstadoBD(Empleado::ESTADO_SUSPENDIDO);
-
+        $listaDeEmpleados = Empleado::FiltrarPorEstadoBD(Usuario::ESTADO_SUSPENDIDO);
 
         if(isset($listaDeEmpleados))
         {
@@ -164,7 +140,7 @@ class EmpleadoController
         
         $mensaje = 'Hubo un error  al intentar listar los Clientes';
         
-        $listaDeEmpleados = Empleado::FiltrarPorEstadoBD(Empleado::ESTADO_DESPEDIDO);
+        $listaDeEmpleados = Empleado::FiltrarPorEstadoBD(Usuario::ESTADO_BORRADO);
 
 
         if(isset($listaDeEmpleados))

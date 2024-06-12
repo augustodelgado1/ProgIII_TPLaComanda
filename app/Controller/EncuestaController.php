@@ -4,6 +4,7 @@
 
 require_once './Clases/Encuesta.php';
 require_once './Clases/Puntuacion.php';
+require_once './Clases/Mesa.php';
 
 
 // 7- De los empleados:
@@ -21,7 +22,9 @@ class EncuestaController
     {
         $data = $request->getParsedBody();
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
-        $idDeEncuesta = Encuesta::DarDeAlta($unaOrden->GetId(),$data['nombreDelCliente'],$data['mensaje']);
+        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unaEncuesta = new Encuesta($unaOrden->GetId(),$data['nombreDelCliente'],$data['mensaje']);
+        $idDeEncuesta = $unaEncuesta->AgregarBD();
         $mensaje = 'no se pudo dar de alta';
         
 

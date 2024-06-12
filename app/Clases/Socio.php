@@ -32,16 +32,12 @@ class Socio extends Usuario
 
     public static function BorrarUnoPorIdBD($idDeSocio)
     {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
         $arrayDeSocio = Socio::ObtenerArrayDeSocioPorId($idDeSocio);
        
-        if(isset($unObjetoAccesoDato) && isset($arrayDeSocio))
+        if(isset($arrayDeSocio))
         {
-            parent::BorrarUnoPorIdBD($arrayDeSocio['idDeUsuario']);
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Socio as s where s.id = :id");
-            $consulta->bindValue(':id',$idDeSocio,PDO::PARAM_INT);
-            $estado = $consulta->execute();
+            $estado = parent::BorrarUnoPorIdBD($arrayDeSocio['idDeUsuario']);
         }
 
         return  $estado;

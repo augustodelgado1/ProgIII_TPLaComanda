@@ -4,6 +4,7 @@
 
 require_once './db/AccesoDatos.php';
 require_once 'Sector.php';
+require_once 'Util.php';
 require_once 'Usuario.php';
 
 class Mesa 
@@ -19,9 +20,9 @@ class Mesa
 
     
 
-    public function __construct($codigo) 
+    public function __construct() 
     {
-        $this->$codigo = $codigo;
+        $this->codigo =  Util::CrearUnCodigoAlfaNumerico(5);
         $this->estado = 'cerrada';
     }
 
@@ -40,10 +41,6 @@ class Mesa
 
         return $estado;
     }
-
-    // private $id;
-    // private $codigo;
-    // private $estado;
     public static function ModificarUnoBD($id,$codigo,$estado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -87,7 +84,8 @@ class Mesa
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Mesa as m where LOWER(m.codigo) = LOWER(:codigo)");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Mesa 
+            as m where LOWER(m.codigo) = LOWER(:codigo)");
             $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
@@ -96,7 +94,7 @@ class Mesa
 
         return  $unMesa;
     }
-    public static function FiltarMesaPuntuadas()
+    public static function FiltarMesaEncuestadas()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeMesas = null;
@@ -106,9 +104,7 @@ class Mesa
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT m.id , m.codigo , m.estado 
             FROM `mesa` as m 
             JOIN `orden` as o ON o.idDeMesa = m.id 
-            JOIN `encuesta` as e ON e.idDeOrden = o.id 
-            JOIN `puntuacion` as p ON p.idDeEncuesta = e.id 
-            WHERE p.descripcion = :descripcion");
+            JOIN `encuesta` as e ON e.idDeOrden = o.id");
             $consulta->bindValue(':descripcion',"Mesa",PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
@@ -203,7 +199,7 @@ class Mesa
 
         if(isset($data))
         {
-            $unaMesa = new Mesa($data['codigo']);
+            $unaMesa = new Mesa();
             $unaMesa->SetId($data['id']);
             $unaMesa->SetCodigo($data['codigo']);
             $unaMesa->SetEstado($data['estado']);
@@ -305,22 +301,26 @@ class Mesa
 
         return   $strLista;
     }
-    public static function MostarComentarios($listaDeMesas)
+    public static function MostarComentarios($listaDeMesas,$listaDeEncuesta)
     {
         $strLista = null; 
 
-        if(isset($listaDeMesas) )
+        if(isset($listaDeMesas) && isset($listaDeEncuesta))
         {
             $strLista  = "Mesas".'<br>';
             foreach($listaDeMesas as $unaMesa)
             {
                 $strLista .= $unaMesa->ToString().'<br>'.
-                Orden::MostarComentariosPorCategoria($unaMesa->ObtenerListaDeOrdenes(),"Mesa");
+                
+                Orden::MostarComentarios($unaMesa->listaDeOrdenes,$listaDeEncuesta);
             }
         }
 
         return   $strLista;
     }
+ 
+
+   
 
     public function ToString()
     {

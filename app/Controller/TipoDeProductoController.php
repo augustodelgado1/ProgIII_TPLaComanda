@@ -19,10 +19,10 @@ class TipoDeProductoController
         if(isset($data) && isset($unSector))
         {
             $mensaje = 'no se pudo dar de alta';
-
-            if(TipoDeProducto::DarDeAlta($data['nombre'],$unSector))
+            $unTipoDeProducto = new TipoDeProducto($data['nombre'],$unSector->GetId());
+            if($unTipoDeProducto->AgregarBD())
             {
-                $mensaje = 'El TipoDeProducto se dio de alta';
+                $mensaje = 'El Tipo De Producto se dio de alta';
             }
         }
 

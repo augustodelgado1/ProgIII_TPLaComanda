@@ -24,7 +24,7 @@ class MesaController
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Mesa';
 
-        $unaMesa = new Mesa(Usuario::CrearUnCodigoAlfaNumerico(5));
+        $unaMesa = new Mesa();
 
         if($unaMesa->AgregarBD())
         {
@@ -132,17 +132,17 @@ class MesaController
     public static function ListarComentariosPositivosDeLasMesas($request, $response, array $args)
     {
         $data = $request->getQueryParams();
-        $listaDeMesas = Mesa::FiltarMesaPuntuadas();
-        
+        $listaDeMesas = Mesa::FiltarMesaEncuestadas();
+        $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_POSITIVO);
 
 
         $mensaje = "Hubo error en la funcion";
-        if(isset($listaDeMesas))
+        if(isset($listaDeEncuesta))
         {
-            $mensaje = "la lista esta vacia";
-            if(count($listaDeMesas) > 0)
+            $mensaje = "No se encontraron comentarios ".Puntuacion::ESTADO_POSITIVO.'s';
+            if(count($listaDeEncuesta) > 0)
             {
-                $mensaje = Mesa::MostarComentarios($listaDeMesas);
+                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta);
             }
         }
 
@@ -154,14 +154,15 @@ class MesaController
     public static function ListarComentariosNegativosDeLasMesas($request, $response, array $args)
     {
         $data = $request->getQueryParams();
-        $listaDeMesas = Mesa::FiltarMesaPuntuadas();
+        $listaDeMesas = Mesa::FiltarMesaEncuestadas();
+        $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_NEGATIVO);
         
         if(isset($listaDeMesas))
         {
             $mensaje = "la lista esta vacia";
             if(count($listaDeMesas) > 0)
             {
-                $mensaje = Mesa::MostarComentarios($listaDeMesas);
+                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta);
             }
         }
 

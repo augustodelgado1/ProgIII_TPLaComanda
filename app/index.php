@@ -95,8 +95,17 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->delete('[/]',\EmpleadoController::class.':EliminarUno');
 
 	$grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	$grupoDeRutas->get('/{pedidos}',\EmpleadoController::class.':ListarPedidosPendientes');
 	//LISTADOS
+
 	
+	
+});
+
+$app->group('/listadosEmpleados', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	$grupoDeRutas->get('[/]',\EmpleadoController::class.':ListarSuspendidos');
+	$grupoDeRutas->get('/{borrados}',\EmpleadoController::class.':ListarBorrados');
 });
 
 $app->group('/socio', function (RouteCollectorProxy $grupoDeRutas) 
@@ -132,18 +141,11 @@ $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->put('/{finalizacion}',\PedidoController::class.':FinalizarPreparacionDeUnPedido');
 	$grupoDeRutas->delete('[/]',\PedidoController::class.':CancelarUnPedido');
 	$grupoDeRutas->get('[/]',\PedidoController::class.':Listar');
+	$grupoDeRutas->get('/{terminados}',\PedidoController::class.':ListarTerminados');
 
-	$grupoDeRutas->group('/csv', function (RouteCollectorProxy $grupoDeRutas) 
-	{
-		$grupoDeRutas->post('[/]',\PedidoController::class.':EscribirListaEnCsv')
-		->add(new ValidadorMiddleware(array(Pedido::class,'ValidarNombreDelArchivo'),"Debe ingresar el nombre de archivo"));
-		
-		$grupoDeRutas->get('[/]',\PedidoController::class.':LeerListaEnCsv')
-		->add(new ValidadorMiddleware(array(Pedido::class,'ValidarExistenciaDelArchivo'),"el archvivo no existe"))
-		->add(new ValidadorMiddleware(array(Pedido::class,'ValidarNombreDelArchivo'),"Debe ingresar nombre de un archivo"));
-	});
+	
 
-	$grupoDeRutas->group('/listado', function (RouteCollectorProxy $grupoDeRutas) 
+	$grupoDeRutas->group('/pedido/{listado}', function (RouteCollectorProxy $grupoDeRutas) 
 	{
 		$grupoDeRutas->get('[/]',\PedidoController::class.':ListarNoEntregadoEnElTimpoEstipulado');
 		$grupoDeRutas->get('/{cancelado}',\PedidoController::class.':ListarCancelados');
@@ -213,17 +215,12 @@ $app->group('/sector', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->delete('[/]',\SectorController::class.':EliminarUno');
 });
 
-$app->group('/Mesa', function (RouteCollectorProxy $grupoDeRutas) 
+$app->group('/mesa', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->get('[/]',\MesaController::class.':Listar');
-	$grupoDeRutas->group('/comentarios',function (RouteCollectorProxy $grupoDeRutas)
-	{
-		$grupoDeRutas->get('[/]',\MesaController::class.':ListarComentariosPositivosDeLasMesas');
-		$grupoDeRutas->get('/{negativo}',\MesaController::class.':ListarComentariosNegativosDeLasMesas');
-	});
 
-	$grupoDeRutas->group('/estado',function (RouteCollectorProxy $grupoDeRutas)
+	$grupoDeRutas->group('/{estado}',function (RouteCollectorProxy $grupoDeRutas)
 	{
 		$grupoDeRutas->post('[/]',\MesaController::class.':SetEstadoInicial');
 		$grupoDeRutas->put('[/]',\MesaController::class.':SetEstadoServirComida');
@@ -236,6 +233,16 @@ $app->group('/Mesa', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->delete('[/]',\SectorController::class.':EliminarUno');
 
 });
+
+// $grupoDeRutas->group('/pedido/{csv}', function (RouteCollectorProxy $grupoDeRutas) 
+// 	{
+// 		$grupoDeRutas->post('[/]',\PedidoController::class.':EscribirListaEnCsv')
+// 		->add(new ValidadorMiddleware(array(Pedido::class,'ValidarNombreDelArchivo'),"Debe ingresar el nombre de archivo"));
+		
+// 		$grupoDeRutas->get('[/]',\PedidoController::class.':LeerListaEnCsv')
+// 		->add(new ValidadorMiddleware(array(Pedido::class,'ValidarExistenciaDelArchivo'),"el archvivo no existe"))
+// 		->add(new ValidadorMiddleware(array(Pedido::class,'ValidarNombreDelArchivo'),"Debe ingresar nombre de un archivo"));
+// 	});
 
 
 $app->run();

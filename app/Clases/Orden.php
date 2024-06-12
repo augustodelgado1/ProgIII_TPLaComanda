@@ -7,6 +7,7 @@ require_once './Clases/File.php';
 require_once './Clases/Mesa.php';
 require_once './Clases/Pedido.php';
 require_once './Clases/Encuesta.php';
+require_once './Clases/Util.php';
 
 class Orden 
 {
@@ -22,6 +23,7 @@ class Orden
     private $costoTotal;
     private $tiempoTotal;
     private $estado;
+    private $listaDePedidos;
 
     public function __construct($nombreDelCliente,$idDeMesa,$rutaDeLaImagen = null,$nombreDeLaImagen = null) 
     {
@@ -30,17 +32,21 @@ class Orden
         $this->fechaDeOrden = new DateTime('now');
         $this->estado = "activa";
         $this->costoTotal = 0;
-        $this->codigo = Usuario::CrearUnCodigoAlfaNumerico(5);
+        $this->codigo = Util::CrearUnCodigoAlfaNumerico(5);
         $this->SetImagen($rutaDeLaImagen,$nombreDeLaImagen);
         $this->CalcularTiempoTotal();
+        $this->CalcularCostoTotal();
+
+        
     }
     private function CalcularCostoTotal()
     {
         $this->costoTotal = 0;
-        $listaDePedidos = $this->ObtenerListaDePedidos();
-        if(isset($listaDePedidos))
+
+        $this->listaDePedidos = $this->ObtenerListaDePedidos();
+        if(isset( $this->listaDePedidos))
         {
-            foreach ($listaDePedidos as $unPedido) {
+            foreach ($this->listaDePedidos as $unPedido) {
                
                 if(isset($unPedido))
                 {
@@ -53,13 +59,14 @@ class Orden
     private function CalcularTiempoTotal()
     {
         $tiempoTotal = null;
-        $listaDePedidos = $this->ObtenerListaDePedidos();
-        if(isset($listaDePedidos) && count($listaDePedidos) > 0)
+        $this->listaDePedidos = $this->ObtenerListaDePedidos();
+
+        if(isset($this->listaDePedidos) && count($this->listaDePedidos) > 0)
         {
             $tiempoTotal = new DateTime('00:00');
-            foreach ($listaDePedidos as $unPedido) {
+            foreach ($this->listaDePedidos as $unPedido) {
                
-                if(isset($unPedido))
+                if(isset($unPedido) && $unPedido->GetEstado() === Pedido::ESTADO_INTERMEDIO)
                 {
                     $tiempoTotal->add($unPedido->GetTiempoEstimado());
                 }
@@ -71,7 +78,16 @@ class Orden
 
     public function ObtenerListaDePedidos()
     {
-        return  Pedido::FiltrarPedidosPorIdDeOrdenBD($this->id);
+        $cantidad = Pedido::ContarPedidosPorIdDeOrdenBD($this->id);
+      
+        if((isset($this->listaDePedidos) == false || 
+        (isset($this->listaDePedidos) && count($this->listaDePedidos) <= $cantidad)) &&  $cantidad > 0)
+        {
+            echo "Entro";
+            $this->listaDePedidos = Pedido::FiltrarPedidosPorIdDeOrdenBD($this->id);
+        }
+        
+        return  $this->listaDePedidos;
     }
     public function ObtenerListaDeEncuestas()
     {
@@ -493,7 +509,18 @@ class Orden
         $mensaje = "no se encontraron pedidos";
         if(isset($ListaDePedidos) && count($ListaDePedidos) > 0)
         {
-            $mensaje = Pedido::ToStringList($ListaDePedidos);
+            $mensaje = Pedido::MostrarProductos($ListaDePedidos);
+        }
+
+        return  $mensaje ;
+    }
+    public function GetStrCosto()
+    {
+        $mensaje = "no definido";
+        $costo = $this->CalcularCostoTotal();
+        if($costo  > 0)
+        {
+            $mensaje = "$".$this->costoTotal;
         }
 
         return  $mensaje ;
@@ -502,23 +529,24 @@ class Orden
     public function ToString()
     {
         return "Codigo: ".strtoupper($this->codigo).'<br>'.
-        "Pedido: ".'<br>'.$this->GetStrPedidos().'<br>'.
-        "Tiempo Total De Espera: ".$this->GetStrTiempoEstimado().
-        "Mesa: ".'<br>'.$this->GetMesa()->ToString().'<br>';
+        "Productos Pedidos: ".'<br>'.$this->GetStrPedidos().'<br>'.
+        "Tiempo Total De Espera: ".$this->GetStrTiempoEstimado().'<br>'.
+        "Mesa: ".'<br>'.$this->GetMesa()->ToString().'<br>'.
+        "Facturacion Total: ".$this->GetStrCosto();
     }
 
-    public static function MostarComentariosPorCategoria($listaDeOrdenes,$categoria)
+    public static function MostarComentarios($listaDeOrdenes,$listaDeEncuesta)
     {
         $strLista = null; 
 
-        if(isset($listaDeOrdenes) )
+        if(isset($listaDeOrdenes) && isset($listaDeEncuesta))
         {
-            $strLista  = "Ordenes".'<br>';
+            $strLista  = "Or".'<br>';
             foreach($listaDeOrdenes as $unaOrden)
             {
                 $strLista .= "Orden: ".strtoupper($unaOrden->codigo).'<br>'.
-                Encuesta::MostrarSoloComentariosPorCategoria($unaOrden->ObtenerListaDeEncuestas(),$categoria).
-                '<br>';
+                Encuesta::ToStringList(Encuesta::FiltrarPorLista($unaOrden->listaDeEncuesta,$listaDeEncuesta));
+                 
             }
         }
 
