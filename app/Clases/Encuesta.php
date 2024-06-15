@@ -123,7 +123,7 @@ class Encuesta
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta e
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombreDelCliente,e.mensaje,e.idDeOrden,e.estado FROM Encuesta e
             JOIN Puntuacion p ON p.idDeEncuesta = e.id
             WHERE LOWER(p.descripcion) = LOWER(:descripcion) AND LOWER(p.estado) = LOWER(:estado)");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
@@ -132,6 +132,7 @@ class Encuesta
             $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
           
         }
+       
 
         return  $listaDeEncuestas;
     }
@@ -221,7 +222,6 @@ class Encuesta
             {
                 $unEncuesta = Encuesta::CrearUnEncuesta($unArray);
                 
-                
                 if(isset($unEncuesta))
                 {
                     array_push($listaDeEncuestaes,$unEncuesta);
@@ -236,13 +236,16 @@ class Encuesta
     {
         $index = -1;
        
+      
         if(isset($listaDeEncuestas)  && isset($id))
         {
+            
             $leght = count($listaDeEncuestas); 
             for ($i=0; $i < $leght; $i++) { 
          
-                if($listaDeEncuestas[$i]->id == $id)
+                if($listaDeEncuestas[$i]->id === $id)
                 {
+                    
                     $index = $i;
                     break;
                 }
@@ -291,7 +294,7 @@ class Encuesta
     public function SetMensaje($mensaje)
     {
         $estado = false;
-        if(isset($mensaje) )
+        if(isset($mensaje) && strlen($mensaje) <= 66)
         {
             $this->mensaje = $mensaje;
             $estado = true;
@@ -337,7 +340,6 @@ class Encuesta
             $strLista = "Encuestas".'<br>';
             foreach($listaDeEncuestaes as $unEncuesta)
             {
-              
                 $strLista .= $unEncuesta->ToString().'<br>';
             }
         }
@@ -376,10 +378,10 @@ class Encuesta
         if(isset($otraLista) && isset($unaLista))
         {
             $listaFiltrada =  [];
-
+            
             foreach($unaLista as $unaEncuestaDeLaLista)
-            {
-                if(Encuesta::ObtenerIndicePorId($otraLista,$unaEncuestaDeLaLista->id) < 0)
+            { 
+                if(Encuesta::ObtenerIndicePorId($otraLista,$unaEncuestaDeLaLista->id) >= 0)
                 {
                     array_push($listaFiltrada,$unaEncuestaDeLaLista);
                 }

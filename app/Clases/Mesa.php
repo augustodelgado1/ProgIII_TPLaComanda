@@ -13,7 +13,6 @@ class Mesa
     public const ESTADO_INTERMEDIO = "con cliente comiendo";
     public const ESTADO_FINAL = "con cliente pagando";
     public const ESTADO_CERRADO = "cerrada";
- 
     private $id;
     private $codigo;
     private $estado;
@@ -101,11 +100,10 @@ class Mesa
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT m.id , m.codigo , m.estado 
-            FROM `mesa` as m 
-            JOIN `orden` as o ON o.idDeMesa = m.id 
-            JOIN `encuesta` as e ON e.idDeOrden = o.id");
-            $consulta->bindValue(':descripcion',"Mesa",PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT DISTINCT m.id, m.codigo, m.estado 
+            FROM mesa AS m
+            JOIN orden AS o ON o.idDeMesa = m.id
+            JOIN encuesta AS e ON e.idDeOrden = o.id");
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $listaDeMesas = Mesa::CrearLista($data);
@@ -129,6 +127,25 @@ class Mesa
 
         return  $unMesa;
     }
+    public static function FiltrarPorImporteDeOrden($importe)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unMesa = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT m.id, m.codigo, m.estado, o.costoTotal
+            FROM mesa AS m
+            JOIN orden AS o ON o.idDeMesa = m.id
+            WHERE o.costoTotal = :importe");
+            $consulta->bindValue(':idDeMesa',$importe);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $unMesa =  Mesa::CrearLista($data);
+        }
+
+        return  $unMesa;
+    }
 
     
     public function ModificarEstadoBD($estado)
@@ -139,7 +156,7 @@ class Mesa
         if(isset($unObjetoAccesoDato) && $this->SetEstado($estado))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Mesa 
-            as m SET estado = :estado where m.id = :idDeMesa");
+            as m SET estado = :estado where m.id = :id");
             $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $estado = $consulta->execute();
@@ -147,30 +164,19 @@ class Mesa
 
         return  $estado;
     }
+    
 
     public function ObtenerListaDeOrdenes()
     {
         return  Orden::FiltrarPorIdDeMesaBD($this->GetId());
     }
-    public function ObtenerListaDeEncuestas()
+    public function ObtenerCantidadDeOrdenes()
     {
-        $listaDeOrdenes = $this->ObtenerListaDeOrdenes();
-        $listaDeEncuesta = null;
-        if(isset( $listaDeOrdenes) && count($listaDeOrdenes) > 0)
-        {
-            $listaDeEncuesta = [];
-
-            foreach ($listaDeOrdenes as $unaOrden) 
-            {
-                $unaLista = $unaOrden->ObtenerListaDeEncuestas();
-                if(isset($unaLista))
-                {
-                    array_push( $listaDeEncuesta, $unaLista);
-                }
-
-            }
-        }
-        return  $listaDeEncuesta;
+        return  Orden::ContarPorIdDeMesaBD($this->id);
+    }
+    public function ObtenerFacturacionTotal()
+    {
+        return  Orden::CalcularFacturacionTotal($this->ObtenerListaDeOrdenes());
     }
 
     public static function ObtenerListaBD()
@@ -304,7 +310,7 @@ class Mesa
     public static function MostarComentarios($listaDeMesas,$listaDeEncuesta)
     {
         $strLista = null; 
-
+        
         if(isset($listaDeMesas) && isset($listaDeEncuesta))
         {
             $strLista  = "Mesas".'<br>';
@@ -312,15 +318,111 @@ class Mesa
             {
                 $strLista .= $unaMesa->ToString().'<br>'.
                 
-                Orden::MostarComentarios($unaMesa->listaDeOrdenes,$listaDeEncuesta);
+                Orden::MostarComentarios($unaMesa->ObtenerListaDeOrdenes(),$listaDeEncuesta);
             }
         }
 
         return   $strLista;
     }
- 
-
    
+
+    public static function BuscarMesaMasUsada($listaDeMesas)
+    { 
+        $unaMesa = null;
+        $flag = false;
+        $mayor =null;
+
+        if(isset($listaDeMesas))
+        {
+            foreach ($listaDeMesas as $unaMesaDeLaLista) 
+            {
+                $cantidadDeOrdenes = $unaMesaDeLaLista->ObtenerCantidadDeOrdenes();
+
+                if($cantidadDeOrdenes  >  $mayor || $flag === false)
+                {
+                    $unaMesa = $unaMesaDeLaLista;
+                    $mayor =  $cantidadDeOrdenes;
+                    $flag = true;
+                }
+                
+            }
+        }
+
+        return $unaMesa;
+    }
+    public static function BuscarMesaMenosUsada($listaDeMesas)
+    { 
+        $unaMesa = null;
+        $flag = false;
+        $menor =null;
+
+        if(isset($listaDeMesas))
+        {
+            foreach ($listaDeMesas as $unaMesaDeLaLista) 
+            {
+                $cantidadDeOrdenes = $unaMesaDeLaLista->ObtenerCantidadDeOrdenes();
+
+                if($cantidadDeOrdenes  <  $menor || $flag === false)
+                {
+                    $unaMesa = $unaMesaDeLaLista;
+                    $menor =  $cantidadDeOrdenes;
+                    $flag = true;
+                }
+                
+            }
+        }
+
+        return $unaMesa;
+    }
+    public static function BuscarMesaMenosFacturo($listaDeMesas)
+    { 
+        $unaMesa = null;
+        $flag = false;
+        $menor =null;
+
+        if(isset($listaDeMesas))
+        {
+            foreach ($listaDeMesas as $unaMesaDeLaLista) 
+            {
+                $facturacionTotal = $unaMesaDeLaLista->ObtenerFacturacionTotal();
+
+                if($facturacionTotal  <  $menor || $flag === false)
+                {
+                    $unaMesa = $unaMesaDeLaLista;
+                    $menor =  $facturacionTotal;
+                    $flag = true;
+                }
+                
+            }
+        }
+
+        return $unaMesa;
+    }
+    public static function BuscarMesaMasFacturo($listaDeMesas)
+    { 
+        $unaMesa = null;
+        $flag = false;
+        $mayor =null;
+
+        if(isset($listaDeMesas))
+        {
+            foreach ($listaDeMesas as $unaMesaDeLaLista) 
+            {
+                $facturacionTotal = $unaMesaDeLaLista->ObtenerFacturacionTotal();
+
+                if($facturacionTotal  <  $mayor || $flag === false)
+                {
+                    $unaMesa = $unaMesaDeLaLista;
+                    $mayor =  $facturacionTotal;
+                    $flag = true;
+                }
+                
+            }
+        }
+
+        return $unaMesa;
+    }
+ 
 
     public function ToString()
     {

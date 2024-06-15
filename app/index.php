@@ -102,7 +102,7 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 	
 });
 
-$app->group('/listadosEmpleados', function (RouteCollectorProxy $grupoDeRutas) 
+$app->group('/consultaEmpleados', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	$grupoDeRutas->get('[/]',\EmpleadoController::class.':ListarSuspendidos');
 	$grupoDeRutas->get('/{borrados}',\EmpleadoController::class.':ListarBorrados');
@@ -145,28 +145,32 @@ $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas)
 
 	
 
-	$grupoDeRutas->group('/pedido/{listado}', function (RouteCollectorProxy $grupoDeRutas) 
-	{
-		$grupoDeRutas->get('[/]',\PedidoController::class.':ListarNoEntregadoEnElTimpoEstipulado');
-		$grupoDeRutas->get('/{cancelado}',\PedidoController::class.':ListarCancelados');
+	
+});
 
-		$grupoDeRutas->group('/venta', function (RouteCollectorProxy $grupoDeRutas) 
-		{
-			$grupoDeRutas->get('[/]',\PedidoController::class.':ListarElPedidoMasVendido');
-			$grupoDeRutas->get('/{menos}',\PedidoController::class.':ListarElPedidoMenosVendido');
-		});
-		
-	});
+$app->group('/consultaPedidos', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	$grupoDeRutas->get('[/]',\PedidoController::class.':ListarNoEntregadoEnElTimpoEstipulado');
+	$grupoDeRutas->get('/{cancelado}',\PedidoController::class.':ListarCancelados');
+
+	
+	
+});
+
+$app->group('/venta', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	$grupoDeRutas->get('[/]',\PedidoController::class.':ListarElPedidoMasVendido');
+	$grupoDeRutas->get('/{menos}',\PedidoController::class.':ListarElPedidoMenosVendido');
 });
 
 $app->group('/orden', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->post('[/]',\OrdenController::class.':CargarUno');
+	$grupoDeRutas->get('[/]',\OrdenController::class.':Listar');
 	$grupoDeRutas->get('/{obtener}',\OrdenController::class.':ListarUno');
+	$grupoDeRutas->post('[/]',\OrdenController::class.':CargarUno');
 	$grupoDeRutas->put('[/]',\OrdenController::class.':ModificarUno');
 	$grupoDeRutas->delete('[/]',\OrdenController::class.':BorrarUno');
-	$grupoDeRutas->get('[/]',\OrdenController::class.':Listar');
 });
 
 
@@ -219,6 +223,8 @@ $app->group('/mesa', function (RouteCollectorProxy $grupoDeRutas)
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->get('[/]',\MesaController::class.':Listar');
+	$grupoDeRutas->post('[/]',\MesaController::class.':CargarUno');
+	$grupoDeRutas->delete('[/]',\SectorController::class.':EliminarUno');
 
 	$grupoDeRutas->group('/{estado}',function (RouteCollectorProxy $grupoDeRutas)
 	{
@@ -228,11 +234,14 @@ $app->group('/mesa', function (RouteCollectorProxy $grupoDeRutas)
 		$grupoDeRutas->delete('[/]',\MesaController::class.':SetEstadoCerrarMesa');
 	});
 
-
-	$grupoDeRutas->post('[/]',\MesaController::class.':CargarUno');
-	$grupoDeRutas->delete('[/]',\SectorController::class.':EliminarUno');
-
 });
+
+$app->group('/comentarios',function (RouteCollectorProxy $grupoDeRutas)
+{
+	$grupoDeRutas->get('[/]',\MesaController::class.':ListarComentariosPositivosDeLasMesas');
+	$grupoDeRutas->get('/negativos',\MesaController::class.':ListarComentariosNegativosDeLasMesas');
+});
+
 
 // $grupoDeRutas->group('/pedido/{csv}', function (RouteCollectorProxy $grupoDeRutas) 
 // 	{

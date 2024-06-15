@@ -89,6 +89,23 @@ class Orden
         
         return  $this->listaDePedidos;
     }
+
+    public static function ContarPorIdDeMesaBD($idDeMesa)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $cantidadTotal = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeMesa))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS total FROM Orden as o where o.idDeMesa = :idDeMesa");
+            $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $cantidadTotal =  $data['totalPedidos'];
+        }
+
+        return  $cantidadTotal;
+    }
     public function ObtenerListaDeEncuestas()
     {
         return  Encuesta::FiltrarPorIdDeOrdenBD($this->id);
@@ -197,6 +214,39 @@ class Orden
         return  $estado;
     }
 
+    public function ModificarEstadoBD($estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato) && $this->SetEstado($estado))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden 
+            as o SET estado = :estado where o.id = :id");
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+    public function ActualizarImporte()
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden 
+            as o SET costoTotal = :costoTotal where o.id = :id");
+            $consulta->bindValue(':costoTotal',$this->CalcularCostoTotal());
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
+    }
+
     
     public static function BuscarOrdenPorIdBD($idDeOrden)
     {
@@ -229,6 +279,42 @@ class Orden
         }
 
         return  $listaDeOrdenes;
+    }
+    public static function BusacarMayorImporteBD()
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $mayorImporte = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MAX(costoTotal) as ImporteTotal
+            FROM orden
+            WHERE estado = :estado");
+            $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $mayorImporte = $data['ImporteTotal'];
+        }
+
+        return  $mayorImporte;
+    }
+    public static function BuscarMenorImporteBD()
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $menorImporte = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MIN(costoTotal) as ImporteTotal
+            FROM orden
+            WHERE estado = :estado");
+            $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $menorImporte = $data['ImporteTotal'];
+        }
+
+        return  $menorImporte;
     }
     public function VerificarIdDeMesa($idDeMesa)
     {
@@ -313,6 +399,7 @@ class Orden
             $unaOrden->SetNombreDelCliente($unArrayAsosiativo['nombreDelCliente']);
             $unaOrden->SetFechaDeOrden($unArrayAsosiativo['fechaDeOrden']);
             $unaOrden->SetCostoTotal($unArrayAsosiativo['costoTotal']);
+            $unaOrden->SetEstado($unArrayAsosiativo['estado']);
         }
         
         return $unaOrden ;
@@ -449,6 +536,22 @@ class Orden
         return  $estado ;
     }
 
+    private function SetEstado($estadoDelaOrden)
+    {
+        $estado = false;
+        $array = array(Orden::ESTADO_ACTIVO,Orden::ESTADO_INACTIVO);
+
+        if(isset($estado) && in_array($estadoDelaOrden,$array))
+        {
+            $this->estado = $estadoDelaOrden;
+            $this->CalcularCostoTotal();
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+
+
     #Getters
     public function GetCodigo()
     {
@@ -538,15 +641,19 @@ class Orden
     public static function MostarComentarios($listaDeOrdenes,$listaDeEncuesta)
     {
         $strLista = null; 
-
+        
         if(isset($listaDeOrdenes) && isset($listaDeEncuesta))
         {
-            $strLista  = "Or".'<br>';
+            $strLista  = "";
             foreach($listaDeOrdenes as $unaOrden)
             {
-                $strLista .= "Orden: ".strtoupper($unaOrden->codigo).'<br>'.
-                Encuesta::ToStringList(Encuesta::FiltrarPorLista($unaOrden->listaDeEncuesta,$listaDeEncuesta));
-                 
+                $listafiltrada = Encuesta::FiltrarPorLista($unaOrden->ObtenerListaDeEncuestas(),$listaDeEncuesta);
+
+                if(isset($listafiltrada) && count($listafiltrada) > 0)
+                {
+                     $strLista .= "Orden: ".strtoupper($unaOrden->codigo).'<br>'.
+                    Encuesta::ToStringList( $listafiltrada);
+                }
             }
         }
 
@@ -634,7 +741,7 @@ class Orden
 
         return $menor;
     }
-    public static function ObtenerFacturacionTotal($listaDeOrdenes)
+    public static function CalcularFacturacionTotal($listaDeOrdenes)
     {
         $acumulador = -1;
 

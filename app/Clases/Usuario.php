@@ -38,8 +38,8 @@ abstract class Usuario
 
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,nombre,apellido,dni,rol) 
-            values (:email,:clave,:fechaDeRegistro,:nombre,:apellido,:dni,:rol)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,nombre,apellido,dni,rol,estado) 
+            values (:email,:clave,:fechaDeRegistro,:nombre,:apellido,:dni,:rol,:estado)");
             $consulta->bindValue(':email',$this->mail,PDO::PARAM_STR);
             $consulta->bindValue(':clave',$this->clave,PDO::PARAM_STR);
             $consulta->bindValue(':rol',$this->rol,PDO::PARAM_STR);
@@ -47,6 +47,7 @@ abstract class Usuario
             $consulta->bindValue(':apellido',$this->apellido,PDO::PARAM_STR);
             $consulta->bindValue(':fechaDeRegistro',$this->fechaDeRegistro->format('y-m-d H:i:s'),PDO::PARAM_STR);
             $consulta->bindValue(':dni',$this->dni,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $consulta->execute();
             $idDeUsuario =  $objAccesoDatos->ObtenerUltimoID();
         }
@@ -212,17 +213,7 @@ abstract class Usuario
         return  $estado ;
     }
 
-    protected function SetEstado($estadoDelEmpeado)
-    {
-        $estado = false;
-        if(isset($estado))
-        {
-            $this->estado = $estadoDelEmpeado;
-            $estado = true;
-        }
 
-        return  $estado ;
-    }
 
     private function SetEmail($email)
     {
@@ -292,6 +283,20 @@ abstract class Usuario
 
         return $estado;
     }
+
+    protected function SetEstado($estadoDelaPedido)
+    {
+        $estado = false;
+        $array = array(Usuario::ESTADO_ACTIVO,Usuario::ESTADO_BORRADO,Usuario::ESTADO_SUSPENDIDO);
+
+        if(isset($estado) && in_array($estadoDelaPedido,$array))
+        {
+            $this->estado = $estadoDelaPedido;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
     
 
     //Getters
@@ -328,7 +333,7 @@ abstract class Usuario
     }
 
     
-    private static function ValidadorEmail($data)
+    public static function ValidadorEmail($data)
     {
         $estado = false; 
 
@@ -342,7 +347,7 @@ abstract class Usuario
         return $estado;
     }
 
-    private static function ValidadorClave($data)
+    public static function ValidadorClave($data)
     {
         $estado = false; 
   

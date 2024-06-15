@@ -61,10 +61,13 @@ class MesaController
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
         $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
        
         if(isset($unMesa))
         {
             $unMesa->ModificarEstadoBD(Mesa::ESTADO_CERRADO);
+            $unaOrden->ModificarEstadoBD(Orden::ESTADO_INACTIVO);
+            $unaOrden->ActualizarImporte();
         }
 
         $response->getBody()->write($mensaje);
@@ -119,6 +122,7 @@ class MesaController
         if(isset($unMesa))
         {
             $unMesa->ModificarEstadoBD(Mesa::ESTADO_FINAL);
+            
         }
 
         $response->getBody()->write($mensaje);
@@ -134,7 +138,6 @@ class MesaController
         $data = $request->getQueryParams();
         $listaDeMesas = Mesa::FiltarMesaEncuestadas();
         $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_POSITIVO);
-
 
         $mensaje = "Hubo error en la funcion";
         if(isset($listaDeEncuesta))
@@ -171,6 +174,138 @@ class MesaController
 
         return $response;
     }
+    // a- La más usada.
+    public static function ListarMesaMasUsada($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $mensaje = "no se encontro la mesa mas usada";
+        $listaDeMesas = Mesa::ObtenerListaBD();
+        $unaMesa = Mesa::BuscarMesaMasUsada($listaDeMesas);
+        
+        if(isset($unaMesa))
+        {
+            $mensaje = "la Mesa mas usada es <br>".$unaMesa->ToString()
+            .'<br>'.'y la cantidad de veces usada es '.$unaMesa->ObtenerCantidadDeOrdenes();
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    // b- La menos usada.
+    public static function ListarMesaMenosUsada($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $mensaje = "no se encontro la mesa menos usada";
+        $listaDeMesas = Mesa::ObtenerListaBD();
+        $unaMesa = Mesa::BuscarMesaMenosUsada($listaDeMesas);
+        
+        if(isset($unaMesa))
+        {
+            $mensaje = "la Mesa menos usada es <br>".$unaMesa->ToString()
+            .'<br>'.'y la cantidad de veces usada es '.$unaMesa->ObtenerCantidadDeOrdenes();
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    // c- La que más facturó.
+
+    public static function ListarMesaMasFacturo($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $mensaje = "no se encontro la mesa que mas facturo";
+        $listaDeMesas = Mesa::ObtenerListaBD();
+        $unaMesa = Mesa::BuscarMesaMasFacturo($listaDeMesas);
+        
+        if(isset($unaMesa))
+        {
+            $mensaje = "la Mesa que mas Facturo es <br>".$unaMesa->ToString()
+            .'<br>'.'y la Facturacion total fue '.$unaMesa->ObtenerFacturacionTotal();
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    // d- La que menos facturó.
+
+    public static function ListarMesaMenosFacturo($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $mensaje = "no se encontro la mesa que menos facturo";
+        $listaDeMesas = Mesa::ObtenerListaBD();
+        $unaMesa = Mesa::BuscarMesaMenosFacturo($listaDeMesas);
+        
+        if(isset($unaMesa))
+        {
+            $mensaje = "la Mesa que menos Facturo es <br>".$unaMesa->ToString()
+            .'<br>'.'y la Facturacion total fue '.$unaMesa->ObtenerFacturacionTotal();
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    // e- La/s que tuvo la factura con el mayor importe.
+
+    public static function ListarMesasConMayorImpote($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+      
+        // $listaDeOrdenes = Orden::FiltarPorEstado(Orden::ESTADO_INACTIVO);
+        $importeMayor = Orden::BusacarMayorImporteBD();
+        $listaDeMesas = Mesa::FiltrarPorImporteDeOrden($importeMayor);
+       
+        
+        if(isset($listaDeMesas))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeMesas) > 0)
+            {
+                $mensaje = "la factura con el mayor importe tiene el valor de $importeMayor <br>".
+                Mesa::ToStringList($listaDeMesas);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    
+// f- La/s que tuvo la factura con el menor importe.
+    public static function ListarMesasConMenorImpote($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $importeMenor = Orden::BuscarMenorImporteBD();
+        $listaDeMesas = Mesa::FiltrarPorImporteDeOrden($importeMenor);
+       
+        
+        if(isset($listaDeMesas))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeMesas) > 0)
+            {
+                $mensaje = "la factura con el menor importe tiene el valor de $importeMenor <br>".
+                Mesa::ToStringList($listaDeMesas);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
 
     // g- Lo que facturó entre dos fechas dadas.
 
@@ -180,7 +315,7 @@ class MesaController
         $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
 
         $listaFiltrada = Orden::FiltrarEntreDosFechas($unaMesa->ObtenerListaDeOrdenes(),$data['fechaInicial'],$data['fechaFinal']);
-        $facturacionTotal = Orden::ObtenerFacturacionTotal($listaFiltrada);
+        $facturacionTotal = Orden::CalcularFacturacionTotal($listaFiltrada);
         
         if($facturacionTotal > 0)
         {

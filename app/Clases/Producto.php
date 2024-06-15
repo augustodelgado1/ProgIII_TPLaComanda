@@ -4,14 +4,16 @@
 
 require_once './db/AccesoDatos.php';
 require_once 'TipoDeProducto.php';
+require_once './interfaces/IFileManejadorCSV.php';
 require_once 'Util.php';
-class Producto 
+class Producto implements IFileManejadorCSV 
 {
     private $id;
     private $nombre;
     private $tipoDeProducto;
     private $precio;
 
+   
     public function __construct($nombre,$tipoDeProducto,$precio) 
     {
         $this->nombre = $nombre;
@@ -27,9 +29,6 @@ class Producto
         ."TipoDeProducto: ".$this->GetTipo()->GetDescripcion().'<br>';
     }
 
-    
-
-    
     public function AgregarBD()
     {
         $estado = false;
@@ -100,13 +99,6 @@ class Producto
         }
 
         return  $listaDeProductos;
-    }
-    
-    private function SetIdTipoDeProducto($idDeTipoDeProducto)
-    {
-        $unaTipoDeProducto =  TipoDeProducto::BuscarTipoDeProductoPorIdBD($idDeTipoDeProducto);
-        $estado  = Producto::SetTipoDeProducto($unaTipoDeProducto);
-        return $estado;
     }
    
     public static function BuscarProductoPorIdBD($id)
@@ -294,7 +286,6 @@ class Producto
 
     public function GetTipo()
     {
-        
         return TipoDeProducto::BuscarTipoDeProductoPorIdBD($this->tipoDeProducto);
     }
 
@@ -313,6 +304,80 @@ class Producto
 
         return   $strLista;
     }
+
+    public static function EscribirCsv($nombreDeArchivo,$listaDeProductos)
+    {
+        $estado = false;
+        
+        if(isset($nombreDeArchivo) && isset($listaDeProductos))
+        {
+            $estado = File::EscribirGenerico($listaDeProductos,$nombreDeArchivo,array(__CLASS__,'EscribirUnoCsv'));
+        }
+
+        return   $estado;
+    }
+    private static function EscribirUnoCsv($unProducto,$unArchivo)
+    {
+        $estado = false;
+        
+        if(isset($unProducto))
+        {
+            $unArray = array($unProducto->id,$unProducto->nombre,$unProducto->tipoDeProducto,$unProducto->precio);
+            $estado = fputcsv($unArchivo,$unArray);
+        }
+
+        return   $estado;
+    }
+   
+    public static function LeerCsv($nombreDeArchivo)
+    {
+        $listaDeProductos = null;
+        $data = File::LeerArchivoCsv($nombreDeArchivo);
+        
+        if(isset($data))
+        {
+            $listaDeProductos = Producto::DeserializarListaCsv($data);
+        }
+
+        return   $listaDeProductos;
+    }
+
+    // private static function DeserializarUnoCsv($data)
+    // {
+    //     $unProducto = null;
+        
+    //     if(isset($data))
+    //     {
+    //         $unProducto = new Producto($data[1],$data[2],$data[3]);
+    //         $unProducto->SetId($data[0]);
+    //     }
+
+    //     return   $unProducto;
+    // }
+    private static function DeserializarListaCsv($listaDeRenglones)
+    {
+        $listaDeProductos = null;
+        if(isset($listaDeRenglones))
+        {
+            $listaDeProductos = [];
+
+            foreach($listaDeRenglones as $unRenglon)
+            {
+                
+                $unProducto = Producto::CrearUnProducto(array('id' => $unRenglon[0],'nombre' => $unRenglon[1]
+                                                        ,'tipoDeProducto' => $unRenglon[2],'precio' => $unRenglon[3]));
+                if(isset($unProducto))
+                {
+                    array_push($listaDeProductos,$unProducto);
+                }
+            }
+        }
+
+        return   $listaDeProductos;
+    }
+
+
+
 
    
     

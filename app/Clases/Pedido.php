@@ -294,6 +294,7 @@ class Pedido
 
         return  $cantidadTotal;
     }
+    
     public static function ContarPedidosPorIdDeProductoBD($idDeProducto)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -434,49 +435,6 @@ class Pedido
         return   $listaDePedidos;
     }
 
-  
-    public static function EscribirCsv($nombreDeArchivo,$listaDePedidos)
-    {
-        $estado = false;
-        
-        if(isset($nombreDeArchivo) && isset($listaDePedidos))
-        {
-            $estado = File::EscribirGenerico($listaDePedidos,$nombreDeArchivo,array(__CLASS__,'EscribirUnoCsv'));
-        }
-
-        return   $estado;
-    }
-    public static function EscribirUnoCsv($unPedido,$unArchivo)
-    {
-        $estado = false;
-        
-        if(isset($unPedido))
-        {
-          
-            $unArray = array($unPedido->id,$unPedido->orden,$unPedido->idDeSector,
-            $unPedido->numeroDePedido,$unPedido->unProducto,
-            $unPedido->fechaDelPedido,$unPedido->tiempoEstimado,$unPedido->tiempoDeInicio,
-            $unPedido->tiempoDeFinalizacion,$unPedido->importeTotal,$unPedido->estado,$unPedido->estadoDelTiempo);
-
-            $estado = fputcsv($unArchivo,$unArray);
-        }
-
-        return   $estado;
-    }
-   
-    public static function LeerCsv($nombreDeArchivo)
-    {
-        $listaDeEmpleados = null;
-        $data = File::LeerArchivoCsv($nombreDeArchivo);
-        
-        if(isset($data))
-        {
-            $listaDeEmpleados = Pedido::CrearLista($data);
-        }
-
-        return   $listaDeEmpleados;
-    }
-
     private static function CrearUnaPedido($data)
     {
         $unaPedido = null;
@@ -556,19 +514,6 @@ class Pedido
         return  $estado ;
     }
 
-  
-    private function SetEstado($estadoDelaPedido)
-    {
-        $estado = false;
-        if(isset($estado))
-        {
-            $this->estado = $estadoDelaPedido;
-            $estado = true;
-        }
-
-        return  $estado ;
-    }
-
     private function SetTiempoDeFinalizacion($tiempoDeFinalizacion)
     {
         $estado = false;
@@ -603,6 +548,34 @@ class Pedido
 
         return  $estado ;
     }
+
+    private function SetEstado($estadoDelaPedido)
+    {
+        $estado = false;
+        $array = array(Pedido::ESTADO_INICIAL,Pedido::ESTADO_INTERMEDIO,Pedido::ESTADO_FINAL,Pedido::ESTADO_CANCELADO);
+
+        if(isset($estado) && in_array($estadoDelaPedido,$array))
+        {
+            $this->estado = $estadoDelaPedido;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+    private function SetEstadoDelTiempo($estadoDelaPedido)
+    {
+        $estado = false;
+        $array = array(Pedido::ESTADO_TIEMPO_CUMPLIDO,Pedido::ESTADO_TIEMPO_NOCUMPLIDO,Pedido::ESTADO_TIEMPO_INDETERMINADO);
+
+        if(isset($estado) && in_array($estadoDelaPedido,$array))
+        {
+            $this->estado = $estadoDelaPedido;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+
     
 
     private function SetNumeroDePedido($numeroDePedido)
@@ -638,18 +611,6 @@ class Pedido
 
         return  $estado ;
       
-    }
-
-    private function SetEstadoDelTiempo($estadoDelTiempo)
-    {
-        $estado = false;
-        if(isset( $estadoDelTiempo))
-        {
-            $this->estadoDelTiempo = $estadoDelTiempo;
-            $estado = true;
-        }
-
-        return  $estado ;
     }
     private function SetEmpleado($idDeEmpleado)
     {

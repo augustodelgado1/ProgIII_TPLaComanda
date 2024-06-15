@@ -23,10 +23,10 @@ class EncuestaController
         $data = $request->getParsedBody();
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
         $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        
         $unaEncuesta = new Encuesta($unaOrden->GetId(),$data['nombreDelCliente'],$data['mensaje']);
         $idDeEncuesta = $unaEncuesta->AgregarBD();
         $mensaje = 'no se pudo dar de alta';
-        
 
         if(Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Mesa",$data['puntuacionDeLaMesa']) && 
         Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Restaurante",$data['puntuacionDelRestaurante']) && 
@@ -81,7 +81,7 @@ class EncuestaController
 
     public static function Listar($request, $response, array $args)
     {
-        $data = $request->getQueryParams();
+        // $data = $request->getQueryParams();
         
         $mensaje = 'Hubo un error  al intentar listar las Encuestas';
         

@@ -207,48 +207,6 @@ class PedidoController
 
         return $response;
     }
-   
-    public static function EscribirListaEnCsv($request, $response, array $args)
-    { 
-        $data = $request->getParsedBody();
-       
-        $mensaje = 'Hubo un error al intentar guardar la listar ';  
-       
-        $listaAGuardar = Pedido::ObtenerListaBD();
-        $estado = Pedido::EscribirCsv($data['nombreDelArchivo'],$listaAGuardar);
-       
-        if($estado )
-        {
-            $mensaje = 'Se guardo correctamente'; 
-        }
-
-        $response->getBody()->write($mensaje);
-
-
-        return $response;
-    }
-    public static function LeerListaEnCsv($request, $response, array $args)
-    { 
-        $data = $request->getQueryParams();
-       
-        $mensaje = 'Hubo un error al intentar guardar la listar ';  
-      
-        $listaDePedidos = Pedido::LeerCsv($data['nombreDelArchivo']);
-       
-        if(isset($listaDePedidos))
-        {
-            $mensaje = "la lista esta vacia";
-            if(count($listaDePedidos) > 0)
-            {
-                $mensaje = Pedido::ToStringList($listaDePedidos);
-            }
-        }
-
-        $response->getBody()->write($mensaje);
-
-
-        return $response;
-    }
     public static function ListarElPedidoMasVendido($request, $response, array $args)
     { 
         $data = $request->getQueryParams();

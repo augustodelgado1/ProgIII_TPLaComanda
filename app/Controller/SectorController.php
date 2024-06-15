@@ -82,25 +82,25 @@ class SectorController
     }
 
     // c- Cantidad de operaciones de todos por sector, listada por cada empleado
-    public static function ListarEmpleados($request, $response, array $args)
-    {
-        $mensaje = 'Hubo un error  al intentar listar los Mesas';  
-        $listaDeSectores = Sector::ObternerListaBD();
+    // public static function ListarEmpleados($request, $response, array $args)
+    // {
+    //     $mensaje = 'Hubo un error  al intentar listar los Mesas';  
+    //     $listaDeSectores = Sector::ObternerListaBD();
 
-        if(isset($listaDeSectores))
-        {
-            $mensaje = "La lista esta vacia";
-            if(count($listaDeSectores) > 0)
-            {
-                $mensaje = Sector::MostrarListaDeEmpleados($listaDeSectores);
-            }
-        }
+    //     if(isset($listaDeSectores))
+    //     {
+    //         $mensaje = "La lista esta vacia";
+    //         if(count($listaDeSectores) > 0)
+    //         {
+    //             $mensaje = Sector::MostrarListaDeEmpleados($listaDeSectores);
+    //         }
+    //     }
 
-        $response->getBody()->write($mensaje);
+    //     $response->getBody()->write($mensaje);
 
 
-        return $response;
-    }
+    //     return $response;
+    // }
 
     public static function ListarPedidos($request, $response, array $args)
     {

@@ -106,6 +106,23 @@ class Puntuacion
         return  $listaDePuntuaciones;
     }
 
+    public static function ContarPorIdDeEncuestaBD($idDeEncuesta)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $cantidadTotal = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeEncuesta))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalPedidos FROM Puntuacion as p where p.idDeEncuesta = :idDeEncuesta");
+            $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $cantidadTotal =  $data['totalPedidos'];
+        }
+
+        return  $cantidadTotal;
+    }
+
     public static function BuscarPordescripcionBD($listaDePuntuaciones,$descripcion)
     {
         $unaPuntuacionBuscar = null;

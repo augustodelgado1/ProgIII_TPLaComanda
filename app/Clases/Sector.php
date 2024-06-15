@@ -125,28 +125,6 @@ class Sector
         return Pedido::FiltrarPorIdDeSectorBD($this->id);
     }
 
-    public function ObtenerListaDeEmpleados()
-    {
-        $listaDeCargos = $this->ObtenerListaDeCargos();
-        $listaDeEmpelados = null;
-
-        if(isset( $listaDeCargos))
-        {
-            $listaDeEmpelados = [];
-            foreach( $listaDeCargos as $unCargo)
-            {
-                $listaDeEmpleadosDeUnCargo = $unCargo->ObtenerListaDeEmpleados();
-                if(isset( $listaDeEmpleadosDeUnCargo))
-                {
-                    array_push($listaDeEmpelados ,$listaDeEmpleadosDeUnCargo);
-                }
-            }
-        }
-
-        return $listaDeEmpelados;
-        
-    }
-
     private static function CrearUnSector($unArrayAsosiativo)
     {
         $unSector = null;
@@ -277,22 +255,7 @@ class Sector
 
         return   $strLista;
     }
-     public static function MostrarListaDeEmpleados($listaDeSectores)
-    {
-        $strLista = null; 
-
-        if(isset($listaDeSectores) )
-        {
-            $strLista = "Sectores".'<br>';
-            foreach($listaDeSectores as $unSector)
-            {
-                $strLista .= "Sector: ".$unSector->descripcion.'<br>';
-                $strLista .= "Empleados".'<br>'.Empleado::ToStringList($unSector->ObtenerListaDeEmpleados());
-            }
-        }
-
-        return   $strLista;
-    }
+ 
 
     public function ToString()
     {

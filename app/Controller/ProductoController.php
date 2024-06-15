@@ -81,6 +81,47 @@ class ProductoController
 
         return $response;
     }
+
+    public static function EscribirListaEnCsv($request, $response, array $args)
+    { 
+        $data = $request->getParsedBody();
+       
+        $mensaje = 'Hubo un error al intentar guardar la listar ';  
+       
+        $listaAGuardar = Producto::ObtenerListaBD();
+       
+        if(Producto::EscribirCsv($data['nombreDelArchivo'],$listaAGuardar) )
+        {
+            $mensaje = 'Se guardo correctamente'; 
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function LeerListaEnCsv($request, $response, array $args)
+    { 
+        $data = $request->getQueryParams();
+       
+        $mensaje = 'Hubo un error al intentar guardar la listar ';  
+      
+        $listaDeProductos = Producto::LeerCsv($data['nombreDelArchivo']);
+       
+        if(isset($listaDeProductos))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeProductos) > 0)
+            {
+                $mensaje = Producto::ToStringList($listaDeProductos);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
 }
 
 ?>
