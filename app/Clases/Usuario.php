@@ -332,6 +332,24 @@ abstract class Usuario
         return  $this->nombre." ".$this->apellido;
     }
 
+    public static function ObtenerUnoPorLoggin($email,$clave)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $data = null;
+
+        if(isset($unObjetoAccesoDato) && isset($email) && isset($clave))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u 
+            where LOWER(u.email) = LOWER(:email) and LOWER(u.clave) = LOWER(:clave)");
+            $consulta->bindValue(':email',$email,PDO::PARAM_STR);
+            $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+        }
+
+        return  $data;
+    }
+
     
     public static function ValidadorEmail($data)
     {

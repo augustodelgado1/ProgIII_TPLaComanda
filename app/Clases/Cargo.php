@@ -3,6 +3,7 @@
 <?php
 
 require_once './db/AccesoDatos.php';
+
 require_once 'Sector.php';
 
 class Cargo 

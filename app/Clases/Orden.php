@@ -3,11 +3,11 @@
 <?php
 
 require_once './db/AccesoDatos.php';
-require_once './Clases/File.php';
+require_once './Herramientas/Util.php';
 require_once './Clases/Mesa.php';
 require_once './Clases/Pedido.php';
 require_once './Clases/Encuesta.php';
-require_once './Clases/Util.php';
+
 
 class Orden 
 {
@@ -647,7 +647,7 @@ class Orden
             $strLista  = "";
             foreach($listaDeOrdenes as $unaOrden)
             {
-                $listafiltrada = Encuesta::FiltrarPorLista($unaOrden->ObtenerListaDeEncuestas(),$listaDeEncuesta);
+                $listafiltrada = Encuesta::FiltrarPorIdDeOrdenes($listaDeEncuesta,$unaOrden->id);
 
                 if(isset($listafiltrada) && count($listafiltrada) > 0)
                 {
@@ -677,6 +677,26 @@ class Orden
                     array_push($listaDefiltrada,$unaOrden);
                 }
                 
+            }
+        }
+
+        return  $listaDeOrdenes;
+    }
+    public static function FiltrarOrdenesPorIdDeMesa($listaDeOrdenes,$idDeMesa)
+    {
+       
+        $listaDefiltrada = null;
+
+        if(isset($listaDeOrdenes) && isset($idDeMesa))
+        {
+            $listaDefiltrada = [];
+
+            foreach ($listaDeOrdenes as $unaOrden) 
+            {
+                if($unaOrden->idDeMesa === $idDeMesa)
+                {
+                    array_push($listaDefiltrada,$unaOrden);
+                }
             }
         }
 

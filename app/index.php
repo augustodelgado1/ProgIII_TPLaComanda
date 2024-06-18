@@ -17,12 +17,15 @@ require_once './Controller/CargoController.php';
 require_once './Controller/PuntuacionController.php';
 
 
+
 require_once './middlewares/ValidadorMiddleware.php';
-require_once './middlewares/ValidarUsuarioMiddleware.php';
+require_once './middlewares/ValidadorTokenMiddleware.php';
 
 Use Slim\Factory\AppFactory;
 use Slim\Routing\RouteCollectorProxy;
 
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
 
 // 2do Sprint ( Entrega 10 de Junio)
 
@@ -54,7 +57,7 @@ $app->group('/prueva', function (RouteCollectorProxy $grupoDeRutas)
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',function($request, $response, array $args) 
 	{
-		
+		AccesoDatos::ObtenerUnObjetoPdo();
 		return $response;
 	}
 );

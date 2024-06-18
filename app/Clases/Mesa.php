@@ -4,7 +4,7 @@
 
 require_once './db/AccesoDatos.php';
 require_once 'Sector.php';
-require_once 'Util.php';
+require_once './Herramientas/Util.php';
 require_once 'Usuario.php';
 
 class Mesa 
@@ -307,6 +307,27 @@ class Mesa
 
         return   $strLista;
     }
+    public static function MostrarConOrdenes($listaDeMesas,$listaDeOrdenes)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeMesas) )
+        {
+            $strLista  = "Mesas".'<br>';
+            foreach($listaDeMesas as $unaMesa)
+            {
+                $listaFiltrada = Orden::FiltrarOrdenesPorIdDeMesa($listaDeOrdenes,$unaMesa->Id);
+
+                if(isset( $listaFiltrada) && count( $listaFiltrada) > 0)
+                {
+                    $strLista .= $unaMesa->ToString().'<br>'. 
+                    Orden::ToStringList($listaFiltrada);
+                }
+            }
+        }
+
+        return   $strLista;
+    }
     public static function MostarComentarios($listaDeMesas,$listaDeEncuesta)
     {
         $strLista = null; 
@@ -317,7 +338,6 @@ class Mesa
             foreach($listaDeMesas as $unaMesa)
             {
                 $strLista .= $unaMesa->ToString().'<br>'.
-                
                 Orden::MostarComentarios($unaMesa->ObtenerListaDeOrdenes(),$listaDeEncuesta);
             }
         }

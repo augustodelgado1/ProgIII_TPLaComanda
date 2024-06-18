@@ -10,9 +10,9 @@ class AccesoDatos
     private function __construct() 
     {
         try {
-            self::$conneccionStr = 'mysql:host=localhost;dbname=tp_comanda';
+            self::$conneccionStr = 'mysql:host='.$_ENV['MYSQL_HOST'].';dbname='.$_ENV['MYSQL_DB'];
             $this->objetoPdo = new PDO(self::$conneccionStr,'root','');
-            // var_dump($objetoPdo);
+           
         } catch (PDOException $th) {
             echo "Error: ".$th->getMessage();
             die();

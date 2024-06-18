@@ -5,7 +5,6 @@
 require_once './db/AccesoDatos.php';
 require_once './Clases/Puntuacion.php';
 require_once './Clases/Orden.php';
-require_once './Clases/File.php';
 
 class Encuesta 
 {
@@ -124,8 +123,7 @@ class Encuesta
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombreDelCliente,e.mensaje,e.idDeOrden,e.estado FROM Encuesta e
-            JOIN Puntuacion p ON p.idDeEncuesta = e.id
-            WHERE LOWER(p.descripcion) = LOWER(:descripcion) AND LOWER(p.estado) = LOWER(:estado)");
+            JOIN Puntuacion p ON p.idDeEncuesta = e.id WHERE LOWER(p.descripcion) = LOWER(:descripcion) AND LOWER(p.estado) = LOWER(:estado)");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
             $consulta->execute();
@@ -153,44 +151,6 @@ class Encuesta
         return  $listaDeEncuestaes;
     }
 
-    public static function EscribirCsv($nombreDeArchivo,$listaDeEncuesta)
-    {
-        $estado = false;
-        
-        if(isset($nombreDeArchivo) && isset($listaDeEncuesta))
-        {
-            $estado = File::EscribirGenerico($listaDeEncuesta,$nombreDeArchivo,array(__CLASS__,'EscribirUnoCsv'));
-        }
-
-        return   $estado;
-    }
-    
-    public static function EscribirUnoCsv($unaEncuesta,$unArchivo)
-    {
-        $estado = false;
-        
-        if(isset($unaEncuesta))
-        {
-            $unArray = array($unaEncuesta->id,$unaEncuesta->nombreDelCliente,$unaEncuesta->idDeOrden,
-            $unaEncuesta->mensaje,$unaEncuesta->estado);
-            $estado  = fputcsv($unArchivo,$unArray);
-        }
-
-        return   $estado;
-    }
-
-    public static function LeerCsv($rutaArchivo)
-    {
-        $listaDeEncuesta = null;
-        $data = File::LeerArchivoCsv($rutaArchivo);
-        
-        if(isset($data))
-        {
-            $listaDeEncuesta = Encuesta::CrearLista($data);
-        }
-
-        return   $listaDeEncuesta;
-    }
 
     #end
 
@@ -370,25 +330,25 @@ class Encuesta
 
         return   $strLista;
     }
-
-    public static function FiltrarPorLista($unaLista,$otraLista)
+    public static function FiltrarPorIdDeOrdenes($listaDeEncuesta,$idDeOrden)
     {
-        $listaFiltrada = null;
+       
+        $listaDefiltrada = null;
 
-        if(isset($otraLista) && isset($unaLista))
+        if(isset($listaDeEncuesta) && isset($idDeOrden))
         {
-            $listaFiltrada =  [];
-            
-            foreach($unaLista as $unaEncuestaDeLaLista)
-            { 
-                if(Encuesta::ObtenerIndicePorId($otraLista,$unaEncuestaDeLaLista->id) >= 0)
+            $listaDefiltrada = [];
+
+            foreach ($listaDeEncuesta as $unaEncuesta) 
+            {
+                if($unaEncuesta->idDeOrden === $idDeOrden)
                 {
-                    array_push($listaFiltrada,$unaEncuestaDeLaLista);
+                    array_push($listaDefiltrada,$unaEncuesta);
                 }
             }
         }
 
-        return  $listaFiltrada;
+        return  $listaDefiltrada;
     }
 
     public function ToString()

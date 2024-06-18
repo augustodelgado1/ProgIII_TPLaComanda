@@ -5,7 +5,7 @@
 require_once './db/AccesoDatos.php';
 require_once 'TipoDeProducto.php';
 require_once './interfaces/IFileManejadorCSV.php';
-require_once 'Util.php';
+require_once './Herramientas/Util.php';
 class Producto implements IFileManejadorCSV 
 {
     private $id;

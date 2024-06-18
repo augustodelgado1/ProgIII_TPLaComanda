@@ -133,47 +133,7 @@ class MesaController
 
    
 
-    public static function ListarComentariosPositivosDeLasMesas($request, $response, array $args)
-    {
-        $data = $request->getQueryParams();
-        $listaDeMesas = Mesa::FiltarMesaEncuestadas();
-        $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_POSITIVO);
-
-        $mensaje = "Hubo error en la funcion";
-        if(isset($listaDeEncuesta))
-        {
-            $mensaje = "No se encontraron comentarios ".Puntuacion::ESTADO_POSITIVO.'s';
-            if(count($listaDeEncuesta) > 0)
-            {
-                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta);
-            }
-        }
-
-        $response->getBody()->write($mensaje);
-
-
-        return $response;
-    }
-    public static function ListarComentariosNegativosDeLasMesas($request, $response, array $args)
-    {
-        $data = $request->getQueryParams();
-        $listaDeMesas = Mesa::FiltarMesaEncuestadas();
-        $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_NEGATIVO);
-        
-        if(isset($listaDeMesas))
-        {
-            $mensaje = "la lista esta vacia";
-            if(count($listaDeMesas) > 0)
-            {
-                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta);
-            }
-        }
-
-        $response->getBody()->write($mensaje);
-
-
-        return $response;
-    }
+    
     // a- La más usada.
     public static function ListarMesaMasUsada($request, $response, array $args)
     {
@@ -263,6 +223,7 @@ class MesaController
       
         // $listaDeOrdenes = Orden::FiltarPorEstado(Orden::ESTADO_INACTIVO);
         $importeMayor = Orden::BusacarMayorImporteBD();
+        $listaDeOrdenes = Orden::FiltrarPorImporteBD($importeMayor);
         $listaDeMesas = Mesa::FiltrarPorImporteDeOrden($importeMayor);
        
         
@@ -272,7 +233,7 @@ class MesaController
             if(count($listaDeMesas) > 0)
             {
                 $mensaje = "la factura con el mayor importe tiene el valor de $importeMayor <br>".
-                Mesa::ToStringList($listaDeMesas);
+                Mesa::MostrarConOrdenes($listaDeMesas,$listaDeOrdenes);
             }
         }
 
@@ -288,6 +249,7 @@ class MesaController
     {
         $data = $request->getQueryParams();
         $importeMenor = Orden::BuscarMenorImporteBD();
+        $listaDeOrdenes = Orden::FiltrarPorImporteBD($importeMenor);
         $listaDeMesas = Mesa::FiltrarPorImporteDeOrden($importeMenor);
        
         
@@ -297,7 +259,7 @@ class MesaController
             if(count($listaDeMesas) > 0)
             {
                 $mensaje = "la factura con el menor importe tiene el valor de $importeMenor <br>".
-                Mesa::ToStringList($listaDeMesas);
+                Mesa::MostrarConOrdenes($listaDeMesas,$listaDeOrdenes);
             }
         }
 
@@ -319,8 +281,50 @@ class MesaController
         
         if($facturacionTotal > 0)
         {
-            $mensaje = "lo que facturo la mesa ".$data['codigoDeMesa']." desde ".$data['fechaInicial'].' hasta '.$data['fechaFinal'].' es '.$facturacionTotal;
-            
+            $mensaje = "lo que facturo la mesa ".$data['codigoDeMesa'].
+            " desde ".$data['fechaInicial'].' hasta '.$data['fechaFinal'].' es '.$facturacionTotal;
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    public static function ListarComentariosPositivosDeLasMesas($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $listaDeMesas = Mesa::FiltarMesaEncuestadas();
+        $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_POSITIVO);
+
+        $mensaje = "Hubo error en la funcion";
+        if(isset($listaDeEncuesta))
+        {
+            $mensaje = "No se encontraron comentarios ".Puntuacion::ESTADO_POSITIVO.'s';
+            if(count($listaDeEncuesta) > 0)
+            {
+                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function ListarComentariosNegativosDeLasMesas($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $listaDeMesas = Mesa::FiltarMesaEncuestadas();
+        $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_NEGATIVO);
+        
+        if(isset($listaDeMesas))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeMesas) > 0)
+            {
+                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta);
+            }
         }
 
         $response->getBody()->write($mensaje);

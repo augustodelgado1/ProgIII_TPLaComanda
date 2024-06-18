@@ -5,7 +5,7 @@
 require_once './db/AccesoDatos.php';
 require_once 'Producto.php';
 require_once 'Orden.php';
-require_once 'File.php';
+
 
 
 class Pedido 
