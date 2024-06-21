@@ -80,21 +80,21 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 
 	//ABM
 	$grupoDeRutas->post('[/]',\EmpleadoController::class.':CargarUno')
-	->add(new ValidadorMiddleware(array(Empleado::class,'Validador'),"Debe ingresar los datos completos del empleado"))
+	->add(new ValidadorMiddleware(array(Usuario::class,'Validador'),"Debe ingresar los datos completos del empleado"))
 	->add(new VerificarRoles(array('Socio')));
 
 
 	$grupoDeRutas->put('[/]',\EmpleadoController::class.':ModificarUno')
-	->add(new ValidadorMiddleware(array(Empleado::class,'Validador'),"Debe ingresar los datos completos del empleado"));
+	->add(new ValidadorMiddleware(array(Usuario::class,'Validador'),"Debe ingresar los datos completos del empleado"));
 
 
 	$grupoDeRutas->put('/{suspender}',\EmpleadoController::class.':SuspenderUno')
-	->add(new ValidadorMiddleware(array(Empleado::class,'VerificarUno'),"El empleado ingresado no existe"))
+	->add(new ValidadorMiddleware(array(Usuario::class,'VerificarUno'),"El empleado ingresado no existe"))
 	->add(new VerificarRoles(array('Socio')));
 
 
 	$grupoDeRutas->delete('[/]',\EmpleadoController::class.':EliminarUno')
-	->add(new ValidadorMiddleware(array(Empleado::class,'VerificarUno'),"El empleado ingresado no existe"))
+	->add(new ValidadorMiddleware(array(Usuario::class,'VerificarUno'),"El empleado ingresado no existe"))
 	->add(new VerificarRoles(array('Socio')));
 
 	$grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
@@ -119,13 +119,13 @@ $app->group('/empleado/{consulta}', function (RouteCollectorProxy $grupoDeRutas)
 $app->group('/socio', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	$grupoDeRutas->post('[/]',\SocioController::class.':CargarUno')
-	->add(new ValidadorMiddleware(array(Socio::class,'Validador'),"Debe ingresar los datos completos del Socio"));
+	->add(new ValidadorMiddleware(array(Usuario::class,'Validador'),"Debe ingresar los datos completos del Socio"));
 
 	$grupoDeRutas->put('[/]',\SocioController::class.':ModificarUno')
-	->add(new ValidadorMiddleware(array(Socio::class,'Validador'),"Debe ingresar los datos completos del Socio"));
+	->add(new ValidadorMiddleware(array(Usuario::class,'Validador'),"Debe ingresar los datos completos del Socio"));
 
 	$grupoDeRutas->delete('[/]',\SocioController::class.':BorrarUno')
-	->add(new ValidadorMiddleware(array(Socio::class.'VerificarUno'),"El Socio ingresado no existe"));
+	->add(new ValidadorMiddleware(array(Usuario::class.'VerificarUno'),"El Socio ingresado no existe"));
 	
 	$grupoDeRutas->get('[/]',\SocioController::class.':Listar');
 });

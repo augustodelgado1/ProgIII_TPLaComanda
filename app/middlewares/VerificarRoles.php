@@ -17,7 +17,7 @@ class VerificarRoles
         $token = trim(explode("Bearer", $header)[1]);
         $data = (array) AutentificadorJWT::ObtenerData($token);
         
-        var_dump(  $data);
+        // var_dump(  $data);
         $response = new Response();
 
         if(isset($data)  && in_array($data["rol"], $this->listaDeRoles))

@@ -2,7 +2,7 @@
 
 <?php
 
-require_once './Clases/Socio.php';
+require_once './Clases/Usuario.php';
 
 class SocioController
 {
@@ -10,14 +10,16 @@ class SocioController
     public static function Listar($request, $response, array $args)
     {
         $mensaje = 'Hubo un error  al intentar listar los Socio';
-        $listaDeSocios = Socio::ListarBD();
-       
+        $unRol = Rol::BuscarRolPorDescripcionBD('Socio');
+
+        $listaDeSocios = Usuario::FiltrarPorRolBD( $unRol->GetId());
+
         if(isset($listaDeSocios))
         {
             $mensaje = "La lista esta vacia";
             if(count($listaDeSocios) > 0)
             {
-                $mensaje = Socio::ToStringList($listaDeSocios);
+                $mensaje = Usuario::ToStringList($listaDeSocios);
             }
         }
         
@@ -30,12 +32,12 @@ class SocioController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-     
+        $unCargo = Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;   
+        $unRol = Rol::BuscarRolPorDescripcionBD('Socio');
         $mensaje = 'no se pudo dar de alta';
 
-        $unSocio = new Socio($data['email'],$data['clave'],
-        $data['nombre'],
-        $data['apellido'],$data['dni']);
+        $unSocio = new Usuario($data['email'],$data['clave'],$data['nombre'],
+        $data['apellido'],$data['dni'],$unCargo->GetId(),$unRol->GetId());
 
         if($unSocio->AgregarBD())
         {
@@ -54,8 +56,8 @@ class SocioController
         
         $mensaje = 'no se pudo dar modificar';
 
-        if(Socio::ModificarUnoBD($data['id'],$data['email'],$data['clave'],$data['nombre'] ,
-        $data['apellido'],$data['dni']))
+        if(Usuario::ModificarUnoBD($data['id'],$data['email'],$data['clave'],$data['nombre'] ,
+        $data['apellido'],$data['dni'],$data['cargo']))
         {
             $mensaje = 'El Socio se registro correctamente';
         }
@@ -71,7 +73,7 @@ class SocioController
        
         $mensaje = 'no se pudo borrar';
 
-        if(Socio::BorrarUnoPorIdBD($data['id']))
+        if(Usuario::BorrarUnoPorIdBD($data['id']))
         {
             $mensaje = 'El Socio se borro correctamente';
         }

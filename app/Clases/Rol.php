@@ -6,16 +6,14 @@ require_once './db/AccesoDatos.php';
 
 require_once 'Sector.php';
 
-class Cargo 
+class Rol 
 {
     private $id;
     private $descripcion;
-    private $idDeSector;
 
 
-    public function __construct($descripcion,$unSector) {
+    public function __construct($descripcion) {
         $this->descripcion = $descripcion;
-        $this->idDeSector = $unSector;
     }
     public function AgregarBD()
     {
@@ -24,10 +22,8 @@ class Cargo
         $idDeEncuesta = null;
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Cargo (descripcion,idDeSector) 
-            values (:descripcion,:idDeSector)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Rol (descripcion) values (:descripcion)");
             $consulta->bindValue(':descripcion',$this->descripcion,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
             $consulta->execute();
             $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
         }
@@ -42,13 +38,11 @@ class Cargo
        
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Cargo as c
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Rol as r
             SET `descripcion`= :descripcion,
-            `idDeSector`= :idDeSector,
-            Where c.id=:id");
+            Where r.id=:id");
             $consulta->bindValue(':id',$id,PDO::PARAM_STR);
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
 
@@ -62,116 +56,70 @@ class Cargo
         
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Cargo as c where c.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Rol as r where r.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
 
         return  $estado;
     }
-    private function SetSector($idDeSector)
-    {
-        $estado  = false;
-        if(isset( $idDeSector))
-        {
-            $this->idDeSector = $idDeSector;
-        }
-
-        return $estado;
-    }
    
-    public static function BuscarCargoPorIdBD($id)
+    public static function BuscarRolPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unRol = null;
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Rol as c where c.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
-            $unRol = Cargo::CrearUnCargo($consulta->fetch(PDO::FETCH_ASSOC));
+            $unRol = Rol::CrearUnRol($consulta->fetch(PDO::FETCH_ASSOC));
+            
         }
 
         return $unRol;
     }
-    public static function BuscarCargoPorIdDeSectorBD($id)
+
+    public static function BuscarRolPorDescripcionBD($descripcion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unRol = null;
 
-        if(isset($unObjetoAccesoDato) && isset($id))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.idDeSector = :id");
-            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
-            $consulta->execute();
-            $unRol = Cargo::CrearUnCargo($consulta->fetch(PDO::FETCH_ASSOC));
-        }
-
-        return $unRol;
-    }
-
-    private static function BuscarCargoPorDescripcionBD($descripcion)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-
         if(isset($descripcion))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where LOWER(c.descripcion) = LOWER(:descripcion)");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM rol as r
+             where LOWER(r.descripcion) = LOWER(:descripcion)");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->execute();
-            $estado = $consulta->fetch(PDO::FETCH_ASSOC);
+            $unRol = Rol::CrearUnRol($consulta->fetch(PDO::FETCH_ASSOC));
+            
         }
 
-        return  $estado;
+        return  $unRol;
     }
 
     public static function ObtenerUnoPorDescripcionBD($descripcion)
     {
-        return  Cargo::CrearUnCargo(Cargo::BuscarCargoPorDescripcionBD($descripcion));
+        return  Rol::CrearUnRol(Rol::BuscarRolPorDescripcionBD($descripcion));
     }
     public static function VerificarUnoPorDescripcionBD($descripcion)
     {
-        return Cargo::BuscarCargoPorDescripcionBD($descripcion) !== false;
+        return Rol::BuscarRolPorDescripcionBD($descripcion) !== false;
     }
 
-    public static function FiltrarPorSectorBD($idDeSector)
+    private static function CrearUnRol($unArrayAsosiativo)
     {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDeTipos= null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.idDeSector = :idDeSector");
-            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_INT);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $listaDeTipos= Cargo::CrearLista($data);
-        }
-
-        return $listaDeTipos;
-    }
-
-    public function ObtenerListaDeEmpleados()
-    {
-        return Usuario::FiltrarPorCargoBD($this->id);
-    }
-
-
-    private static function CrearUnCargo($unArrayAsosiativo)
-    {
-        $unCargo = null;
-        
+        $unRol = null;
+      
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            $unCargo = new Cargo($unArrayAsosiativo['descripcion'],$unArrayAsosiativo['idDeSector']);
-            $unCargo->SetId($unArrayAsosiativo['id']);
-            $unCargo->SetSector($unArrayAsosiativo['idDeSector']);
-            $unCargo->SetDescripcion( $unArrayAsosiativo['descripcion']);
+            $unRol = new Rol($unArrayAsosiativo['descripcion']);
+            $unRol->SetId($unArrayAsosiativo['id']);
+            $unRol->SetDescripcion( $unArrayAsosiativo['descripcion']);
         }
         
-        return $unCargo ;
+        return $unRol ;
     }
 
     private static function CrearLista($data)
@@ -183,29 +131,17 @@ class Cargo
 
             foreach($data as $unArray)
             {
-                $unCargo = Cargo::CrearUnCargo($unArray);
+                $unRol = Rol::CrearUnRol($unArray);
                 
-                if(isset($unCargo))
+                if(isset($unRol))
                 {
-                    array_push($listaDeRoles,$unCargo);
+                    array_push($listaDeRoles,$unRol);
                 }
             }
         }
 
         return   $listaDeRoles;
     }
-
-    public function Equals($unCargo)
-    {
-        $estado = false;
- 
-        if(isset($unCargo))
-        {
-            $estado =  $unCargo->id === $this->id;
-        }
-        return  $estado ;
-    }
-
     //Setters
     private function SetId($id)
     {
@@ -229,9 +165,6 @@ class Cargo
 
         return  $estado ;
     }
-
-   
-
     //Getters
 
     public function GetId()
@@ -242,50 +175,45 @@ class Cargo
     {
         return  $this->descripcion;
     }
-    public function GetSector()
-    {
-        return  $this->idDeSector;
-    }
-
    
     
 
-    //  public static function EscribirJson($listaDeCargo,$claveDeArchivo)
+    //  public static function EscribirJson($listaDeRol,$claveDeArchivo)
     //  {
     //      $estado = false; 
  
-    //      if(isset($listaDeCargo))
+    //      if(isset($listaDeRol))
     //      {
-    //          $estado =  Json::EscribirEnArrayJson($listaDeCargo,$claveDeArchivo,JSON_PRETTY_PRINT);
+    //          $estado =  Json::EscribirEnArrayJson($listaDeRol,$claveDeArchivo,JSON_PRETTY_PRINT);
     //      }
     //      return  $estado;
     //  }
  
     //  public static function LeerJson($claveDeArchivo)
     //  {
-    //      return Cargo::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
+    //      return Rol::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
     //  }
  
     //  private static function DeserializarListaJson($listaDeArrayAsosiativos)
     //  {
-    //      $listaDeCargo = null; 
-    //      $unCargo = null;
+    //      $listaDeRol = null; 
+    //      $unRol = null;
     //      if(isset($listaDeArrayAsosiativos))
     //      {
-    //          $listaDeCargo = [];
+    //          $listaDeRol = [];
  
     //          foreach($listaDeArrayAsosiativos as $unArrayAsosiativo)
     //          {
-    //              $unCargo = Cargo::DeserializarUnCargoPorArrayAsosiativo($unArrayAsosiativo);
-    //              if(isset($unCargo))
+    //              $unRol = Rol::DeserializarUnRolPorArrayAsosiativo($unArrayAsosiativo);
+    //              if(isset($unRol))
     //              {
-    //                  array_push($listaDeCargo,$unCargo);
+    //                  array_push($listaDeRol,$unRol);
     //              }
                  
     //          }
     //      }
  
-    //      return  $listaDeCargo ;
+    //      return  $listaDeRol ;
     //  }
 
     
@@ -314,10 +242,10 @@ class Cargo
 
    
 
-    // public static function CompararPorclave($unCargo,$otroCargo)
+    // public static function CompararPorclave($unRol,$otroRol)
     // {
     //     $retorno = 0;
-    //     $comparacion = strcmp($unCargo->clave,$otroCargo->clave);
+    //     $comparacion = strcmp($unRol->clave,$otroRol->clave);
 
     //     if( $comparacion  > 0)
     //     {
@@ -333,32 +261,32 @@ class Cargo
     //     return $retorno ;
     // }
 
-    // public static function BuscarCargoPorId($listaDeCargo,$id)
+    // public static function BuscarRolPorId($listaDeRol,$id)
     // {
-    //     $unaCargoABuscar = null; 
+    //     $unaRolABuscar = null; 
 
-    //     if(isset($listaDeCargo) )
+    //     if(isset($listaDeRol) )
     //     {
-    //         foreach($listaDeCargo as $unaCargo)
+    //         foreach($listaDeRol as $unaRol)
     //         {
-    //             if($unaCargo->id == $id)
+    //             if($unaRol->id == $id)
     //             {
-    //                 $unaCargoABuscar = $unaCargo; 
+    //                 $unaRolABuscar = $unaRol; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaCargoABuscar;
+    //     return  $unaRolABuscar;
     // }
 
-    // public function __construct($mail,$unProducto,$clave,$unCargo,$ruta = null,$claveDeLaImagen = null) {
+    // public function __construct($mail,$unProducto,$clave,$unRol,$ruta = null,$claveDeLaImagen = null) {
     //     $this->clave = $clave;
-    //     $this->unCargo = $unCargo;
+    //     $this->unRol = $unRol;
     //     $this->mail = $mail;
     //     $this->unProducto = $unProducto;
     //     $this->fechaDeRegistro = date("Y-m-d");
-    //     $this->SetId(Cargo::ObtenerIdAutoIncremental());
+    //     $this->SetId(Rol::ObtenerIdAutoIncremental());
     //     $this->SetImagen($ruta,$claveDeLaImagen);
     // }
     
@@ -383,35 +311,35 @@ class Cargo
 
    
 
-    // public static function BuscarCargoPorId($listaDeCargos,$id)
+    // public static function BuscarRolPorId($listaDeRols,$id)
     // {
-    //     $unaCargoABuscar = null; 
+    //     $unaRolABuscar = null; 
 
-    //     if(isset($listaDeCargos)  
+    //     if(isset($listaDeRols)  
     //     && isset($id) )
     //     {
-    //         foreach($listaDeCargos as $unaCargo)
+    //         foreach($listaDeRols as $unaRol)
     //         {
-    //             if($unaCargo->id == $id)
+    //             if($unaRol->id == $id)
     //             {
-    //                 $unaCargoABuscar = $unaCargo; 
+    //                 $unaRolABuscar = $unaRol; 
     //                 break;
     //             }
     //         }
     //     }
 
-    //     return  $unaCargoABuscar;
+    //     return  $unaRolABuscar;
     // }
   
-    // public static function ToStringList($listaDeCargos)
+    // public static function ToStringList($listaDeRols)
     // {
     //     $strLista = null; 
 
-    //     if(isset($listaDeCargos) )
+    //     if(isset($listaDeRols) )
     //     {
-    //         foreach($listaDeCargos as $unaCargo)
+    //         foreach($listaDeRols as $unaRol)
     //         {
-    //             $strLista = $unaCargo->ToString().'<br>';
+    //             $strLista = $unaRol->ToString().'<br>';
     //         }
     //     }
 
@@ -443,18 +371,18 @@ class Cargo
 
      //  //Contar
  
-    //  public static function ContarPorUnaFecha($listaDeCargo,$fecha)
+    //  public static function ContarPorUnaFecha($listaDeRol,$fecha)
     //  {
     //      $filtraPorUnaFecha = null;
     //      $cantidad = -1;
  
-    //      if(isset($listaDeCargo) && isset($fecha))
+    //      if(isset($listaDeRol) && isset($fecha))
     //      {
     //          $cantidad = 0;
  
-    //          foreach($listaDeCargo as $unaCargo)
+    //          foreach($listaDeRol as $unaRol)
     //          {
-    //              if($unaCargo::$fechaDeCargo == $fecha)
+    //              if($unaRol::$fechaDeRol == $fecha)
     //              {
     //                  $cantidad++;
     //              }

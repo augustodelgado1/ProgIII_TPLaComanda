@@ -3,8 +3,11 @@
 <?php
 
 require_once './db/AccesoDatos.php';
+require_once './Clases/Rol.php';
+require_once './Clases/Sector.php';
+require_once './Clases/Cargo.php';
 
-abstract class Usuario 
+class Usuario 
 {
     public const ESTADO_ACTIVO = "activo";
     public const ESTADO_SUSPENDIDO = "suspendido";
@@ -12,24 +15,60 @@ abstract class Usuario
     private $id;
     private $mail;
     private $clave;
-    private $rol;
+    private $idDeRol;
     private $nombre;
     private $apellido;
     private $fechaDeRegistro;
     private $dni;
-
+    private $cargo;
     private $estado;
 
    
-    public function __construct($mail,$clave,$nombre,$apellido,$dni,$rol = null) {
+    public function __construct($mail,$clave,$nombre,$apellido,$dni,$cargo = null,$idDeRol = null) {
         $this->SetEmail($mail);
         $this->SetClave($clave);
         $this->SetNombre($nombre);
         $this->SetApellido($apellido);
-        $this->SetRol($rol);
+        $this->SetRol($idDeRol);
+        $this->SetIdCargo($cargo);
         $this->SetDni($dni);
         $this->fechaDeRegistro = new DateTime('now') ;
         $this->estado = Usuario::ESTADO_ACTIVO;
+    }
+    private static function CrearUno($dataUsuario)
+    {
+        $unUsuario = null;
+      
+        if(isset($dataUsuario) )
+        {
+            $unUsuario= new Usuario($dataUsuario['email'],$dataUsuario['clave'],$dataUsuario['nombre'],
+            $dataUsuario['apellido'],$dataUsuario['dni'],$dataUsuario['idDeCargo'],$dataUsuario['idDeRol']);
+            $unUsuario->SetId($dataUsuario['id']);
+            $unUsuario->SetFechaDeRegistro(new DateTime($dataUsuario['fechaDeRegistro']));
+        }
+        
+        return $unUsuario ;
+    }
+
+    private static function CrearLista($data)
+    {
+        $listaDeUsuarios = null;
+        if(isset($data))
+        {
+            $listaDeUsuarios = [];
+
+            foreach($data as $unArray)
+            {
+                $unUsuario = Usuario::CrearUno($unArray);
+               
+                if(isset($unUsuario))
+                {
+                    array_push($listaDeUsuarios,$unUsuario);
+                }
+            }
+        }
+
+        return   $listaDeUsuarios;
     }
     public function AgregarBD()
     {
@@ -38,15 +77,17 @@ abstract class Usuario
 
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario (email,clave,fechaDeRegistro,nombre,apellido,dni,rol,estado) 
-            values (:email,:clave,:fechaDeRegistro,:nombre,:apellido,:dni,:rol,:estado)");
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Usuario 
+            (email,clave,fechaDeRegistro,nombre,apellido,dni,idDeRol,idDeCargo,estado) 
+            values (:email,:clave,:fechaDeRegistro,:nombre,:apellido,:dni,:rol,:cargo,:estado)");
             $consulta->bindValue(':email',$this->mail,PDO::PARAM_STR);
             $consulta->bindValue(':clave',$this->clave,PDO::PARAM_STR);
-            $consulta->bindValue(':rol',$this->rol,PDO::PARAM_STR);
+            $consulta->bindValue(':rol',$this->idDeRol,PDO::PARAM_INT);
             $consulta->bindValue(':nombre',$this->nombre,PDO::PARAM_STR);
             $consulta->bindValue(':apellido',$this->apellido,PDO::PARAM_STR);
             $consulta->bindValue(':fechaDeRegistro',$this->fechaDeRegistro->format('y-m-d H:i:s'),PDO::PARAM_STR);
             $consulta->bindValue(':dni',$this->dni,PDO::PARAM_STR);
+            $consulta->bindValue(':cargo',$this->cargo,PDO::PARAM_INT);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $consulta->execute();
             $idDeUsuario =  $objAccesoDatos->ObtenerUltimoID();
@@ -54,6 +95,48 @@ abstract class Usuario
         
 
         return $idDeUsuario;
+    }
+
+    public static function ModificarUnoBD($id,$mail,$clave,$nombre,$apellido,$dni,$cargo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `usuario` as u
+            SET `email`= :mail,
+            `clave`= :clave,
+            `nombre`= :nombre,
+            `apellido`= :apellido,
+            `dni`= :dni 
+            Where u.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':mail',$mail,PDO::PARAM_STR);
+            $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
+            $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta->bindValue(':apellido',$apellido,PDO::PARAM_STR);
+            $consulta->bindValue(':dni',$dni,PDO::PARAM_STR);
+            $estado = $consulta->execute() === true 
+            && Usuario::ModificarCargoBD($id,$cargo) === true;
+        }
+
+        return  $estado;
+    }
+    public static function ModificarCargoBD($id,$cargo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Usuario` SET cargo = :cargo Where id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':cargo',$cargo,PDO::PARAM_STR);
+            $estado= $consulta->execute();
+        }
+
+        return  $estado;
     }
 
     protected static function ModificarEstadoBD($id,$estado)
@@ -67,11 +150,56 @@ abstract class Usuario
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Usuario` SET estado = :estado Where id=:id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            
             $estadoDeLaFuncion= $consulta->execute();
             
         }
 
         return  $estadoDeLaFuncion;
+    }
+
+    public static function SuspenderUnoPorIdBD($id)
+    {
+        $estado = false;
+
+        if(isset($arrayDeEmpleado))
+        {
+            $estado =  Usuario::ModificarEstadoBD($id,Usuario::ESTADO_SUSPENDIDO);
+        }
+
+        return  $estado;
+    }
+    public static function ObtenerUnoCompletoBD($id)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $data= false;
+
+        if(isset($arrayDeEmpleado))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT 
+            u.id, u.nombre, u.dni, r.descripcion AS rol, c.descripcion AS cargo
+            FROM Usuario AS u
+            JOIN rol AS r ON r.id = u.idDeRol
+            JOIN Cargo AS c ON c.id = u.idDeCargo
+            WHERE u.id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+        }
+
+        return  $data;
+    }
+
+    public static function BorrarUnoPorIdBD($id)
+    {
+        $estado = false;
+
+        if(isset($id))
+        {
+            $estado =  Usuario::ModificarEstadoBD($id,Usuario::ESTADO_BORRADO);
+        }
+
+        return  $estado;
     }
 
     public static function ListarBD()
@@ -88,12 +216,12 @@ abstract class Usuario
 
         return $listaDeUsuario;
     }
-    protected static function BuscarPorIdBD($id)
+    private static function BuscarPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data= null;
+        $data= false;
         
-        if(isset($unObjetoAccesoDato) && isset($id))
+        if(isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
@@ -104,94 +232,126 @@ abstract class Usuario
 
         return  $data;
     }
-    public static function BorrarUnoPorIdBD($id)
+    public static function ObtenerUnoPorIdBD($id)
     {
-        $estado = false;
-
-        if(isset($id))
-        {
-            $estado =  Usuario::ModificarEstadoBD($id,Usuario::ESTADO_BORRADO);
-        }
-
-        return  $estado;
+        return  Usuario::CrearUno(Usuario::BuscarPorIdBD($id));;
     }
 
-   
-
-    public static function BuscarEmailUnUsuarioBD($mail)
+    public static function FiltrarPorCargoBD($idDeCargo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data = null;
+        $listaDeTipos= null;
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u 
-            where LOWER(u.email) = LOWER(:email)");
-            $consulta->bindValue(':email',$mail,PDO::PARAM_STR);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-        }
-
-        return  $data;
-    }
-
-    public static function BuscarClaveUnUsuarioBD($clave)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data = null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.clave = :clave");
-            $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-        }
-
-        return  $data;
-    }
-
-    public static function FiltrarPorEstadoBD($estado)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data= null;
-        
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.estado = :estado");
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Empleado 
+            as e where e.idDeCargo = :idDeCargo");
+            $consulta->bindValue(':idDeCargo',$idDeCargo,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeTipos= Usuario::CrearLista($data);
         }
 
-        return  $data;
+        return $listaDeTipos;
+    }
+    public static function FiltrarPorRolBD($idDeRol)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeTipos= null;
+
+        if(isset($idDeRol))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario 
+            as u where u.idDeRol = :idDeRol");
+            $consulta->bindValue(':idDeRol',$idDeRol,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+           
+            $listaDeTipos= Usuario::CrearLista($data);
+        }
+
+        return $listaDeTipos;
+    }
+    public static function FiltrarPorFechaDeRegistroBD($fechaDeRegistro)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeTipos= null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Empleado 
+            JOIN Usuario u ON e.idDeUsuario = u.id
+            as e where u.fechaDeRegistro = :fechaDeRegistro");
+            $consulta->bindValue(':fechaDeRegistro',$fechaDeRegistro->format('d-m-y'),PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeTipos= Usuario::CrearLista($data);
+        }
+
+        return $listaDeTipos;
     }
 
-   
-
-  
-    protected function SetFechaDeRegistro($fechaDeRegistro)
+    public static function ToStringList($listaDeSocioes)
     {
-        $estado = false;
-        if(isset($fechaDeRegistro))
+        $strLista = null; 
+
+        if(isset($listaDeSocioes) )
         {
-            $this->fechaDeRegistro = $fechaDeRegistro;
-            $estado = true;
+            $strLista = "";
+            foreach($listaDeSocioes as $unSocio)
+            {
+                $strLista .= $unSocio->ToString().'<br>';
+            }
         }
 
-        return  $estado ;
+        return   $strLista;
+    }
+
+    
+    public static function FiltrarPorEstado($listaDeUsuarios,$estado)
+    {
+        $listaFiltrada = null; 
+
+        if(isset($listaDeUsuarios) && isset($estado))
+        {
+            $listaFiltrada = [];
+            foreach($listaDeUsuarios as $unUsuario)
+            {
+                if(strcasecmp($unUsuario->estado,$estado) == 0)
+                {
+                    array_push($listaFiltrada,$unUsuario);
+                }
+            }
+        }
+
+        return   $listaFiltrada;
+    }
+    public static function FiltrarPorCargo($listaDeUsuarios,$cargo)
+    {
+        $listaFiltrada = null; 
+
+        if(isset($listaDeUsuarios) && isset($cargo))
+        {
+            $listaFiltrada = [];
+            foreach($listaDeUsuarios as $unUsuario)
+            {
+                if(strcasecmp($unUsuario->cargo,$cargo) == 0)
+                {
+                    array_push($listaFiltrada,$unUsuario);
+                }
+            }
+        }
+
+        return   $listaFiltrada;
     }
     
-
     public function ToString()
     {
-        
         return      "Email: ".$this->mail.'<br>'.
-          "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
-        "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>';
+            "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
+            "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>'.
+            "Cargo: ".$this->GetCargo()->GetDescripcion().'<br>';
     }
-
-   
 
     public function Equals($unUsuario)
     {
@@ -218,8 +378,17 @@ abstract class Usuario
         return  $estado ;
     }
 
+    protected function SetFechaDeRegistro($fechaDeRegistro)
+    {
+        $estado = false;
+        if(isset($fechaDeRegistro))
+        {
+            $this->fechaDeRegistro = $fechaDeRegistro;
+            $estado = true;
+        }
 
-
+        return  $estado ;
+    }
     private function SetEmail($email)
     {
         $estado = false;
@@ -278,12 +447,23 @@ abstract class Usuario
         return  $estado ;
     }
 
-    private function SetRol($descripcion)
+    private function SetRol($rol)
     {
         $estado  = false;
-        if(isset( $descripcion) )
+        if(isset( $rol) )
         {
-            $this->rol = $descripcion;
+            $this->idDeRol = $rol;
+        }
+
+        return $estado;
+    }
+
+    private function SetIdCargo($idDecargo)
+    {
+        $estado  = false;
+        if(isset($idDecargo))
+        {
+            $this->cargo = $idDecargo;
         }
 
         return $estado;
@@ -327,10 +507,18 @@ abstract class Usuario
     {
         return  $this->apellido;
     }
+    public function GetSector()
+    {
+        return  $this->GetCargo()->GetSector();
+    }
+    public function GetCargo()
+    {
+        return  Cargo::BuscarCargoPorIdBD($this->cargo) ;
+    }
 
     public function GetRolDeUsuario()
     {
-        return  $this->rol;
+        return  Rol::BuscarRolPorIdBD($this->idDeRol);
     }
     public function GetNombreCompleto()
     {
@@ -355,22 +543,27 @@ abstract class Usuario
 
         return  $data;
     }
-
-    // private $id;
-    // private $mail;
-    // private $clave;
-    // private $rol;
-    // private $nombre;
-    // private $apellido;
-    // private $fechaDeRegistro;
-    // private $dni;
-    public static function Validor($data)
+    public static function Validador($data)
     {
         return     Usuario::ValidadorEmail($data['email']) 
                 && Usuario::ValidadorClave($data['clave'])
                 && Util::ValidadorDeNombre($data['nombre'])
                 && Util::ValidadorDeNombre($data['apellido'])
-                && Usuario::ValidadorDni($data['dni']);
+                && Usuario::ValidadorDni($data['dni'])
+                && Usuario::ValidadorDeCargo($data['cargo']);;
+    }
+
+    private static function ValidadorDeCargo($desripcion)
+    {
+        try 
+        {
+            $estado = Cargo::VerificarUnoPorDescripcionBD($desripcion);
+        } catch (Exception $th) {
+            $estado = false;
+        }
+       
+        return $estado;
+        
     }
     
     public static function ValidarLoggin($data)
@@ -379,14 +572,27 @@ abstract class Usuario
         Usuario::ValidadorClave($data['clave']);
     }
 
+    public static function VerificarUno($data)
+    {
+        return Usuario::BuscarPorIdBD($data['id']) !== false;
+    }
+    public static function ValidarRolSocio($data)
+    {
+        $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
+        return $unUsuario['rol'] === 'Socio';
+    }
+    public static function ValidarRolEmpleado($data)
+    {
+        $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
+        return $unUsuario['rol'] === 'Empleado';
+    }
+
     
     private static function ValidadorEmail($email)
     {
         $estado = false; 
 
-        if(isset($email) 
-        && isset($email) 
-    && strlen($email) >= 8)
+        if(isset($email) && isset($email) && strlen($email) >= 8)
         {
             $estado = true; 
         }
@@ -410,231 +616,12 @@ abstract class Usuario
     {
         $estado = false; 
         
-        if(isset($dni) && strlen($dni) === 8 
-        && Util::VerificarQueContengaSoloNumeros($dni))
+        if(isset($dni) && strlen($dni) === 8 && Util::VerificarQueContengaSoloNumeros($dni))
         {
             $estado = true; 
         }
         return $estado;
     }
-
-
-
-  
-    //  public static function EscribirJson($listaDeUsuario,$claveDeArchivo)
-    //  {
-    //      $estado = false; 
- 
-    //      if(isset($listaDeUsuario))
-    //      {
-    //          $estado =  Json::EscribirEnArrayJson($listaDeUsuario,$claveDeArchivo,JSON_PRETTY_PRINT);
-    //      }
-    //      return  $estado;
-    //  }
- 
-    //  public static function LeerJson($claveDeArchivo)
-    //  {
-    //      return Usuario::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
-    //  }
- 
-    //  private static function DeserializarListaJson($listaDeArrayAsosiativos)
-    //  {
-    //      $listaDeUsuario = null; 
-    //      $unUsuario = null;
-    //      if(isset($listaDeArrayAsosiativos))
-    //      {
-    //          $listaDeUsuario = [];
- 
-    //          foreach($listaDeArrayAsosiativos as $unArrayAsosiativo)
-    //          {
-    //              $unUsuario = Usuario::DeserializarUnUsuarioPorArrayAsosiativo($unArrayAsosiativo);
-    //              if(isset($unUsuario))
-    //              {
-    //                  array_push($listaDeUsuario,$unUsuario);
-    //              }
-                 
-    //          }
-    //      }
- 
-    //      return  $listaDeUsuario ;
-    //  }
-
-    
-
-
-    // public function SetCuponDeDescuento($cuponDeDescuento)
-    // {
-    //     $estado = false;
-    //     if(isset($cuponDeDescuento))
-    //     {
-    //         $this->cuponDeDescuento = $cuponDeDescuento;
-    //         $estado = true;
-    //     }
-
-    //     return  $estado ;
-    // }
-
-    // public function GetCuponDeDescuento()
-    // {
-    //     return  $this->cuponDeDescuento;
-    // }
-
-    
-   
-
-
-   
-
-    // public static function CompararPorclave($unUsuario,$otroUsuario)
-    // {
-    //     $retorno = 0;
-    //     $comparacion = strcmp($unUsuario->clave,$otroUsuario->clave);
-
-    //     if( $comparacion  > 0)
-    //     {
-    //         $retorno = 1;
-    //     }else{
-
-    //         if( $comparacion < 0)
-    //         {
-    //             $retorno = -1;
-    //         }
-    //     }
-
-    //     return $retorno ;
-    // }
-
-    // public static function BuscarUsuarioPorId($listaDeUsuario,$id)
-    // {
-    //     $unaUsuarioABuscar = null; 
-
-    //     if(isset($listaDeUsuario) )
-    //     {
-    //         foreach($listaDeUsuario as $unaUsuario)
-    //         {
-    //             if($unaUsuario->id == $id)
-    //             {
-    //                 $unaUsuarioABuscar = $unaUsuario; 
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     return  $unaUsuarioABuscar;
-    // }
-
-    // public function __construct($mail,$unProducto,$clave,$unUsuario,$ruta = null,$claveDeLaImagen = null) {
-    //     $this->clave = $clave;
-    //     $this->unUsuario = $unUsuario;
-    //     $this->mail = $mail;
-    //     $this->unProducto = $unProducto;
-    //     $this->fechaDeRegistro = date("Y-m-d");
-    //     $this->SetId(Usuario::ObtenerIdAutoIncremental());
-    //     $this->SetImagen($ruta,$claveDeLaImagen);
-    // }
-    
-   
-
-   
-    
-
-
-    // public function CambiarRutaDeLaImagen($nuevaRuta)
-    // {
-    //     $estado = false;
-
-    //     if(rename($this->rutaDeLaImagen.$this->claveDeLaImagen,$nuevaRuta.$this->claveDeLaImagen))
-    //     {
-    //         $this->rutaDeLaImagen = $nuevaRuta;
-    //         $estado = true;
-    //     }
-
-    //     return $estado;
-    // }
-
-   
-
-    // public static function BuscarUsuarioPorId($listaDeUsuarios,$id)
-    // {
-    //     $unaUsuarioABuscar = null; 
-
-    //     if(isset($listaDeUsuarios)  
-    //     && isset($id) )
-    //     {
-    //         foreach($listaDeUsuarios as $unaUsuario)
-    //         {
-    //             if($unaUsuario->id == $id)
-    //             {
-    //                 $unaUsuarioABuscar = $unaUsuario; 
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     return  $unaUsuarioABuscar;
-    // }
-  
-    // public static function ToStringList($listaDeUsuarios)
-    // {
-    //     $strLista = null; 
-
-    //     if(isset($listaDeUsuarios) )
-    //     {
-    //         foreach($listaDeUsuarios as $unaUsuario)
-    //         {
-    //             $strLista = $unaUsuario->ToString().'<br>';
-    //         }
-    //     }
-
-    //     return   $strLista;
-    // }
-
-//Filtrar
-
-    // public static function FiltrarPizzaPorTipo($listaDePizzas,$tipo)
-    // {
-    //     $listaDeTipoDePizza = null;
-
-    //     if(isset($listaDePizzas) && isset($tipo) && count($listaDePizzas) > 0)
-    //     {
-    //         $listaDeTipoDePizza =  [];
-
-    //         foreach($listaDePizzas as $unaPizza)
-    //         {
-    //             if($unaPizza->tipo == $tipo)
-    //             {
-    //                 array_push($listaDeTipoDePizza,$unaPizza);
-    //             }
-    //         }
-    //     }
-
-    //     return  $listaDeTipoDePizza;
-    // }
-
-
-     //  //Contar
- 
-    //  public static function ContarPorUnaFecha($listaDeUsuario,$fecha)
-    //  {
-    //      $filtraPorUnaFecha = null;
-    //      $cantidad = -1;
- 
-    //      if(isset($listaDeUsuario) && isset($fecha))
-    //      {
-    //          $cantidad = 0;
- 
-    //          foreach($listaDeUsuario as $unaUsuario)
-    //          {
-    //              if($unaUsuario::$fechaDeUsuario == $fecha)
-    //              {
-    //                  $cantidad++;
-    //              }
-    //          }
-    //      }
- 
-    //      return  $filtraPorUnaFecha;
-    //  }
-
    
 }
 

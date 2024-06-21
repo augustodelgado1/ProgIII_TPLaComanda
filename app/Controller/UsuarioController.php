@@ -18,17 +18,8 @@ class UsuarioController
         $unUsuario['estado'] !==  Usuario::ESTADO_SUSPENDIDO 
         && $unUsuario['estado'] !==  Usuario::ESTADO_BORRADO)
         {
-            if($unUsuario['rol'] === 'Empleado')
-            {
-                $dataArray = Empleado::ObtenerUnoPorIdDeUsuario($unUsuario['id']);
-             
-            }
-            else
-            {
-                $dataArray = Socio::ObtenerUnoPorIdDeUsuario($unUsuario['id']);
-            }
-            
-            $token = AutentificadorJWT::CrearUnToken($dataArray);
+            $dataUsuario = Usuario::ObtenerUnoCompletoBD($unUsuario->GetId());
+            $token = AutentificadorJWT::CrearUnToken($dataUsuario);
             $mensaje = json_encode(array('JWT' =>  $token),JSON_PRETTY_PRINT);
         }
         
