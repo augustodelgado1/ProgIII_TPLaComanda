@@ -28,19 +28,22 @@ class Util
     public static function VerificarQueContengaSoloLetras($string)
     {
         $estado = false;
-        $caracteresInvalidos = range('A','Z');
+        $caracteresValidos = range('a','z');
+        $len = strlen($string);
 
-        if(isset($string) && strlen($string) > 0)
+        if(isset($string) && $len  > 0)
         {
             $estado = true;
-           foreach($caracteresInvalidos  as $unCaracter)
-           {
-                if(!str_contains($string,$unCaracter))
+            $strLower = strtolower($string);
+           
+            for ($i=0; $i < $len; $i++) 
+            { 
+                if(!in_array($strLower[$i],$caracteresValidos))
                 {
                     $estado = false;
                     break;
                 }
-           }
+            }
         }
 
         return $estado;
@@ -48,22 +51,29 @@ class Util
     public static function VerificarQueContengaSoloNumeros($string)
     {
         $estado = false;
-        $caracteresInvalidos = range('0','9');
+        $caracteresValidos = range('0','9');
+        $len = strlen($string);
 
-        if(isset($string) && strlen($string) > 0)
+        if(isset($string) &&  $len  > 0)
         {
-            $estado = true;
-           foreach($caracteresInvalidos  as $unCaracter)
-           {
-                if(!str_contains($string,$unCaracter))
-                {
-                    $estado = false;
-                    break;
-                }
+           $estado = true;
+           
+           for ($i=0; $i < $len; $i++) 
+           { 
+               if(!in_array($string[$i],$caracteresValidos))
+               {
+                   $estado = false;
+                   break;
+               }
            }
         }
 
         return $estado;
+    }
+    public static function ValidadorDeNombre($string)
+    {
+        return    isset($string) 
+               && Util::VerificarQueContengaSoloLetras($string);
     }
 }
 

@@ -205,7 +205,6 @@ class Encuesta
          
                 if($listaDeEncuestas[$i]->id === $id)
                 {
-                    
                     $index = $i;
                     break;
                 }
@@ -242,6 +241,7 @@ class Encuesta
     private function SetEstado($estadoDelaEncuesta)
     {
         $estado = false;
+
         if(isset($estado))
         {
             $this->estado = $estadoDelaEncuesta;
@@ -254,7 +254,7 @@ class Encuesta
     public function SetMensaje($mensaje)
     {
         $estado = false;
-        if(isset($mensaje) && strlen($mensaje) <= 66)
+        if(Encuesta::ValidadorDeMensaje($mensaje))
         {
             $this->mensaje = $mensaje;
             $estado = true;
@@ -262,6 +262,24 @@ class Encuesta
 
         return  $estado ;
     }
+
+    public static function ValidadorEncusta($data)
+    {
+        return  Encuesta::ValidadorDeMensaje($data['mensaje'])
+        && Orden::VerificarCodigo($data['numeroDeOrden'])
+        && Util::ValidadorDeNombre($data['nombre'])
+        && isset($data['puntuacionDeLaMesa'])
+        && isset($data['puntuacionDelRestaurante'])
+        && isset($data['puntuacionDelCocinero'])
+        && isset($data['puntuacionDelMozo'])
+        && Mesa::VerificarCodigo($data['codigoDeMesa']);
+    }
+
+    private static function ValidadorDeMensaje($mensaje)
+    {
+        return isset($mensaje) && strlen($mensaje) <= 66;
+    }
+   
 
     #Getters
     public function GetMensaje()
@@ -306,30 +324,7 @@ class Encuesta
 
         return   $strLista;
     }
-     public static function MostrarSoloComentariosPorCategoria($listaDeEncuestaes,$categoria)
-    {
-        $strLista = null; 
-
-        if(isset($listaDeEncuestaes) )
-        {
-            $strLista = "Comentarios".'<br>';
-            foreach($listaDeEncuestaes as $unEncuesta)
-            {
-                $unaPuntuacion = Puntuacion::BuscarPorDescripcionBD($unEncuesta->ObtenerListaDePuntuaciones(),$categoria);
-
-                if(isset($unaPuntuacion))
-                {
-                    $strLista .= "Nombre del Cliente: ".$unEncuesta->nombreDelCliente.'<br>'.
-                    "Puntuacion".'<br>'.
-                    $unaPuntuacion->ToString().
-                    "Comentario: ".$unEncuesta->mensaje.'<br>'.'<br>';
-                }
-                
-            }
-        }
-
-        return   $strLista;
-    }
+    
     public static function FiltrarPorIdDeOrdenes($listaDeEncuesta,$idDeOrden)
     {
        

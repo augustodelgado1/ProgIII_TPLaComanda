@@ -59,18 +59,19 @@ abstract class Usuario
     protected static function ModificarEstadoBD($id,$estado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
+        $estadoDeLaFuncion = false;
 
-        if(isset($unObjetoAccesoDato) )
+        if(isset($unObjetoAccesoDato) && $estado !== false)
         {
+            var_dump($estado);
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Usuario` SET estado = :estado Where id=:id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
-            $estado= $consulta->execute();
+            $estadoDeLaFuncion= $consulta->execute();
             
         }
 
-        return  $estado;
+        return  $estadoDeLaFuncion;
     }
 
     public static function ListarBD()
@@ -87,17 +88,18 @@ abstract class Usuario
 
         return $listaDeUsuario;
     }
-    public static function BuscarPorIdBD($id)
+    protected static function BuscarPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $data= null;
-
+        
         if(isset($unObjetoAccesoDato) && isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
+         
         }
 
         return  $data;
@@ -159,7 +161,7 @@ abstract class Usuario
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u where u.estado = :estado");
             $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
             $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
         }
 
         return  $data;
@@ -183,10 +185,13 @@ abstract class Usuario
 
     public function ToString()
     {
+        
         return      "Email: ".$this->mail.'<br>'.
           "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
         "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>';
     }
+
+   
 
     public function Equals($unUsuario)
     {
@@ -218,7 +223,7 @@ abstract class Usuario
     private function SetEmail($email)
     {
         $estado = false;
-        if(Usuario::ValidadorEmail(array("email" => $email)))
+        if(Usuario::ValidadorEmail($email))
         {
             $this->mail = $email;
             $estado = true;
@@ -230,7 +235,7 @@ abstract class Usuario
     private function SetClave($clave)
     {
         $estado = false;
-        if(Usuario::ValidadorClave(array("clave" => $clave)))
+        if(Usuario::ValidadorClave($clave))
         {
             $this->clave = $clave;
             $estado = true;
@@ -242,7 +247,7 @@ abstract class Usuario
     private function SetNombre($nombre)
     {
         $estado = false;
-        if(Usuario::ValidadorStr($nombre))
+        if(Util::ValidadorDeNombre($nombre))
         {
             $this->nombre = $nombre;
             $estado = true;
@@ -253,7 +258,7 @@ abstract class Usuario
     private function SetApellido($apellido)
     {
         $estado = false;
-        if(Usuario::ValidadorStr($apellido))
+        if(Util::ValidadorDeNombre($apellido))
         {
             $this->apellido = $apellido;
             $estado = true;
@@ -264,7 +269,7 @@ abstract class Usuario
     private function SetDni($dni)
     {
         $estado = false;
-        if(isset($dni) && Util::VerificarQueContengaSoloNumeros($dni))
+        if(Usuario::ValidadorDni($dni))
         {
             $this->dni = $dni;
             $estado = true;
@@ -329,6 +334,7 @@ abstract class Usuario
     }
     public function GetNombreCompleto()
     {
+       
         return  $this->nombre." ".$this->apellido;
     }
 
@@ -350,13 +356,37 @@ abstract class Usuario
         return  $data;
     }
 
+    // private $id;
+    // private $mail;
+    // private $clave;
+    // private $rol;
+    // private $nombre;
+    // private $apellido;
+    // private $fechaDeRegistro;
+    // private $dni;
+    public static function Validor($data)
+    {
+        return     Usuario::ValidadorEmail($data['email']) 
+                && Usuario::ValidadorClave($data['clave'])
+                && Util::ValidadorDeNombre($data['nombre'])
+                && Util::ValidadorDeNombre($data['apellido'])
+                && Usuario::ValidadorDni($data['dni']);
+    }
     
-    public static function ValidadorEmail($data)
+    public static function ValidarLoggin($data)
+    {
+        return Usuario::ValidadorEmail($data['email']) && 
+        Usuario::ValidadorClave($data['clave']);
+    }
+
+    
+    private static function ValidadorEmail($email)
     {
         $estado = false; 
 
-        if(isset($data) && isset($data['email'])
-        && strlen($data['email']) >= 8)
+        if(isset($email) 
+        && isset($email) 
+    && strlen($email) >= 8)
         {
             $estado = true; 
         }
@@ -365,50 +395,23 @@ abstract class Usuario
         return $estado;
     }
 
-    public static function ValidadorClave($data)
+    private static function ValidadorClave($clave)
     {
         $estado = false; 
   
-        if(isset($data) && isset($data['clave'])
-        && strlen($data['clave']) >= 8)
+        if(isset($clave) && isset($clave)
+        && strlen($clave) >= 8)
         {
             $estado = true; 
         }
         return $estado;
     }
-    private static function ValidadorDni($data)
+    private static function ValidadorDni($dni)
     {
         $estado = false; 
         
-        if(isset($data) && isset($data['dni'])
-        && strlen($data['dni']) == 7 && Util::VerificarQueContengaSoloNumeros($data['dni']))
-        {
-            $estado = true; 
-        }
-        return $estado;
-    }
-    private static function ValidadorStr($unString)
-    {
-        $estado = false; 
-        if(isset($unString) && Util::VerificarQueContengaSoloLetras($unString))
-        {
-            $estado = true; 
-        }
-        return $estado;
-    }
-    private static function ValidadorApellido($data)
-    {
-        $estado = false; 
-        if(isset($data) && Usuario::ValidadorStr($data['apellido']))
-        {
-            $estado = true; 
-        }
-        return $estado;
-    }
-    private static function ValidadorNombre($data)
-    {
-        $estado = false; 
-        if(isset($data) && Usuario::ValidadorStr($data['nombre']))
+        if(isset($dni) && strlen($dni) === 8 
+        && Util::VerificarQueContengaSoloNumeros($dni))
         {
             $estado = true; 
         }

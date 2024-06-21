@@ -316,7 +316,7 @@ class Producto implements IFileManejadorCSV
 
         return   $estado;
     }
-    private static function EscribirUnoCsv($unProducto,$unArchivo)
+    public static function EscribirUnoCsv($unProducto,$unArchivo)
     {
         $estado = false;
         
@@ -365,7 +365,7 @@ class Producto implements IFileManejadorCSV
             {
                 
                 $unProducto = Producto::CrearUnProducto(array('id' => $unRenglon[0],'nombre' => $unRenglon[1]
-                                                        ,'tipoDeProducto' => $unRenglon[2],'precio' => $unRenglon[3]));
+                                                        ,'idDeTipo' => $unRenglon[2],'precio' => $unRenglon[3]));
                 if(isset($unProducto))
                 {
                     array_push($listaDeProductos,$unProducto);

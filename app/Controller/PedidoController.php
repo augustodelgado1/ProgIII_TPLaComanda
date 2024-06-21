@@ -148,18 +148,20 @@ class PedidoController
 
     public static function PreapararUnPedido($request, $response, array $args)
     { 
-        $data = $request->getParsedBody();
+        $dataBody = $request->getParsedBody();
+        $header = $request->getHeaderLine('Authorization');
+        $token = trim(explode("Bearer", $header)[1]);
+        $data = AutentificadorJWT::ObtenerData($token);
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unPedido = Pedido::BuscarPedidoPorNumeroDePedidoBD($data['numeroDePedido']);
-        $unEmpleado = Empleado::BuscarPorIdBD($data['idDeEmpleado']);
-        $horaEstimada = $data['horaEstimada'];
-        $minutosEstimada = $data['minutosEstimados'];
+        $unPedido = Pedido::BuscarPedidoPorNumeroDePedidoBD($dataBody['numeroDePedido']);
+        $horaEstimada = $dataBody['horaEstimada'];
+        $minutosEstimada = $dataBody['minutosEstimados'];
 
         if(isset($unPedido) && isset( $unEmpleado))
         {
-            $unPedido->ModificarIdDeEmpleadoBD($unEmpleado->GetId());
+            $unPedido->ModificarIdDeEmpleadoBD($data['idDeEmpleado']);
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_INTERMEDIO);
             $unPedido->ModificarTiempoEstimadoBD(DateInterval::createFromDateString($horaEstimada.' hours '.$minutosEstimada .' Minutes'));
             $unPedido->ModificarTiempoDeInicioBD(new DateTime('now'));

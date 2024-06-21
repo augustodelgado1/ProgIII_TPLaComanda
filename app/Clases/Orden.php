@@ -356,16 +356,32 @@ class Orden
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unaOrden = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($codigo))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.codigo = :codigo");
-            $consulta->bindValue(':codigo',$codigo,PDO::PARAM_INT);
+            $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $unaOrden =  Orden::CrearUnaOrden($data);
         }
 
         return  $unaOrden;
+    }
+    public static function VerificarCodigo($codigo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($codigo))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) as cantidad FROM Orden as o where o.codigo = :codigo");
+            $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $estado =  $data['cantidad'] > 0;
+        }
+
+        return  $estado;
     }
 
     public static function ListarBD()

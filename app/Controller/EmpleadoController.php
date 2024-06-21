@@ -21,7 +21,7 @@ class EmpleadoController
     {
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Empleado';
-        $unCargo = Cargo::BuscarCargoPorDescripcionBD($data['cargo']) ;   
+        $unCargo = Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;   
         if(isset($data))
         {
             $unEmpleado = new Empleado($data['email'],$data['clave'],$data['nombre'],$data['apellido'],$data['dni'],$unCargo->GetId());
@@ -41,7 +41,7 @@ class EmpleadoController
     public static function ModificarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $unCargo = Cargo::BuscarCargoPorDescripcionBD($data['cargo']) ;  
+        $unCargo = Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;  
         $mensaje = 'no se pudo dar modificar';
 
         if(Empleado::ModificarUnEmpleadoBD($data['id'],$data['email'],$data['clave'],$data['nombre'],
@@ -116,7 +116,7 @@ class EmpleadoController
     {
         $data = $request->getQueryParams();
         
-        $mensaje = 'Hubo un error  al intentar listar los Clientes';
+        $mensaje = 'Hubo un error  al intentar listar los Empleados Suspendidos';
         
         $listaDeEmpleados = Empleado::FiltrarPorEstadoBD(Usuario::ESTADO_SUSPENDIDO);
 
@@ -162,9 +162,13 @@ class EmpleadoController
 
     public static function ListarPedidosPendientes($request, $response, array $args)
     {
-        $data = $request->getHeaders();
+        $header = $request->getHeaderLine('Authorization');
+        $token = trim(explode("Bearer", $header)[1]);
+        $data = AutentificadorJWT::ObtenerData($token);
+
         $mensaje = 'Hubo un error al intentar listar los Pedidos';
-        $unEmpleado = Empleado::BuscarPorIdBD($data['idDeEmpeado']);
+        
+        $unEmpleado = Empleado::ObtenerUnoPorIdBD($data['id']);
        
         if(isset($unEmpleado))
         {
@@ -192,7 +196,7 @@ class EmpleadoController
         $data = $request->getQueryParams();
         
         $mensaje = 'Hubo un error  al intentar listar los empleados';
-        $unCargo= Cargo::BuscarCargoPorDescripcionBD($data['cargo']) ;       
+        $unCargo= Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;       
         
         $listaDeEmpleados = Empleado::FiltrarPorCargoBD($unCargo->GetId());
         

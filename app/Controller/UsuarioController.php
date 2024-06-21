@@ -11,26 +11,34 @@ class UsuarioController
     public static function Login($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Usuario no exixtente';
-
-        if(isset($data) )
+        $mensaje =  json_encode(array('Error' => 'Usuario no exixtente'),JSON_PRETTY_PRINT);
+        $unUsuario = Usuario::ObtenerUnoPorLoggin($data['email'],$data['clave']);
+            
+        if(isset($unUsuario) && $unUsuario !== false &&
+        $unUsuario['estado'] !==  Usuario::ESTADO_SUSPENDIDO 
+        && $unUsuario['estado'] !==  Usuario::ESTADO_BORRADO)
         {
-            $unUsuario = Usuario::ObtenerUnoPorLoggin($data['email'],$data['clave']);
-             
-            if(isset($unUsuario) && $unUsuario !== false &&
-            $unUsuario['estado'] !==  Usuario::ESTADO_SUSPENDIDO 
-            && $unUsuario['estado'] !==  Usuario::ESTADO_BORRADO)
+            if($unUsuario['rol'] === 'Empleado')
             {
-                AutentificadorJWT::CrearUnToken($unUsuario);
-                $mensaje = 'el Usuario se logio perfectamente';
+                $dataArray = Empleado::ObtenerUnoPorIdDeUsuario($unUsuario['id']);
+             
             }
+            else
+            {
+                $dataArray = Socio::ObtenerUnoPorIdDeUsuario($unUsuario['id']);
+            }
+            
+            $token = AutentificadorJWT::CrearUnToken($dataArray);
+            $mensaje = json_encode(array('JWT' =>  $token),JSON_PRETTY_PRINT);
         }
+        
 
         $response->getBody()->write($mensaje);
 
 
         return $response;
     }
+    
 
 
 

@@ -1,9 +1,11 @@
 
+<!-- 
+ <?php
 
-<?php
 
 
-use Firebase\JWT\JWT;
+use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
 
 
 class AutentificadorJWT
@@ -12,6 +14,7 @@ class AutentificadorJWT
     public static function CrearUnToken($datos)
     {
         
+        
         $payload = array(
             'iat' => time(),
             'data' => $datos,
@@ -19,6 +22,8 @@ class AutentificadorJWT
             
         );
         
+        
+     
         
         return JWT::encode($payload,$_ENV['CLAVE_SECRETA'],self::$tipoEncriptacion);
     }
@@ -31,17 +36,18 @@ class AutentificadorJWT
        
         try 
         {
-            JWT::decode(
+            $decode = JWT::decode(
                 $token,
-                $_ENV['CLAVE_SECRETA'],
-                new stdClass(self::$tipoEncriptacion) ,
+                new Key($_ENV['CLAVE_SECRETA'],self::$tipoEncriptacion)
             );
+           
         
-        } catch (\Exception $th) 
+        } catch (\Exception $e) 
         {
-            throw $th;
+            throw $e;
         }
         
+        return $decode;
     }
 
     
@@ -53,17 +59,18 @@ class AutentificadorJWT
         }
         return JWT::decode(
             $token,
-            $_ENV['CLAVE_SECRETA'],
-            new stdClass(self::$tipoEncriptacion)
+            new Key($_ENV['CLAVE_SECRETA'],self::$tipoEncriptacion)
         );
     }
 
     public static function ObtenerData($token)
     {
-        return JWT::decode(
+       
+        return  JWT::decode(
             $token,
-            $_ENV['CLAVE_SECRETA'],
-            new stdClass(self::$tipoEncriptacion)
+            new Key($_ENV['CLAVE_SECRETA'],
+            self::$tipoEncriptacion)
+           
         )->data;
     }
 
@@ -87,4 +94,4 @@ class AutentificadorJWT
 }
 
 
-?>
+?>  -->

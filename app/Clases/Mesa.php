@@ -74,6 +74,25 @@ class Mesa
 
         return  $estado;
     }
+
+    public static function VerificarCodigo($codigo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($codigo))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) as cantidad 
+            FROM Mesa as m where m.codigo = :codigo");
+            $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $estado =  $data['cantidad'] > 0;
+        }
+
+        return  $estado;
+    }
+
    
 
     public static function BuscarMesaPorCodigoBD($codigo)

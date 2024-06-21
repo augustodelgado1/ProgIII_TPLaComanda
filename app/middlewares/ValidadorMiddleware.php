@@ -15,10 +15,13 @@ class ValidadorMiddleware
     }
     public function __invoke(Request $request, RequestHandler $handler)
     {   
+       
         $parametros = $request->getParsedBody();
 
         $response = new Response();
-     
+
+        
+        
        
         if(is_callable($this->funcValidador))
         {
@@ -29,10 +32,14 @@ class ValidadorMiddleware
                 $response->getBody()->write($payload);
             }
         }
+        else{
+            echo "Entotttttttt";
+        }
         
 
         return $response->withHeader('Content-Type', 'application/json');
     }
+   
 }
 
 

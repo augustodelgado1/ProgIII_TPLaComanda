@@ -15,10 +15,14 @@ require_once './Controller/EncuestaController.php';
 require_once './Controller/SocioController.php';
 require_once './Controller/CargoController.php';
 require_once './Controller/PuntuacionController.php';
+require_once './Herramientas/File.php';
+
 
 
 
 require_once './middlewares/ValidadorMiddleware.php';
+require_once './middlewares/VerificarRoles.php';
+require_once './middlewares/ValidadorGetMiddleware.php';
 require_once './middlewares/ValidadorTokenMiddleware.php';
 
 Use Slim\Factory\AppFactory;
@@ -26,12 +30,6 @@ use Slim\Routing\RouteCollectorProxy;
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
-
-// 2do Sprint ( Entrega 10 de Junio)
-
-// ❖ Usar MW de usuarios/perfiles
-// ❖ Verificar usuarios para las tareas de ABM
-// ❖ Manejo del estado del pedido
 
 // 3er Sprint ( Entrega 24 de Junio)
 
@@ -49,6 +47,7 @@ $dotenv->load();
 
 
 $app = AppFactory::create();
+$app->addBodyParsingMiddleware();
 
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 
@@ -57,30 +56,22 @@ $app->group('/prueva', function (RouteCollectorProxy $grupoDeRutas)
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',function($request, $response, array $args) 
 	{
-		AccesoDatos::ObtenerUnObjetoPdo();
+		$data = $request->getParsedBody();
+		
+
+		var_dump(Util::ValidadorDeNombre($data['nombre']));
 		return $response;
-	}
-);
+	});
+
 });
 
 $app->group('/usuario', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	//Post
-	
-	$grupoDeRutas->post('/{login}',\UsuarioController::class.':Login')
-	->add(new ValidadorMiddleware(array(Usuario::class,'ValidadorClave'),"Debe ingresar una clave valida"))
-	->add(new ValidadorMiddleware(array(Usuario::class,'ValidadorEmail'),"Debe ingresar un email valido"));
-	
-	//Get
-	$grupoDeRutas->get('[/]',\UsuarioController::class.':Listar');
+	$grupoDeRutas->post('[/]',\UsuarioController::class.':Login')
+	->add(new ValidadorMiddleware(array(Usuario::class,'ValidarLoggin'),"Debe ingresar un email y una clave valida"));
+
 	
 });
-
-// 2do Sprint ( Entrega 10 de Junio)
-
-// ❖ Usar MW de usuarios/perfiles
-// ❖ Verificar usuarios para las tareas de ABM
-// ❖ Manejo del estado del pedido
 
 
 $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas) 
@@ -89,36 +80,53 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 
 	//ABM
 	$grupoDeRutas->post('[/]',\EmpleadoController::class.':CargarUno')
-	;
-	$grupoDeRutas->put('[/]',\EmpleadoController::class.':ModificarUno');
-	$grupoDeRutas->put('/{suspender}',\EmpleadoController::class.':ModificarUno')
-	->add(new ValidadorMiddleware(array(Usuario::class.'ValidadorDni'),"Debe ingresar un dni valido"));
-	// ->add(new ValidarUsuarioMiddleware($unUsuario,array(Usuario::class.'ValidadorRolSocio'),"Debe ser socio para ingresar"));
+	->add(new ValidadorMiddleware(array(Empleado::class,'Validador'),"Debe ingresar los datos completos del empleado"))
+	->add(new VerificarRoles(array('Socio')));
 
-	$grupoDeRutas->delete('[/]',\EmpleadoController::class.':EliminarUno');
+
+	$grupoDeRutas->put('[/]',\EmpleadoController::class.':ModificarUno')
+	->add(new ValidadorMiddleware(array(Empleado::class,'Validador'),"Debe ingresar los datos completos del empleado"));
+
+
+	$grupoDeRutas->put('/{suspender}',\EmpleadoController::class.':SuspenderUno')
+	->add(new ValidadorMiddleware(array(Empleado::class,'VerificarUno'),"El empleado ingresado no existe"))
+	->add(new VerificarRoles(array('Socio')));
+
+
+	$grupoDeRutas->delete('[/]',\EmpleadoController::class.':EliminarUno')
+	->add(new ValidadorMiddleware(array(Empleado::class,'VerificarUno'),"El empleado ingresado no existe"))
+	->add(new VerificarRoles(array('Socio')));
 
 	$grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->get('/{pedidos}',\EmpleadoController::class.':ListarPedidosPendientes');
+	
 	//LISTADOS
+	
 
-	
-	
 });
 
-$app->group('/consultaEmpleados', function (RouteCollectorProxy $grupoDeRutas) 
+$app->group('/empleado/{consulta}', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	$grupoDeRutas->get('[/]',\EmpleadoController::class.':ListarSuspendidos');
-	$grupoDeRutas->get('/{borrados}',\EmpleadoController::class.':ListarBorrados');
+	$grupoDeRutas->get('[/]',\EmpleadoController::class.':ListarSuspendidos')
+	->add(new VerificarRoles(array('Admin')));;
+
+	$grupoDeRutas->get('/{pedidos}',\EmpleadoController::class.':ListarPedidosPendientes')
+	->add(new VerificarRoles(array('Admin')));;
+
+	$grupoDeRutas->post('[/]',\EmpleadoController::class.':ListarBorrados')
+	->add(new VerificarRoles(array('Admin')));;
 });
 
 $app->group('/socio', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	$grupoDeRutas->post('[/]',\SocioController::class.':CargarUno')
-	->add(new ValidadorMiddleware(array(Usuario::class,'ValidadorClave'),"Debe ingresar una clave valida"))
-	->add(new ValidadorMiddleware(array(Usuario::class,'ValidadorEmail'),"Debe ingresar un email valido"));
+	->add(new ValidadorMiddleware(array(Socio::class,'Validador'),"Debe ingresar los datos completos del Socio"));
 
-	$grupoDeRutas->put('[/]',\SocioController::class.':ModificarUno');
-	$grupoDeRutas->delete('[/]',\SocioController::class.':EliminarUno');
+	$grupoDeRutas->put('[/]',\SocioController::class.':ModificarUno')
+	->add(new ValidadorMiddleware(array(Socio::class,'Validador'),"Debe ingresar los datos completos del Socio"));
+
+	$grupoDeRutas->delete('[/]',\SocioController::class.':BorrarUno')
+	->add(new ValidadorMiddleware(array(Socio::class.'VerificarUno'),"El Socio ingresado no existe"));
+	
 	$grupoDeRutas->get('[/]',\SocioController::class.':Listar');
 });
 
@@ -127,14 +135,24 @@ $app->group('/socio', function (RouteCollectorProxy $grupoDeRutas)
 $app->group('/producto', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->post('[/]',\ProductoController::class.':CargarUno');
+	$grupoDeRutas->post('[/]',\ProductoController::class.':CargarUno');;
 	$grupoDeRutas->get('[/]',\ProductoController::class.':Listar');
-	$grupoDeRutas->get('/{tipo}',\ProductoController::class.':ListarPorTipoDeProducto');
-
 	$grupoDeRutas->put('[/]',\ProductoController::class.':ModificarUno');
+	
+	
 	$grupoDeRutas->delete('[/]',\ProductoController::class.':BorrarUno');
+
+	$grupoDeRutas->post('/{csv}',\ProductoController::class.':EscribirListaEnCsv')
+	->add(new ValidadorMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'));
+	
+	$grupoDeRutas->get('/{csv}',\ProductoController::class.':LeerListaEnCsv')
+	->add(new ValidadorGetMiddleware(array(File::class,'ValidarExistenciaDelArchivo'),'El archivo no existe'))
+	->add(new ValidadorGetMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'));
+	
 	
 });
+
+
 
 $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas) 
 {
@@ -145,25 +163,6 @@ $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->delete('[/]',\PedidoController::class.':CancelarUnPedido');
 	$grupoDeRutas->get('[/]',\PedidoController::class.':Listar');
 	$grupoDeRutas->get('/{terminados}',\PedidoController::class.':ListarTerminados');
-
-	
-
-	
-});
-
-$app->group('/consultaPedidos', function (RouteCollectorProxy $grupoDeRutas) 
-{
-	$grupoDeRutas->get('[/]',\PedidoController::class.':ListarNoEntregadoEnElTimpoEstipulado');
-	$grupoDeRutas->get('/{cancelado}',\PedidoController::class.':ListarCancelados');
-
-	
-	
-});
-
-$app->group('/venta', function (RouteCollectorProxy $grupoDeRutas) 
-{
-	$grupoDeRutas->get('[/]',\PedidoController::class.':ListarElPedidoMasVendido');
-	$grupoDeRutas->get('/{menos}',\PedidoController::class.':ListarElPedidoMenosVendido');
 });
 
 $app->group('/orden', function (RouteCollectorProxy $grupoDeRutas) 
@@ -180,11 +179,62 @@ $app->group('/orden', function (RouteCollectorProxy $grupoDeRutas)
 $app->group('/encuesta', function (RouteCollectorProxy $grupoDeRutas) 
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->post('[/]',\EncuestaController::class.':CargarUno');
-	$grupoDeRutas->put('[/]',\EncuestaController::class.':ModificarUno');
-	$grupoDeRutas->delete('[/]',\EncuestaController::class.':BorrarUno');
+	$grupoDeRutas->post('[/]',\EncuestaController::class.':CargarUno')
+	->add(new ValidadorMiddleware(array(Encuesta::class,'ValidadorEncusta'),'Debe Ingresar un nombre y '));
+	
+	$grupoDeRutas->put('[/]',\EncuestaController::class.':ModificarUno')
+	->add(new ValidadorMiddleware(array(Encuesta::class,'ValidadorEncusta'),'Debe Ingresar todos los datos de la encuesta'));;
+	
+	
+	// $grupoDeRutas->delete('[/]',\EncuestaController::class.':BorrarUno')
+	// ->add(new ValidadorMiddleware(array(Encuesta::class,'VerificarUno'),'Debe Ingresar un nombre y '));;
 	$grupoDeRutas->get('[/]',\EncuestaController::class.':Listar');
 });
+
+
+$app->group('/mesa', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
+	$grupoDeRutas->get('[/]',\MesaController::class.':Listar');
+	$grupoDeRutas->post('[/]',\MesaController::class.':CargarUno');
+	$grupoDeRutas->delete('[/]',\SectorController::class.':EliminarUno');
+
+	$grupoDeRutas->group('/{estado}',function (RouteCollectorProxy $grupoDeRutasEstado)
+	{
+		$grupoDeRutasEstado->post('[/]',\MesaController::class.':SetEstadoInicial');
+		$grupoDeRutasEstado->put('[/]',\MesaController::class.':SetEstadoServirComida');
+		$grupoDeRutasEstado->put('/{pagar}',\MesaController::class.':SetEstadoPagarOrden');
+
+		
+		$grupoDeRutasEstado->delete('[/]',\MesaController::class.':SetEstadoCerrarMesa')
+		->add(new VerificarRoles(array('Socio')));;;
+	});
+
+});
+
+$app->group('/comentarios',function (RouteCollectorProxy $grupoDeRutas)
+{
+	$grupoDeRutas->get('[/]',\MesaController::class.':ListarComentariosPositivosDeLasMesas');
+	$grupoDeRutas->get('/negativos',\MesaController::class.':ListarComentariosNegativosDeLasMesas');
+});
+
+
+$app->group('/consultaPedidos', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	$grupoDeRutas->get('[/]',\PedidoController::class.':ListarNoEntregadoEnElTimpoEstipulado');
+	$grupoDeRutas->get('/{cancelados}',\PedidoController::class.':ListarCancelados');
+
+	
+	
+});
+
+$app->group('/venta', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	$grupoDeRutas->get('[/]',\PedidoController::class.':ListarElPedidoMasVendido');
+	$grupoDeRutas->get('/{menos}',\PedidoController::class.':ListarElPedidoMenosVendido');
+});
+
+
 
 $app->group('/cargo', function (RouteCollectorProxy $grupoDeRutas) 
 {
@@ -220,29 +270,6 @@ $app->group('/sector', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->post('[/]',\SectorController::class.':CargarUno');
 	$grupoDeRutas->put('[/]',\SectorController::class.':ModificarUno');
 	$grupoDeRutas->delete('[/]',\SectorController::class.':EliminarUno');
-});
-
-$app->group('/mesa', function (RouteCollectorProxy $grupoDeRutas) 
-{
-	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
-	$grupoDeRutas->get('[/]',\MesaController::class.':Listar');
-	$grupoDeRutas->post('[/]',\MesaController::class.':CargarUno');
-	$grupoDeRutas->delete('[/]',\SectorController::class.':EliminarUno');
-
-	$grupoDeRutas->group('/{estado}',function (RouteCollectorProxy $grupoDeRutas)
-	{
-		$grupoDeRutas->post('[/]',\MesaController::class.':SetEstadoInicial');
-		$grupoDeRutas->put('[/]',\MesaController::class.':SetEstadoServirComida');
-		$grupoDeRutas->put('/{pagar}',\MesaController::class.':SetEstadoPagarOrden');
-		$grupoDeRutas->delete('[/]',\MesaController::class.':SetEstadoCerrarMesa');
-	});
-
-});
-
-$app->group('/comentarios',function (RouteCollectorProxy $grupoDeRutas)
-{
-	$grupoDeRutas->get('[/]',\MesaController::class.':ListarComentariosPositivosDeLasMesas');
-	$grupoDeRutas->get('/negativos',\MesaController::class.':ListarComentariosNegativosDeLasMesas');
 });
 
 

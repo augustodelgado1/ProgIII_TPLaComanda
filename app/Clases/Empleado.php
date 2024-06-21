@@ -55,10 +55,29 @@ class Empleado extends Usuario
 
         if(isset($arrayDeEmpleado))
         {
-            $estado =  Usuario::ModificarEstadoBD($arrayDeEmpleado['idDeUsuario'],Usuario::ESTADO_SUSPENDIDO);
+          
+            $estado =  Usuario::ModificarEstadoBD($arrayDeEmpleado["idDeUsuario"],Usuario::ESTADO_SUSPENDIDO);
         }
 
         return  $estado;
+    }
+   
+    public static function ObtenerUnoPorIdDeUsuario($idDeUsuario)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unEmpleado = false;
+
+        if(isset($idDeUsuario))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,u.dni,u.estado,u.rol from`Empleado` e
+            JOIN Usuario u ON e.idDeUsuario = u.id Where e.idDeUsuario=:id");
+            $consulta->bindValue(':id',$idDeUsuario,PDO::PARAM_INT);
+            $consulta->execute();
+            $unEmpleado = $consulta->fetch(PDO::FETCH_ASSOC);;
+           
+        }
+
+        return  $unEmpleado;
     }
    
    
@@ -196,7 +215,7 @@ class Empleado extends Usuario
             as e where u.fechaDeRegistro = :fechaDeRegistro");
             $consulta->bindValue(':fechaDeRegistro',$fechaDeRegistro->format('d-m-y'),PDO::PARAM_STR);
             $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $listaDeTipos= Empleado::CrearLista($data);
         }
 
@@ -209,9 +228,12 @@ class Empleado extends Usuario
 
         if(isset($unObjetoAccesoDato))
         {
-            parent::FiltrarPorEstadoBD($estado);
-
-
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Empleado e 
+            JOIN Usuario u ON e.idDeUsuario = u.id where u.estado = :estado");
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeTipos= Empleado::CrearLista($data);
         }
 
         return $listaDeTipos;
@@ -241,20 +263,24 @@ class Empleado extends Usuario
         return   $listaDeEmpleados;
     }
 
-    public static function BuscarPorIdBD($id)
+    protected static function BuscarPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data= null;
+        $estado= false;
 
         if(isset($unObjetoAccesoDato) && isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Empleado as e where e.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
-            Empleado::CrearUnoPorArrayAsosiativo($consulta->fetch(PDO::FETCH_ASSOC));
+            $estado= $consulta->fetch(PDO::FETCH_ASSOC);
         }
 
-        return  $data;
+        return  $estado;
+    }
+    public static function ObtenerUnoPorIdBD($id)
+    {
+        return  Empleado::CrearUnoPorArrayAsosiativo(Empleado::BuscarPorIdBD($id));;
     }
     protected static function CrearUnoPorArrayAsosiativo($unArrayAsosiativo)
     {
@@ -344,6 +370,31 @@ class Empleado extends Usuario
        
 
         return  $mensaje;
+    }
+
+    public static function Validador($data)
+    {
+        return  parent::Validor($data) && 
+        Empleado::ValidadorDeCargo($data['cargo']);
+    }
+
+    public static function VerificarUno($data)
+    {
+        
+        return Empleado::BuscarPorIdBD($data['id']) !== false;
+    }
+
+    private static function ValidadorDeCargo($desripcion)
+    {
+        try 
+        {
+            $estado = Cargo::VerificarUnoPorDescripcionBD($desripcion);
+        } catch (Exception $th) {
+            $estado = false;
+        }
+       
+        return $estado;
+        
     }
 
    

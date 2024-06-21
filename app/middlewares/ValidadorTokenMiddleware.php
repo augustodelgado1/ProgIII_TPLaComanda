@@ -13,7 +13,7 @@ class ValidadorTokenMiddleware
     {   
         $header = $request->getHeaderLine('Authorization');
         $token = trim(explode("Bearer", $header)[1]);
-
+        
         try 
         {
             AutentificadorJWT::VerificarToken($token);

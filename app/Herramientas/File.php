@@ -78,7 +78,7 @@ class File
 
     public static function ValidarNombreDelArchivo($data)
     {
-    
+       
         return  isset($data['nombreDelArchivo']);
     }
     public static function ValidarExistenciaDelArchivo($data)

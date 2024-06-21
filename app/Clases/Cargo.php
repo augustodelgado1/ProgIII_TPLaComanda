@@ -111,20 +111,29 @@ class Cargo
         return $unRol;
     }
 
-    public static function BuscarCargoPorDescripcionBD($descripcion)
+    private static function BuscarCargoPorDescripcionBD($descripcion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unRol = null;
+        $estado = false;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($descripcion))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where LOWER(c.descripcion) = LOWER(:descripcion)");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->execute();
-            $unRol = Cargo::CrearUnCargo($consulta->fetch(PDO::FETCH_ASSOC));
+            $estado = $consulta->fetch(PDO::FETCH_ASSOC);
         }
 
-        return  $unRol;
+        return  $estado;
+    }
+
+    public static function ObtenerUnoPorDescripcionBD($descripcion)
+    {
+        return  Cargo::CrearUnCargo(Cargo::BuscarCargoPorDescripcionBD($descripcion));
+    }
+    public static function VerificarUnoPorDescripcionBD($descripcion)
+    {
+        return Cargo::BuscarCargoPorDescripcionBD($descripcion) !== false;
     }
 
     public static function FiltrarPorSectorBD($idDeSector)

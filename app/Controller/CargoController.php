@@ -36,11 +36,11 @@ class CargoController
     {
         $data = $request->getParsedBody();
        
-        $mensaje = 'no se pudo dar modificar';
+        $mensaje = 'no se pudo modificar';
 
         if(Cargo::ModificarUnoBD($data['id'],$data['descripcion'],$data['idDeSector']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'El Cargo se Modifico correctamente';
         }
         
         $response->getBody()->write($mensaje);
@@ -52,11 +52,11 @@ class CargoController
     {
         $data = $request->getParsedBody();
 
-        $mensaje = 'no se pudo dar de alta';
+        $mensaje = 'no se pudo borrar';
 
         if(Cargo::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Cargo se registro correctamente';
+            $mensaje = 'El Cargo se borror correctamente';
         }
 
         $response->getBody()->write($mensaje);

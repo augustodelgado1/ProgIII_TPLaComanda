@@ -20,7 +20,7 @@ class Socio extends Usuario
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         $idDeUsuario = parent::AgregarBD();
-        if(isset($objAccesoDatos))
+        if(isset($objAccesoDatos) && isset($idDeUsuario))
         {
             $consulta = $objAccesoDatos->RealizarConsulta("Insert into Socio (idDeUsuario) values (:idDeUsuario)");
             $consulta->bindValue(':idDeUsuario',$idDeUsuario,PDO::PARAM_INT);
@@ -28,6 +28,23 @@ class Socio extends Usuario
         }
 
         return $estado;
+    }
+
+    public static function ObtenerUnoPorIdDeUsuario($idDeUsuario)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unEmpleado = false;
+
+        if(isset($idDeUsuario))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT s.id,u.dni,u.estado,u.rol from`Socio` s
+            JOIN Usuario u ON s.idDeUsuario = u.id Where s.idDeUsuario=:id");
+            $consulta->bindValue(':id',$idDeUsuario,PDO::PARAM_INT);
+            $consulta->execute();
+            $unEmpleado = $consulta->fetch(PDO::FETCH_ASSOC);;
+        }
+
+        return  $unEmpleado;
     }
 
     public static function BorrarUnoPorIdBD($idDeSocio)
@@ -66,20 +83,30 @@ class Socio extends Usuario
         return  $estado;
     }
 
-    public static function BuscarPorIdBD($id)
+    public static function VerificarUno($data)
+    {
+        return Socio::BuscarPorIdBD($data['id']) !== false;
+    }
+
+    public static function ObtenerUnoPorIdBD($id)
+    {
+        return  Socio::CrearUnSocio(Socio::BuscarPorIdBD($id));;
+    }
+
+    protected static function BuscarPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data= null;
+        $estado = false;
 
-        if(isset($unObjetoAccesoDato) && isset($id))
+        if(isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Socio as e where e.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->execute();
-            Socio::CrearUnSocio($consulta->fetch(PDO::FETCH_ASSOC));
+            $estado = $consulta->fetch(PDO::FETCH_ASSOC);
         }
 
-        return  $data;
+        return  $estado;
     }
 
     private static function ObtenerArrayDeSocioPorId($idDeSocio)
@@ -99,15 +126,12 @@ class Socio extends Usuario
     public static function ListarBD()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDeSocioes= null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Socio");
-            $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $listaDeSocioes = Socio::CrearLista($data);
-        }
+        $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Socio");
+        $consulta->execute();
+        $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+        
+        $listaDeSocioes = Socio::CrearLista($data);
+    
 
         return  $listaDeSocioes;
     }
@@ -118,7 +142,7 @@ class Socio extends Usuario
     {
         $unSocio = null;
         $dataUsuario = Usuario::BuscarPorIdBD($unArrayAsosiativo['idDeUsuario']);
-
+      
         if(isset($unArrayAsosiativo) && isset($dataUsuario) && $unArrayAsosiativo !== false)
         {
             $unSocio = new Socio($dataUsuario['email'],
@@ -127,7 +151,7 @@ class Socio extends Usuario
             $dataUsuario['apellido'],
             $dataUsuario['dni']);
             $unSocio->SetId($unArrayAsosiativo['id']);
-            $unSocio->SetFechaDeRegistro($dataUsuario['fechaDeRegistro']);
+            $unSocio->SetFechaDeRegistro(new DateTime($dataUsuario['fechaDeRegistro']));
         }
         
         return $unSocio ;
@@ -183,6 +207,11 @@ class Socio extends Usuario
         }
 
         return   $strLista;
+    }
+
+    public static function Validor($data)
+    {
+        return  parent::Validor($data);
     }
 
    

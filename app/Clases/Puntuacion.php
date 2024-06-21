@@ -123,7 +123,7 @@ class Puntuacion
         return  $cantidadTotal;
     }
 
-    public static function BuscarPordescripcionBD($listaDePuntuaciones,$descripcion)
+    public static function BuscarPorDescripcionBD($listaDePuntuaciones,$descripcion)
     {
         $unaPuntuacionBuscar = null;
 
