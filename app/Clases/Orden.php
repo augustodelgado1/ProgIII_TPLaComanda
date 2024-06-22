@@ -60,15 +60,16 @@ class Orden
     {
         $tiempoTotal = null;
         $this->listaDePedidos = $this->ObtenerListaDePedidos();
-
+       
         if(isset($this->listaDePedidos) && count($this->listaDePedidos) > 0)
         {
+            // echo "El tiempito";
             $tiempoTotal = new DateTime('00:00');
             foreach ($this->listaDePedidos as $unPedido) {
                
                 if(isset($unPedido) && $unPedido->GetEstado() === Pedido::ESTADO_INTERMEDIO)
                 {
-                    $tiempoTotal->add($unPedido->GetTiempoEstimado());
+                    $tiempoTotal->add($unPedido->GetTiempoEstimado());  
                 }
             }
         }
@@ -80,10 +81,11 @@ class Orden
     {
         $cantidad = Pedido::ContarPedidosPorIdDeOrdenBD($this->id);
       
+       
         if((isset($this->listaDePedidos) == false || 
         (isset($this->listaDePedidos) && count($this->listaDePedidos) <= $cantidad)) &&  $cantidad > 0)
         {
-            echo "Entro";
+           
             $this->listaDePedidos = Pedido::FiltrarPedidosPorIdDeOrdenBD($this->id);
         }
         
@@ -95,13 +97,13 @@ class Orden
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $cantidadTotal = null;
 
-        if(isset($unObjetoAccesoDato) && isset($idDeMesa))
+        if(isset($idDeMesa))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS total FROM Orden as o where o.idDeMesa = :idDeMesa");
             $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $cantidadTotal =  $data['totalPedidos'];
+            $cantidadTotal =  $data['total'];
         }
 
         return  $cantidadTotal;
@@ -594,11 +596,15 @@ class Orden
     public function GetStrTiempoEstimado()
     {
         $mensaje = "No definido";
-        $this->CalcularTiempoTotal();
+        $this->tiempoTotal = $this->CalcularTiempoTotal();
+
         if(isset($this->tiempoTotal) 
-        && ($this->tiempoTotal->h > 0 || $this->tiempoTotal->m > 0) )
+        && ($this->tiempoTotal->format('H') != '00' || 
+           $this->tiempoTotal->format('i') != '00'))
         {
-            $mensaje = $this->tiempoTotal->format('H')." horas y ".$this->tiempoTotal->format('i')." minutos";
+            $mensaje = $this->tiempoTotal->format('H')
+            ." horas y ".$this->tiempoTotal->format('i')
+            ." minutos";
         }
 
         return  $mensaje;
@@ -786,16 +792,45 @@ class Orden
             $acumulador = 0;
             foreach ($listaDeOrdenes as $unaOrden) 
             {
-                if($unaOrden->importeTotale > 0)
+                if($unaOrden->costoTotal > 0)
                 {
-                    $acumulador +=  $unaOrden->importeTotal;
+                    // var_dump(  $unaOrden->costoTotal);
+                    $acumulador +=  $unaOrden->costoTotal;
                 }
                 
             }
+
+           
         }
 
         return $acumulador;
     }
+
+      #Validaciones
+
+     
+      private static function ValidadorEstado($estadoDelaMesa)
+      {
+          $array = array(Mesa::ESTADO_INICIAL,Mesa::ESTADO_INTERMEDIO,Mesa::ESTADO_FINAL,Mesa::ESTADO_CERRADO);
+  
+          return  isset($estado) && in_array($estadoDelaMesa,$array);
+      }
+  
+      public static function ValidarMesaYOrden($data)
+      {
+          $estado = false;
+          $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
+          $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+  
+          if($unaOrden->ValidarOrdenIngresada( $unaMesa->GetId()))
+          {
+              $estado = true;
+          }
+  
+          return $estado;
+      }
+      
+      #End
  
     //  public static function EscribirJson($listaDeOrden,$claveDeArchivo)
     //  {

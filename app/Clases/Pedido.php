@@ -15,7 +15,7 @@ class Pedido
     private $orden;
     private $idDeSector;
     private $idDeEmpleado;
-    private $numeroDePedido;
+    private $codigo;
     private $unProducto;
     private $fechaDelPedido;
     private $tiempoEstimado;
@@ -35,7 +35,7 @@ class Pedido
 
     public function __construct($idDeOrden,$idDeProducto) 
     {
-        $this->numeroDePedido = rand(100,1000);
+        $this->codigo = Util::CrearUnCodigoAlfaNumerico(5);
         $this->orden = $idDeOrden;
         $this->unProducto = $idDeProducto;
         $this->estado = Pedido::ESTADO_INICIAL;
@@ -53,9 +53,9 @@ class Pedido
         if(isset($objAccesoDatos))
         {
             $consulta = $objAccesoDatos->RealizarConsulta("
-           Insert into Pedido (numeroDePedido,idDeOrden,idDeSector,idDeProducto,importeTotal,fechaDePedido,estado,estadoDelTiempo) 
-        values (:numeroDePedido,:idDeOrden,:idDeSector,:idDeProducto,:importeTotal,:fechaDePedido,:estado,:estadoDelTiempo)");
-            $consulta->bindValue(':numeroDePedido',$this->numeroDePedido,PDO::PARAM_INT);
+           Insert into Pedido (codigo,idDeOrden,idDeSector,idDeProducto,importeTotal,fechaDePedido,estado,estadoDelTiempo) 
+        values (:codigo,:idDeOrden,:idDeSector,:idDeProducto,:importeTotal,:fechaDePedido,:estado,:estadoDelTiempo)");
+            $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_STR);
             $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
             $consulta->bindValue(':idDeOrden',$this->orden,PDO::PARAM_INT);
             $consulta->bindValue(':idDeProducto',$this->unProducto,PDO::PARAM_INT);
@@ -124,18 +124,18 @@ class Pedido
 
         return  $estado;
     }
-    public function ModificarEstadoBD($estado)
+    public function ModificarEstadoBD($estadoDelPedido)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = null;
 
-        if(isset($unObjetoAccesoDato) && $this->SetEmpleado($estado))
+        if(isset($estadoDelPedido) && Pedido::ValidarEstado($estadoDelPedido))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
             SET p.estado = :estado 
             where p.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
-            $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',$estadoDelPedido,PDO::PARAM_STR);
             $estado =$consulta->execute();
         }
 
@@ -176,7 +176,7 @@ class Pedido
 
         return  $estado;
     }
-        public function ModificarTiempoDeInicioBD($tiempoInicio)
+    public function ModificarTiempoDeInicioBD($tiempoInicio)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
@@ -184,7 +184,7 @@ class Pedido
         if(isset($unObjetoAccesoDato) && $this->SetTiempoDeInicio($tiempoInicio))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
-            SET p.tiempoInicio = :tiempoInicio 
+            SET p.tiempoDeInicio = :tiempoInicio 
             where p.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $consulta->bindValue(':tiempoInicio',$this->GetTiempoDeInicio(),PDO::PARAM_STR);
@@ -210,15 +210,15 @@ class Pedido
         return  $estado;
     }
     
-    public static function BuscarPedidoPorNumeroDePedidoBD($numeroDePedido)
+    public static function BuscarPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unPedido = null;
 
-        if(isset($unObjetoAccesoDato) && isset($numeroDePedido))
+        if(isset($unObjetoAccesoDato) && isset($codigo))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where p.numeroDePedido = :numeroDePedido");
-            $consulta->bindValue(':numeroDePedido',$numeroDePedido,PDO::PARAM_INT);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where LOWER(p.codigo) = LOWER(:codigo)");
+            $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $unPedido =  Pedido::CrearUnaPedido($data);
@@ -403,7 +403,8 @@ class Pedido
 
             foreach($listaDePedidos as $unPedido)
             {
-                
+                // var_dump($unPedido->estado);
+                // var_dump($estado);
                 if(strcasecmp($unPedido->estado,$estado) === 0)
                 {
                     array_push($listaFiltrada,$unPedido);
@@ -445,20 +446,25 @@ class Pedido
             $unaPedido = new Pedido($data['idDeOrden'],$data['idDeProducto']);
             $unaPedido->SetId($data['id']);
             $unaPedido->SetEmpleado($data['idDeEmpleado']);
-            $unaPedido->SetNumeroDePedido($data['numeroDePedido']);
+            $unaPedido->Setcodigo($data['codigo']);
 
-            if(isset($data['tiempoEstimado']) 
-            && isset($data['tiempoDeFinalizacion']) 
-            && isset($data['tiempoDeInicio']))
+            if(isset($data['tiempoEstimado']) )
             {
                 $unaPedido->SetTiempoEstimado(DateInterval::createFromDateString($data['tiempoEstimado']));
+            }
+
+            if(isset($data['tiempoDeFinalizacion']) )
+            {
                 $unaPedido->SetTiempoDeFinalizacion(new DateTime($data['tiempoDeFinalizacion']));
+            }
+
+            if(isset($data['tiempoDeInicio']))
+            {
                 $unaPedido->SetTiempoDeInicio(new DateTime($data['tiempoDeInicio']));
             }
             $unaPedido->SetIdSector($data['idDeSector']);
             $unaPedido->SetEstado($data['estado']);
             $unaPedido->SetEstadoDelTiempo($data['estadoDelTiempo']);
-
             
         }
 
@@ -474,6 +480,41 @@ class Pedido
             foreach ($listaDePedidos as $unPedidoDeLaLista) {
                
                 if($unPedidoDeLaLista->Equals($unPedido))
+                {
+                    $cantidad++;
+                }                
+            }
+        }
+
+        return  $cantidad;
+    }
+    public static function ContarPedidosPorIdDeEmpleado($listaDePedidos,$idDeEmpleado)
+    {
+        $cantidad = -1;
+        if(isset($listaDePedidos) && isset($idDeEmpleado))
+        {
+            $cantidad = 0;
+            foreach ($listaDePedidos as $unPedidoDeLaLista) {
+               
+                if($unPedidoDeLaLista->idDeEmpleado === $idDeEmpleado)
+                {
+                    $cantidad++;
+                }                
+            }
+        }
+
+        return  $cantidad;
+    }
+    public static function ContarPedidosPorIdDeSector($listaDePedidos,$idDeSector)
+    {
+        $cantidad = -1;
+        if(isset($listaDePedidos) && isset($idDeSector))
+        {
+            $cantidad = 0;
+            foreach ($listaDePedidos as $unPedidoDeLaLista) 
+            {
+               
+                if($unPedidoDeLaLista->idDeSector === $idDeSector)
                 {
                     $cantidad++;
                 }                
@@ -552,9 +593,9 @@ class Pedido
     private function SetEstado($estadoDelaPedido)
     {
         $estado = false;
-        $array = array(Pedido::ESTADO_INICIAL,Pedido::ESTADO_INTERMEDIO,Pedido::ESTADO_FINAL,Pedido::ESTADO_CANCELADO);
+       
 
-        if(isset($estado) && in_array($estadoDelaPedido,$array))
+        if(Pedido::ValidarEstado($estadoDelaPedido))
         {
             $this->estado = $estadoDelaPedido;
             $estado = true;
@@ -562,14 +603,14 @@ class Pedido
 
         return  $estado ;
     }
-    private function SetEstadoDelTiempo($estadoDelaPedido)
+    private function SetEstadoDelTiempo($estadoDelTiempo)
     {
         $estado = false;
         $array = array(Pedido::ESTADO_TIEMPO_CUMPLIDO,Pedido::ESTADO_TIEMPO_NOCUMPLIDO,Pedido::ESTADO_TIEMPO_INDETERMINADO);
 
-        if(isset($estado) && in_array($estadoDelaPedido,$array))
+        if(isset($estadoDelTiempo) && in_array($estadoDelTiempo,$array))
         {
-            $this->estado = $estadoDelaPedido;
+            $this->estadoDelTiempo = $estadoDelTiempo;
             $estado = true;
         }
 
@@ -578,12 +619,12 @@ class Pedido
 
     
 
-    private function SetNumeroDePedido($numeroDePedido)
+    private function Setcodigo($codigo)
     {
         $estado = false;
-        if(isset($numeroDePedido) && $numeroDePedido > 0)
+        if(isset($codigo) && $codigo > 0)
         {
-            $this->numeroDePedido = $numeroDePedido;
+            $this->codigo = $codigo;
             $estado = true;
         }
 
@@ -673,9 +714,9 @@ class Pedido
     {
         return  $this->tiempoDeFinalizacion->format("H:i:s");
     }
-    public function GetNumeroDePedido()
+    public function Getcodigo()
     {
-        return  $this->numeroDePedido;
+        return  $this->codigo;
     }
     public function GetProducto()
     {
@@ -691,6 +732,16 @@ class Pedido
         if($this->estadoDelTiempo)
         {
             $mensaje = "Se entrego en el tiempo estimado";
+        }
+        return  $mensaje;
+    }
+    public function GetStrClienteIngresado()
+    {
+        $mensaje = "";
+        $unaOrden = $this->GetOrden();
+        if(isset($unaOrden) && $unaOrden !== false )
+        {
+            $mensaje = "Cliente que lo pidio: ".$unaOrden->GetNombreDelCliente();
         }
         return  $mensaje;
     }
@@ -715,8 +766,9 @@ class Pedido
     public function ToString()
     {
         return 
+        "Codigo Del Pedido: ".$this->codigo.'<br>'.
         "Tiempo de preparacion estimado: ".$this->GetStrTiempoEstimado().'<br>'.
-        "Cliente que lo pidio: ".$this->GetOrden()->GetNombreDelCliente().'<br>'.
+        $this->GetStrClienteIngresado().'<br>'.
         "Producto Pedido: ".'<br>'.$this->GetProducto()->ToString().'<br>'.
         "importe Total: ".$this->GetImporteTotal().'<br>'
         ."Estado: ".$this->estado.'<br>';
@@ -868,6 +920,139 @@ class Pedido
 
         return $strLista;
     }
+
+    // public static function CargarUno($request, $response, array $args)
+    // {
+    //     $data = $request->getParsedBody();
+    //     $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Pedido';
+    //     $unTipo = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']);
+    //     $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipo->GetId()) ; 
+    //     $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
+    //     $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']) ;     
+
+    //     if(isset($unProducto) && isset($unaOrden) )
+    //     {
+    //         $unPedido = new Pedido($unaOrden->GetId(),$unProducto->GetId());
+            
+    //         if($unPedido->AgregarBD())
+    //         {
+    //             $mensaje = 'Se dio de alta correctamente <br>'.$unPedido->ToString();
+    //         }
+            
+    //     }
+        
+    //     $response->getBody()->write($mensaje);
+
+
+    //     return $response;
+    // }
+
+    public static function ValidadorAlta($data)
+    {
+        return     Pedido::ValidarProducto($data)
+                   && Orden::VerificarCodigo($data['codigoDeOrden']);
+    }
+
+    private static function ValidarProducto($data)
+    {
+       return   Producto::VerificarPorNombre($data['tipo'],$data['nombre']);
+        
+    }
+    private static function ValidarEstado($estadoDelaPedido)
+    {
+        $array = array(Pedido::ESTADO_INICIAL,Pedido::ESTADO_INTERMEDIO,Pedido::ESTADO_FINAL,Pedido::ESTADO_CANCELADO);
+
+       return   isset($estadoDelaPedido) && in_array($estadoDelaPedido,$array);
+        
+    }
+
+
+    private static function ValidadorDeCargo($desripcion)
+    {
+        try 
+        {
+            $estado = Cargo::VerificarUnoPorDescripcionBD($desripcion);
+        } catch (Exception $th) {
+            $estado = false;
+        }
+       
+        return $estado;
+        
+    }
+    
+    // public static function ValidarLoggin($data)
+    // {
+    //     return Usuario::ValidadorEmail($data['email']) && 
+    //     Usuario::ValidadorClave($data['clave']);
+    // }
+
+    // public static function VerificarUno($data)
+    // {
+    //     return Usuario::BuscarPorIdBD($data['id']) !== false;
+    // }
+    public static function ValidarRolSocio($data)
+    {
+        $estado = false;
+        $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
+
+        if(isset($unUsuario))
+        {
+            $estado = $unUsuario['rol'] === 'Socio';
+        }
+
+        return $estado;
+    }
+    public static function ValidarRolEmpleado($data)
+    {
+        $estado = false;
+        $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
+
+        if(isset($unUsuario))
+        {
+            $estado = $unUsuario['rol'] === 'Empleado';
+        }
+
+        return $estado;
+    }
+
+    
+    private static function ValidadorEmail($email)
+    {
+        $estado = false; 
+
+        if(isset($email) && isset($email) && strlen($email) >= 8)
+        {
+            $estado = true; 
+        }
+
+        
+        return $estado;
+    }
+
+    private static function ValidadorClave($clave)
+    {
+        $estado = false; 
+  
+        if(isset($clave) && isset($clave)
+        && strlen($clave) >= 8)
+        {
+            $estado = true; 
+        }
+        return $estado;
+    }
+    private static function ValidadorDni($dni)
+    {
+        $estado = false; 
+        
+        if(isset($dni) && strlen($dni) === 8 && Util::VerificarQueContengaSoloNumeros($dni))
+        {
+            $estado = true; 
+        }
+        return $estado;
+    }
+   
+
+    
 
     
 }

@@ -13,7 +13,7 @@ class AutentificadorJWT
     private static $tipoEncriptacion = 'HS256';
     public static function CrearUnToken($datos)
     {
-        
+        // var_dump($datos);
         
         $payload = array(
             'iat' => time(),
@@ -22,9 +22,7 @@ class AutentificadorJWT
             
         );
         
-        
-     
-        
+    
         return JWT::encode($payload,$_ENV['CLAVE_SECRETA'],self::$tipoEncriptacion);
     }
 

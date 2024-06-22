@@ -84,21 +84,26 @@ class Encuesta
 
         return  $estado;
     }
-    public static function BuscarEncuestaPorIdBD($idDeEncuesta)
+    private static function BuscarUnoPorIdBD($idDeEncuesta)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unEncuesta = null;
+        $unEncuesta = false;
 
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta as e where e.id = :idDeEncuesta");
             $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
             $consulta->execute();
-            $unEncuesta = Encuesta::CrearUnEncuesta($consulta->fetch(PDO::FETCH_ASSOC));
+            $unEncuesta = $consulta->fetch(PDO::FETCH_ASSOC);
         }
 
         return  $unEncuesta;
     }
+    public static function ObtenerUnoPorIdBD($idDeEncuesta)
+    {
+        return  Encuesta::CrearUnEncuesta(Encuesta::BuscarUnoPorIdBD($idDeEncuesta));
+    }
+     
     public static function FiltrarPorIdDeOrdenBD($idDeOrden)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -168,8 +173,6 @@ class Encuesta
         
         return $unEncuesta ;
     }
-
-   
 
     private static function CrearLista($data)
     {
@@ -263,23 +266,35 @@ class Encuesta
         return  $estado ;
     }
 
-    public static function ValidadorEncusta($data)
+    public static function ValidadorAlta($data)
     {
-        return  Encuesta::ValidadorDeMensaje($data['mensaje'])
-        && Orden::VerificarCodigo($data['numeroDeOrden'])
-        && Util::ValidadorDeNombre($data['nombre'])
+        return  Encuesta::ValidadorModificacion($data)
         && isset($data['puntuacionDeLaMesa'])
         && isset($data['puntuacionDelRestaurante'])
         && isset($data['puntuacionDelCocinero'])
         && isset($data['puntuacionDelMozo'])
-        && Mesa::VerificarCodigo($data['codigoDeMesa']);
+        && Mesa::VerificarUnoPorCodigo($data['codigoDeMesa']);
     }
+    public static function ValidadorModificacion($data)
+    {
+        return  Encuesta::ValidadorDeMensaje($data['mensaje'])
+        && Orden::VerificarCodigo($data['numeroDeOrden'])
+        && Encuesta::ValidadorDeCliente($data['nombre']);
+    }
+    private static function ValidadorDeCliente($nombre)
+    {
+        return Util::ValidadorDeNombre($nombre);
+    }
+
 
     private static function ValidadorDeMensaje($mensaje)
     {
         return isset($mensaje) && strlen($mensaje) <= 66;
     }
-   
+    public static function VerificarUnoPorId($id)
+    {
+        return Encuesta::BuscarUnoPorIdBD($id) !== false;
+    }
 
     #Getters
     public function GetMensaje()
@@ -354,7 +369,7 @@ class Encuesta
         "Comentario: ".$this->mensaje.'<br>';
        
     }
-
+    
     //  public static function EscribirJson($listaDeEncuesta,$claveDeArchivo)
     //  {
     //      $estado = false; 

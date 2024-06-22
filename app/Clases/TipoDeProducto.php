@@ -147,24 +147,28 @@ class TipoDeProducto
 
         return   $listaDeTipoDeProducto;
     }
-
-
     public static function BuscarPorNombreBD($nombre)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unTipoDeProducto = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($unObjetoAccesoDato) && isset($nombre))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as t where LOWER(t.nombre) = LOWER(:nombre)");
             $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
             $consulta->execute();
-            $unTipoDeProducto = TipoDeProducto::CrearUnTipoDeProducto($consulta->fetch(PDO::FETCH_ASSOC));
+            $unTipoDeProducto = $consulta->fetch(PDO::FETCH_ASSOC);
        
         }
 
         return  $unTipoDeProducto;
     }
+    public static function ObtenerUnoPorNombreBD($nombre)
+    {
+        return  TipoDeProducto::CrearUnTipoDeProducto(TipoDeProducto::BuscarPorNombreBD($nombre));
+    }
+
+    
 
      public static function ObtenerIndicePorId($listaDeTipoDeProductos,$id)
     {

@@ -14,6 +14,8 @@ class Producto implements IFileManejadorCSV
     private $precio;
 
    
+
+   
     public function __construct($nombre,$tipoDeProducto,$precio) 
     {
         $this->nombre = $nombre;
@@ -156,8 +158,9 @@ class Producto implements IFileManejadorCSV
     {
         $unProducto = null;
      
-        if(isset($unArrayAsosiativo))
+        if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
+
             $unProducto = new Producto($unArrayAsosiativo['nombre'],
             $unArrayAsosiativo['idDeTipo'],$unArrayAsosiativo['precio']);
             $unProducto->SetId($unArrayAsosiativo['id']);
@@ -166,7 +169,7 @@ class Producto implements IFileManejadorCSV
         return $unProducto ;
     }
 
-    public static function BuscarProductoPorNombreBD($nombre)
+    public static function BuscarPorNombreTipoBD($nombre,$tipoDeProducto)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unSector = null;
@@ -174,8 +177,11 @@ class Producto implements IFileManejadorCSV
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Producto 
-            as p where LOWER(p.nombre) = LOWER(:nombre)");
+            as p 
+            JOIN TipoDeProducto t ON t.id = p.idDeTipo  
+            where LOWER(p.nombre) = LOWER(:nombre) and LOWER(t.descripcion) = LOWER(:tipoDeProducto) ");
             $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
+            $consulta->bindValue(':tipoDeProducto',$tipoDeProducto,PDO::PARAM_STR);
             $consulta->execute();
             $unSector = $consulta->fetch(PDO::FETCH_ASSOC);
             $unProducto = Producto::CrearUnProducto($consulta->fetch(PDo::FETCH_ASSOC));
@@ -305,6 +311,8 @@ class Producto implements IFileManejadorCSV
         return   $strLista;
     }
 
+   
+
     public static function EscribirCsv($nombreDeArchivo,$listaDeProductos)
     {
         $estado = false;
@@ -375,6 +383,34 @@ class Producto implements IFileManejadorCSV
 
         return   $listaDeProductos;
     }
+
+    public static function Validador($data)
+    {
+        return     Producto::ValidadorPrecio($data['precio']) 
+                && Producto::ValidarTipo($data['tipo'])
+                && Util::ValidadorDeNombre($data['nombre']);
+    }
+
+    public static function VerificarUno($data)
+    {
+        return Producto::BuscarProductoPorIdBD($data['id']) !== false;
+    }
+    private static function ValidadorPrecio($data)
+    {
+        return  isset($data['precio']) && $data['precio'] > 0;
+    }
+
+    public static function ValidarTipo($descripcion)
+    {
+        return  isset($descripcion) 
+        && TipoDeProducto::BuscarPorNombreBD($descripcion) !== false;
+    }
+    public static function VerificarPorNombre($tipoDeProducto,$descripcion)
+    {
+        return Producto::BuscarPorNombreTipoBD($descripcion,$tipoDeProducto) !== false;
+    }
+   
+    
 
 
 

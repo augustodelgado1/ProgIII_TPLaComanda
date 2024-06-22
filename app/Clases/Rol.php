@@ -81,7 +81,7 @@ class Rol
         return $unRol;
     }
 
-    public static function BuscarRolPorDescripcionBD($descripcion)
+    private static function BuscarRolPorDescripcionBD($descripcion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unRol = null;
@@ -92,22 +92,14 @@ class Rol
              where LOWER(r.descripcion) = LOWER(:descripcion)");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->execute();
-            $unRol = Rol::CrearUnRol($consulta->fetch(PDO::FETCH_ASSOC));
+            $unRol = $consulta->fetch(PDO::FETCH_ASSOC);
             
         }
 
         return  $unRol;
     }
 
-    public static function ObtenerUnoPorDescripcionBD($descripcion)
-    {
-        return  Rol::CrearUnRol(Rol::BuscarRolPorDescripcionBD($descripcion));
-    }
-    public static function VerificarUnoPorDescripcionBD($descripcion)
-    {
-        return Rol::BuscarRolPorDescripcionBD($descripcion) !== false;
-    }
-
+   
     private static function CrearUnRol($unArrayAsosiativo)
     {
         $unRol = null;
@@ -157,7 +149,7 @@ class Rol
     private function SetDescripcion($descripcion)
     {
         $estado = false;
-        if(isset($descripcion))
+        if(Rol::ValidarDescrpcion($descripcion))
         {
             $this->descripcion = $descripcion;
             $estado = true;
@@ -175,6 +167,30 @@ class Rol
     {
         return  $this->descripcion;
     }
+
+      #Validaciones
+
+      public static function ObtenerUnoPorDescripcionBD($descripcion)
+      {
+          return  Rol::CrearUnRol(Rol::BuscarRolPorDescripcionBD($descripcion));
+      }
+      public static function VerificarDescripcionBD($descripcion)
+      {
+          return Rol::BuscarRolPorDescripcionBD($descripcion) !== false;
+      }
+  
+
+      public static function Validador($data)
+      {
+          return  Rol::ValidarDescrpcion($data['descripcion']);
+      }
+  
+      public static function ValidarDescrpcion($descripcion)
+      {
+        return Util::ValidadorDeNombre($descripcion);
+      }
+      
+      #End
    
     
 

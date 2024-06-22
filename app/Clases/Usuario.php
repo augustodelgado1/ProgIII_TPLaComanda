@@ -174,7 +174,7 @@ class Usuario
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $data= false;
 
-        if(isset($arrayDeEmpleado))
+        if(isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT 
             u.id, u.nombre, u.dni, r.descripcion AS rol, c.descripcion AS cargo
@@ -301,6 +301,29 @@ class Usuario
             foreach($listaDeSocioes as $unSocio)
             {
                 $strLista .= $unSocio->ToString().'<br>';
+            }
+        }
+
+        return   $strLista;
+    }
+
+    public static function ContarPedidos($listaDeUsuarios,$listaDePedidos)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeUsuarios) && isset($estado))
+        {
+            $strLista = "";
+            foreach($listaDeUsuarios as $unUsuario)
+            {
+                $cantidad = Pedido::ContarPedidosPorIdDeEmpleado($listaDePedidos,$unUsuario->id);
+
+                if( $cantidad > 0)
+                {
+                    $strLista .= $unUsuario->ToString().'<br>'. 
+                    "Cantidad De Operaciones: ".$cantidad;
+                }
+                
             }
         }
 
@@ -578,13 +601,27 @@ class Usuario
     }
     public static function ValidarRolSocio($data)
     {
+        $estado = false;
         $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
-        return $unUsuario['rol'] === 'Socio';
+
+        if(isset($unUsuario))
+        {
+            $estado = $unUsuario['rol'] === 'Socio';
+        }
+
+        return $estado;
     }
     public static function ValidarRolEmpleado($data)
     {
+        $estado = false;
         $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
-        return $unUsuario['rol'] === 'Empleado';
+
+        if(isset($unUsuario))
+        {
+            $estado = $unUsuario['rol'] === 'Empleado';
+        }
+
+        return $estado;
     }
 
     

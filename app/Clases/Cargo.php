@@ -157,8 +157,6 @@ class Cargo
     {
         return Usuario::FiltrarPorCargoBD($this->id);
     }
-
-
     private static function CrearUnCargo($unArrayAsosiativo)
     {
         $unCargo = null;
@@ -244,7 +242,7 @@ class Cargo
     }
     public function GetSector()
     {
-        return  $this->idDeSector;
+        return   Sector::BuscarSectorPorIdBD($this->idDeSector);
     }
 
    

@@ -14,7 +14,7 @@ class ProductoController
     {
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Producto';
-        $unTipoDeProducto = TipoDeProducto::BuscarPorNombreBD($data['tipoDeProducto']) ;   
+        $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']) ;   
       
      
         if(isset($data))
@@ -62,7 +62,7 @@ class ProductoController
         $data = $request->getQueryParams();
         
         $mensaje = 'Hubo un error  al intentar listar los Productos';
-        $unTipoDeProducto = TipoDeProducto::BuscarPorNombreBD($data['unTipoDeProducto']) ;         
+        $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorNombreBD($data['unTipoDeProducto']) ;         
         
         $listaDeProductos = Producto::FiltrarPorTipoDeProductoBD($unTipoDeProducto);
 
@@ -86,7 +86,7 @@ class ProductoController
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'Hubo un error al intentar guardar la listar ';  
+        $mensaje = 'Hubo un error al intentar guardar la lista ';  
        
         $listaAGuardar = Producto::ObtenerListaBD();
        
@@ -104,7 +104,7 @@ class ProductoController
     { 
         $data = $request->getQueryParams();
        
-        $mensaje = 'Hubo un error al intentar guardar la listar ';  
+        $mensaje = 'Hubo un error al intentar obtener la lista ';  
       
         $listaDeProductos = Producto::LeerCsv($data['nombreDelArchivo']);
        

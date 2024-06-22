@@ -60,7 +60,7 @@ class MesaController
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
        
         if(isset($unMesa))
@@ -81,7 +81,7 @@ class MesaController
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
        
         if(isset($unMesa))
         {
@@ -99,7 +99,7 @@ class MesaController
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
        
         if(isset($unMesa))
         {
@@ -117,7 +117,7 @@ class MesaController
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
        
         if(isset($unMesa))
         {
@@ -183,10 +183,11 @@ class MesaController
         $listaDeMesas = Mesa::ObtenerListaBD();
         $unaMesa = Mesa::BuscarMesaMasFacturo($listaDeMesas);
         
-        if(isset($unaMesa))
+        
+        if(isset($unaMesa) && ($facturacion = $unaMesa->ObtenerFacturacionTotal()) > 0)
         {
             $mensaje = "la Mesa que mas Facturo es <br>".$unaMesa->ToString()
-            .'<br>'.'y la Facturacion total fue '.$unaMesa->ObtenerFacturacionTotal();
+            .'<br>'.'y la Facturacion total fue '.$facturacion;
         }
 
         $response->getBody()->write($mensaje);
@@ -274,7 +275,7 @@ class MesaController
     public static function ListarFacturacionEntreDosFechas($request, $response, array $args)
     {
         $data = $request->getQueryParams();
-        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
 
         $listaFiltrada = Orden::FiltrarEntreDosFechas($unaMesa->ObtenerListaDeOrdenes(),$data['fechaInicial'],$data['fechaFinal']);
         $facturacionTotal = Orden::CalcularFacturacionTotal($listaFiltrada);

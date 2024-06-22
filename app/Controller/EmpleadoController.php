@@ -13,6 +13,10 @@ require_once './Clases/Pedido.php';
 // d- Cantidad de operaciones de cada uno por separado.
 // e- Posibilidad de dar de alta a nuevos, suspenderlos o borrarlos.
 
+// ❏ 3- Cada empleado responsable de cada producto del pedido , debe:
+// ❏ Listar todos los productos pendientes de este tipo de empleado.
+// ❏ Debe cambiar el estado a “en preparación” y agregarle el tiempo de preparación.
+
 
 class EmpleadoController 
 {
@@ -22,7 +26,7 @@ class EmpleadoController
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Empleado';
         $unCargo = Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;   
-        $unRol = Rol::BuscarRolPorDescripcionBD('Empleado');
+        $unRol = Rol::ObtenerUnoPorDescripcionBD('Empleado');
 
         if(isset($data))
         {
@@ -95,7 +99,7 @@ class EmpleadoController
     public static function Listar($request, $response, array $args)
     {
         $mensaje = 'Hubo un error  al intentar listar los Socio';
-        $unRol = Rol::BuscarRolPorDescripcionBD('Empleado');
+        $unRol = Rol::ObtenerUnoPorDescripcionBD('Empleado');
 
         $listaDeSocios = Usuario::FiltrarPorRolBD( $unRol->GetId());
        
@@ -119,7 +123,7 @@ class EmpleadoController
         $data = $request->getQueryParams();
         
         $mensaje = 'Hubo un error  al intentar listar los Empleados Suspendidos';
-        $unRol = Rol::BuscarRolPorDescripcionBD('Empleado');
+        $unRol = Rol::ObtenerUnoPorDescripcionBD('Empleado');
 
         $listaDeEmpleados = Usuario::FiltrarPorRolBD( $unRol->GetId());
         $listaFiltrada = Usuario::FiltrarPorEstado($listaDeEmpleados,Usuario::ESTADO_SUSPENDIDO);
@@ -143,7 +147,7 @@ class EmpleadoController
         $data = $request->getQueryParams();
         
         $mensaje = 'Hubo un error  al intentar listar los Empleados Borrados';
-        $unRol = Rol::BuscarRolPorDescripcionBD('Empleado');
+        $unRol = Rol::ObtenerUnoPorDescripcionBD('Empleado');
 
         $listaDeEmpleados = Usuario::FiltrarPorRolBD( $unRol->GetId());
         $listaFiltrada = Usuario::FiltrarPorEstado($listaDeEmpleados,Usuario::ESTADO_BORRADO);
@@ -161,20 +165,22 @@ class EmpleadoController
     }
 
    
-
+    // ❏ Listar todos los productos pendientes de este tipo de empleado.
     public static function ListarPedidosPendientes($request, $response, array $args)
     {
         $header = $request->getHeaderLine('Authorization');
         $token = trim(explode("Bearer", $header)[1]);
-        $data = AutentificadorJWT::ObtenerData($token);
+        $data = (array) AutentificadorJWT::ObtenerData($token);
 
         $mensaje = 'Hubo un error al intentar listar los Pedidos';
         
         $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
        
-        if(isset($unEmpleado))
+       
+        if(isset($unUsuario))
         {
             $listaDePedidos = $unUsuario->GetSector()->ObtenerListaDePedidos();
+          
             $listaDePedidosPendientes = Pedido::FiltrarPorEstado($listaDePedidos,Pedido::ESTADO_INICIAL);
 
             if(isset($listaDePedidosPendientes))
@@ -199,7 +205,7 @@ class EmpleadoController
         
         $mensaje = 'Hubo un error  al intentar listar los empleados';
         $unCargo= Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;       
-        $unRol = Rol::BuscarRolPorDescripcionBD('Empleado');
+        $unRol = Rol::ObtenerUnoPorDescripcionBD('Empleado');
 
         $listaDeEmpleados = Usuario::FiltrarPorRolBD( $unRol->GetId());
         

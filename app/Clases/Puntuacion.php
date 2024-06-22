@@ -123,23 +123,7 @@ class Puntuacion
         return  $cantidadTotal;
     }
 
-    public static function BuscarPorDescripcionBD($listaDePuntuaciones,$descripcion)
-    {
-        $unaPuntuacionBuscar = null;
-
-        if(isset($listaDePuntuaciones) && isset($descripcion) && count($listaDePuntuaciones) > 0)
-        {
-            foreach($listaDePuntuaciones as $unaPuntuacion)
-            {
-                if(strcasecmp($unaPuntuacion->descripcion,$descripcion) === 0)
-                {
-                    $unaPuntuacionBuscar = $unaPuntuacion;
-                }
-            }
-        }
-
-        return  $unaPuntuacionBuscar;
-    }
+  
     public static function FiltrarPordescripcionBD($listaDePuntuaciones,$descripcion)
     {
         $listaFiltrada = null;

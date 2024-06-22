@@ -10,7 +10,7 @@ class SocioController
     public static function Listar($request, $response, array $args)
     {
         $mensaje = 'Hubo un error  al intentar listar los Socio';
-        $unRol = Rol::BuscarRolPorDescripcionBD('Socio');
+        $unRol = Rol::ObtenerUnoPorDescripcionBD('Socio');
 
         $listaDeSocios = Usuario::FiltrarPorRolBD( $unRol->GetId());
 
@@ -33,7 +33,7 @@ class SocioController
     {
         $data = $request->getParsedBody();
         $unCargo = Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;   
-        $unRol = Rol::BuscarRolPorDescripcionBD('Socio');
+        $unRol = Rol::ObtenerUnoPorDescripcionBD('Socio');
         $mensaje = 'no se pudo dar de alta';
 
         $unSocio = new Usuario($data['email'],$data['clave'],$data['nombre'],

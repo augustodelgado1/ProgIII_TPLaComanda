@@ -12,16 +12,34 @@ class OrdenController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
-        File::CrearUnDirectorio('Imagenes');
-        File::CrearUnDirectorio('Imagenes/Mesa');
-        
+        $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
+      
         $unaOrden = new Orden($data['nombreDelCliente'],$unaMesa->GetId());
-        $unaOrden->GuardarImagen($_FILES['imagen']['tmp_name'],"Imagenes/Mesa/",$_FILES['imagen']['name']);
 
         if( $unaOrden->AgregarBD())
         {
             $mensaje = 'la Orden se dio de alta ';
+        }
+        
+        
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    // ❏ 2- El mozo saca una foto de la mesa y lo relaciona con el pedido.
+    public static function AgregarFoto($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+        $unaOrden = Orden::BuscarOrdenPorIdBD($data['codigoDeOrden']);
+        File::CrearUnDirectorio('Imagenes');
+        File::CrearUnDirectorio('Imagenes/Mesa');
+        
+        if($unaOrden->GuardarImagen($_FILES['imagen']['tmp_name']
+        ,"Imagenes/Mesa/",
+        $_FILES['imagen']['name']))
+        {
+            $mensaje = 'La foto se guardo correctamente ';
         }
         
         
@@ -90,7 +108,7 @@ class OrdenController
     public static function ListarUno($request, $response, array $args)
     {
         $data = $request->getHeaders();
-        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
     
         if($unaOrden->VerificarIdDeMesa($unaMesa->GetId()))

@@ -113,6 +113,28 @@ class Sector
         return  $listaDeSectores;
     }
 
+    public static function ContarPedidos($listaDeSectores,$listaDePedidos)
+    {
+        $listaFiltrada = null; 
+
+        if(isset($listaDeSectores) && isset($listaDePedidos))
+        {
+            $listaFiltrada = [];
+            foreach($listaDeSectores as $unSector)
+            {
+                $cantidad = Pedido::ContarPedidosPorIdDeSector($listaDePedidos,$unSector->id);
+
+                if( $cantidad > 0)
+                {
+                    array_push($listaFiltrada,[[$unSector->descripcion] =>  $cantidad]);
+                }
+                
+            }
+        }
+
+        return   $listaFiltrada;
+    }
+
     #end
 
     public function ObtenerListaDeCargos()

@@ -22,7 +22,7 @@ class EncuestaController
     {
         $data = $request->getParsedBody();
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
-        $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
+        $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
         
         $unaEncuesta = new Encuesta($unaOrden->GetId(),$data['nombreDelCliente'],$data['mensaje']);
         $idDeEncuesta = $unaEncuesta->AgregarBD();
@@ -83,8 +83,6 @@ class EncuestaController
 
     public static function Listar($request, $response, array $args)
     {
-        // $data = $request->getQueryParams();
-        
         $mensaje = 'Hubo un error  al intentar listar las Encuestas';
         
         $listaDeEncuestas = Encuesta::ListarBD();

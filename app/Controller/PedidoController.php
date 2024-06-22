@@ -18,7 +18,7 @@ class PedidoController
     {
         $data = $request->getParsedBody();
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Pedido';
-        $unTipo = TipoDeProducto::BuscarPorNombreBD($data['tipoDeProducto']);
+        $unTipo = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']);
         $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipo->GetId()) ; 
         $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
         $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']) ;     
@@ -151,20 +151,23 @@ class PedidoController
         $dataBody = $request->getParsedBody();
         $header = $request->getHeaderLine('Authorization');
         $token = trim(explode("Bearer", $header)[1]);
-        $data = AutentificadorJWT::ObtenerData($token);
+        $data = (array) AutentificadorJWT::ObtenerData($token);
        
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = 'Hubo un error  al intentar preparar un pedido';  
        
-        $unPedido = Pedido::BuscarPedidoPorNumeroDePedidoBD($dataBody['numeroDePedido']);
-        $horaEstimada = $dataBody['horaEstimada'];
-        $minutosEstimada = $dataBody['minutosEstimados'];
+        $unPedido = Pedido::BuscarPorCodigoBD($dataBody['codigo']);
+        $horaEstimada = $dataBody['hora'];
+        $minutosEstimada = $dataBody['minutos'];
+        
+       
 
-        if(isset($unPedido) && isset( $unEmpleado))
+        if(isset($unPedido) && isset($data))
         {
-            $unPedido->ModificarIdDeEmpleadoBD($data['idDeEmpleado']);
+            $unPedido->ModificarIdDeEmpleadoBD($data['id']);
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_INTERMEDIO);
             $unPedido->ModificarTiempoEstimadoBD(DateInterval::createFromDateString($horaEstimada.' hours '.$minutosEstimada .' Minutes'));
             $unPedido->ModificarTiempoDeInicioBD(new DateTime('now'));
+            $mensaje = 'Se modifico Correctamente';
         }
 
         $response->getBody()->write($mensaje);
@@ -177,13 +180,14 @@ class PedidoController
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unPedido = Pedido::BuscarPedidoPorNumeroDePedidoBD($data['numeroDePedido']);
+        $unPedido = Pedido::BuscarPorCodigoBD($data['codigo']);
        
         if(isset($unPedido))
         {
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_FINAL);
             $unPedido->ModificarTiempoDeFinalizacionBD(new DateTime("now"));
             $unPedido->EvaluarEstadoDelTiempo();
+            $mensaje = 'Se modifico Correctamente';
         }
 
         $response->getBody()->write($mensaje);
@@ -197,10 +201,11 @@ class PedidoController
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unPedido = Pedido::BuscarPedidoPorNumeroDePedidoBD($data['numeroDePedido']);
+        $unPedido = Pedido::BuscarPorCodigoBD($data['codigo']);
        
         if(isset($unPedido))
         {
+            $mensaje = 'Se modifico Correctamente';
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_CANCELADO);
         }
 

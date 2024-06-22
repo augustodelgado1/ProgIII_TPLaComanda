@@ -18,7 +18,7 @@ class UsuarioController
         $unUsuario['estado'] !==  Usuario::ESTADO_SUSPENDIDO 
         && $unUsuario['estado'] !==  Usuario::ESTADO_BORRADO)
         {
-            $dataUsuario = Usuario::ObtenerUnoCompletoBD($unUsuario->GetId());
+            $dataUsuario = Usuario::ObtenerUnoCompletoBD($unUsuario['id']);
             $token = AutentificadorJWT::CrearUnToken($dataUsuario);
             $mensaje = json_encode(array('JWT' =>  $token),JSON_PRETTY_PRINT);
         }

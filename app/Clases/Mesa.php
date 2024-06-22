@@ -75,30 +75,10 @@ class Mesa
         return  $estado;
     }
 
-    public static function VerificarCodigo($codigo)
+    private static function BuscarMesaPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-
-        if(isset($codigo))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) as cantidad 
-            FROM Mesa as m where m.codigo = :codigo");
-            $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $estado =  $data['cantidad'] > 0;
-        }
-
-        return  $estado;
-    }
-
-   
-
-    public static function BuscarMesaPorCodigoBD($codigo)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unMesa = null;
+        $unMesa = false;
 
         if(isset($unObjetoAccesoDato))
         {
@@ -106,11 +86,15 @@ class Mesa
             as m where LOWER(m.codigo) = LOWER(:codigo)");
             $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unMesa =  Mesa::CrearUnaMesa($data);
+            $unMesa = $consulta->fetch(PDO::FETCH_ASSOC);
         }
 
         return  $unMesa;
+    }
+    public static function ObtenerUnoPorCodigo($codigo)
+    {
+       
+        return   $unMesa =  Mesa::CrearUnaMesa(Mesa::BuscarMesaPorCodigoBD($codigo));
     }
     public static function FiltarMesaEncuestadas()
     {
@@ -187,7 +171,7 @@ class Mesa
 
     public function ObtenerListaDeOrdenes()
     {
-        return  Orden::FiltrarPorIdDeMesaBD($this->GetId());
+        return  Orden::FiltrarPorIdDeMesaBD($this->id);
     }
     public function ObtenerCantidadDeOrdenes()
     {
@@ -252,17 +236,6 @@ class Mesa
         return   $listaDeEmpleados;
     }
 
-    public function Equals($unMesa)
-    {
-        $estado = false;
- 
-        if(isset($unMesa))
-        {
-            $estado =  $unMesa->codigo === $this->codigo;
-        }
-        return  $estado ;
-    }
-
     //Setters
     private function SetId($id)
     {
@@ -289,9 +262,8 @@ class Mesa
     protected function SetEstado($estadoDelaMesa)
     {
         $estado = false;
-        $array = array(Mesa::ESTADO_INICIAL,Mesa::ESTADO_INTERMEDIO,Mesa::ESTADO_FINAL,Mesa::ESTADO_CERRADO);
 
-        if(isset($estado) && in_array($estadoDelaMesa,$array))
+        if(Mesa::ValidadorEstado($estadoDelaMesa))
         {
             $this->estado = $estadoDelaMesa;
             $estado = true;
@@ -470,6 +442,24 @@ class Mesa
         ."Estado: ".$this->estado.'<br>';
     }
 
+    #Validaciones
+
+    public static function Validador($data)
+    {
+        return     Mesa::VerificarUnoPorCodigo($data['codigo']) 
+                && Mesa::ValidadorEstado($data['estado']);
+    }
+    private static function ValidadorEstado($estadoDelaMesa)
+    {
+        $array = array(Mesa::ESTADO_INICIAL,Mesa::ESTADO_INTERMEDIO,Mesa::ESTADO_FINAL,Mesa::ESTADO_CERRADO);
+
+        return  isset($estado) && in_array($estadoDelaMesa,$array);
+    }
+    public static function VerificarUnoPorCodigo($codigo)
+    {
+        return  Mesa::BuscarMesaPorCodigoBD($codigo) !== false;
+    }
+
     public static function ValidarMesaYOrden($data)
     {
         $estado = false;
@@ -483,18 +473,9 @@ class Mesa
 
         return $estado;
     }
-   
-    public static function ValidarMesaIngresada($data)
-    {
-        $estado = false;
-        if(isset($data['codigoDeMesa']) &&  
-        Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']) !== null)
-        {
-            $estado = true;
-        }
+    
+    #End
 
-        return $estado;
-    }
    
   
 
