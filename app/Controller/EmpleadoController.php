@@ -101,15 +101,16 @@ class EmpleadoController
         $mensaje = 'Hubo un error  al intentar listar los Socio';
         $unRol = Rol::ObtenerUnoPorDescripcionBD('Empleado');
 
-        $listaDeSocios = Usuario::FiltrarPorRolBD( $unRol->GetId());
-       
-        if(isset($listaDeSocios))
+        $listaDeEmpleados = Usuario::FiltrarPorRolBD( $unRol->GetId());
+        $listaFiltrada = Usuario::FiltrarPorEstado($listaDeEmpleados,Usuario::ESTADO_ACTIVO);
+ 
+        if(isset($listaFiltrada))
         {
             $mensaje = "La lista esta vacia";
-            if(count($listaDeSocios) > 0)
+            if(count($listaFiltrada) > 0)
             {
                 $mensaje = 'Empleados:'.'<br>'.
-                Usuario::ToStringList($listaDeSocios);
+                Usuario::ToStringList($listaFiltrada);
             }
         }
         
@@ -199,6 +200,51 @@ class EmpleadoController
         return $response;
     }
 
+    public static function ListarCantidadDeTareasRealizadas($request, $response, array $args)
+    {
+        $mensaje = 'Hubo un error  al intentar listar los empleados';      
+        $unRol = Rol::ObtenerUnoPorDescripcionBD('Empleado');
+
+        $listaDeEmpleados = Usuario::FiltrarPorRolBD( $unRol->GetId());
+        
+        if(isset($listaDeEmpleados))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeEmpleados) > 0)
+            {
+                $mensaje = Usuario::MostarCantidadDePedidos($listaDeEmpleados);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    // c- Cantidad de operaciones de todos por sector, listada por cada empleado.
+    public static function ListarCantidadDeTareasRealizadasPorSector($request, $response, array $args)
+    {
+        $mensaje = 'Hubo un error  al intentar listar los empleados';      
+        $unRol = Rol::ObtenerUnoPorDescripcionBD('Empleado');
+
+        $listaDeEmpleados = Usuario::FiltrarPorRolBD( $unRol->GetId());
+        $listaDeSectores = Sector::ObternerListaBD();
+        
+        if(isset($listaDeEmpleados))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeEmpleados) > 0)
+            {
+                $mensaje = Usuario::MostarCantidadDeOperacionesPorSector($listaDeEmpleados,$listaDeSectores);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
     public static function ListarPorRolDeTrabajo($request, $response, array $args)
     {
         $data = $request->getQueryParams();

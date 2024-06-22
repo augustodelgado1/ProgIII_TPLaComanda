@@ -21,7 +21,7 @@ class PedidoController
         $unTipo = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']);
         $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipo->GetId()) ; 
         $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
-        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']) ;     
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']) ;     
 
         if(isset($unProducto) && isset($unaOrden) )
         {
@@ -145,6 +145,9 @@ class PedidoController
         return $response;
     }
 
+   
+
+
 
     public static function PreapararUnPedido($request, $response, array $args)
     { 
@@ -155,12 +158,10 @@ class PedidoController
        
         $mensaje = 'Hubo un error  al intentar preparar un pedido';  
        
-        $unPedido = Pedido::BuscarPorCodigoBD($dataBody['codigo']);
+        $unPedido = Pedido::ObtenerUnoPorCodigoBD($dataBody['codigo']);
         $horaEstimada = $dataBody['hora'];
         $minutosEstimada = $dataBody['minutos'];
         
-       
-
         if(isset($unPedido) && isset($data))
         {
             $unPedido->ModificarIdDeEmpleadoBD($data['id']);
@@ -180,7 +181,7 @@ class PedidoController
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unPedido = Pedido::BuscarPorCodigoBD($data['codigo']);
+        $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigo']);
        
         if(isset($unPedido))
         {
@@ -201,7 +202,7 @@ class PedidoController
        
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
-        $unPedido = Pedido::BuscarPorCodigoBD($data['codigo']);
+        $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigo']);
        
         if(isset($unPedido))
         {

@@ -37,6 +37,24 @@ class MesaController
         return $response;
     }
 
+    public static function BorrarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+        $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
+        $mensaje = 'no se pudo dar de alta';
+
+        if(Mesa::BorrarUnoPorIdBD($unaMesa->GetId()))
+        {
+            $mensaje = 'El Mesa se borro correctamente';
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+
     public static function Listar($request, $response, array $args)
     {
         // $data = $request->getHeaders();
@@ -61,13 +79,14 @@ class MesaController
         $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
        
         $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
-        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
        
         if(isset($unMesa))
         {
             $unMesa->ModificarEstadoBD(Mesa::ESTADO_CERRADO);
             $unaOrden->ModificarEstadoBD(Orden::ESTADO_INACTIVO);
             $unaOrden->ActualizarImporte();
+            $mensaje = 'Se modifico correctamente';  
         }
 
         $response->getBody()->write($mensaje);
@@ -79,13 +98,15 @@ class MesaController
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+       
+        $mensaje = 'No se pudo modificar';  
+       
        
         $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
        
-        if(isset($unMesa))
+        if(isset($unMesa) &&  $unMesa->ModificarEstadoBD(Mesa::ESTADO_INICIAL))
         {
-            $unMesa->ModificarEstadoBD(Mesa::ESTADO_INICIAL);
+            $mensaje = 'Se modifico correctamente';  
         }
 
         $response->getBody()->write($mensaje);
@@ -97,13 +118,13 @@ class MesaController
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = 'No se pudo modificar';  
        
         $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
        
-        if(isset($unMesa))
+        if(isset($unMesa) && $unMesa->ModificarEstadoBD(Mesa::ESTADO_INTERMEDIO))
         {
-            $unMesa->ModificarEstadoBD(Mesa::ESTADO_INTERMEDIO);
+            $mensaje = 'Se modifico correctamente';  
         }
 
         $response->getBody()->write($mensaje);
@@ -115,14 +136,13 @@ class MesaController
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = 'No se pudo modificar';  
        
         $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
        
-        if(isset($unMesa))
+        if(isset($unMesa) && $unMesa->ModificarEstadoBD(Mesa::ESTADO_FINAL) == true)
         {
-            $unMesa->ModificarEstadoBD(Mesa::ESTADO_FINAL);
-            
+            $mensaje = 'Se modifico correctamente';  
         }
 
         $response->getBody()->write($mensaje);

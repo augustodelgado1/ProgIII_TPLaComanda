@@ -19,7 +19,7 @@ class SocioController
             $mensaje = "La lista esta vacia";
             if(count($listaDeSocios) > 0)
             {
-                $mensaje = Usuario::ToStringList($listaDeSocios);
+                $mensaje = "Socios".'<br>'.Usuario::ToStringList($listaDeSocios);
             }
         }
         
@@ -59,7 +59,7 @@ class SocioController
         if(Usuario::ModificarUnoBD($data['id'],$data['email'],$data['clave'],$data['nombre'] ,
         $data['apellido'],$data['dni'],$data['cargo']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'El Socio se modifico correctamente';
         }
         
         $response->getBody()->write($mensaje);

@@ -45,6 +45,7 @@ class Usuario
             $dataUsuario['apellido'],$dataUsuario['dni'],$dataUsuario['idDeCargo'],$dataUsuario['idDeRol']);
             $unUsuario->SetId($dataUsuario['id']);
             $unUsuario->SetFechaDeRegistro(new DateTime($dataUsuario['fechaDeRegistro']));
+            $unUsuario->SetEstado($dataUsuario['estado']);
         }
         
         return $unUsuario ;
@@ -144,15 +145,14 @@ class Usuario
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estadoDeLaFuncion = false;
 
-        if(isset($unObjetoAccesoDato) && $estado !== false)
+        if(isset($estado) )
         {
-            var_dump($estado);
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Usuario` SET estado = :estado Where id=:id");
+            // var_dump($estado);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Usuario` 
+            SET estado = :estado Where id=:id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
-            
             $estadoDeLaFuncion= $consulta->execute();
-            
         }
 
         return  $estadoDeLaFuncion;
@@ -162,7 +162,7 @@ class Usuario
     {
         $estado = false;
 
-        if(isset($arrayDeEmpleado))
+        if(isset($id))
         {
             $estado =  Usuario::ModificarEstadoBD($id,Usuario::ESTADO_SUSPENDIDO);
         }
@@ -307,21 +307,43 @@ class Usuario
         return   $strLista;
     }
 
-    public static function ContarPedidos($listaDeUsuarios,$listaDePedidos)
+    public static function MostarCantidadDePedidos($listaDeUsuarios)
     {
         $strLista = null; 
 
-        if(isset($listaDeUsuarios) && isset($estado))
+        if(isset($listaDeUsuarios))
         {
             $strLista = "";
             foreach($listaDeUsuarios as $unUsuario)
             {
-                $cantidad = Pedido::ContarPedidosPorIdDeEmpleado($listaDePedidos,$unUsuario->id);
+                $cantidad = Pedido::ContarPorIdDeEmpeladoBD($unUsuario->id);
 
                 if( $cantidad > 0)
                 {
                     $strLista .= $unUsuario->ToString().'<br>'. 
                     "Cantidad De Operaciones: ".$cantidad;
+                }
+                
+            }
+        }
+
+        return   $strLista;
+    }
+    public static function MostarCantidadDeOperacionesPorSector($listaDeUsuarios,$listaDeSectores)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeUsuarios) && isset($listaDeSectores))
+        {
+            $strLista = "";
+            foreach($listaDeUsuarios as $unUsuario)
+            {
+                $listaDeCantidades = Sector::ContarPedidos($listaDeSectores,$unUsuario->ObtenerListaDePedidos());
+
+                if( isset($listaDeCantidades) && count($listaDeCantidades) > 0)
+                {
+                    $strLista .= $unUsuario->ToString().'<br>'. 
+                    Sector::ToStringList($listaDeCantidades);
                 }
                 
             }
@@ -340,11 +362,13 @@ class Usuario
             $listaFiltrada = [];
             foreach($listaDeUsuarios as $unUsuario)
             {
-                if(strcasecmp($unUsuario->estado,$estado) == 0)
+                if(strcasecmp($unUsuario->estado,$estado) === 0)
                 {
+                    
                     array_push($listaFiltrada,$unUsuario);
                 }
             }
+        
         }
 
         return   $listaFiltrada;
@@ -492,14 +516,14 @@ class Usuario
         return $estado;
     }
 
-    protected function SetEstado($estadoDelaPedido)
+    protected function SetEstado($estadoDeUsuario)
     {
         $estado = false;
         $array = array(Usuario::ESTADO_ACTIVO,Usuario::ESTADO_BORRADO,Usuario::ESTADO_SUSPENDIDO);
 
-        if(isset($estado) && in_array($estadoDelaPedido,$array))
+        if(isset($estado) && in_array($estadoDeUsuario,$array))
         {
-            $this->estado = $estadoDelaPedido;
+            $this->estado = $estadoDeUsuario;
             $estado = true;
         }
 

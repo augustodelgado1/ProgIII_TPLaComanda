@@ -21,7 +21,7 @@ class EncuestaController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
         
         $unaEncuesta = new Encuesta($unaOrden->GetId(),$data['nombreDelCliente'],$data['mensaje']);
@@ -50,7 +50,7 @@ class EncuestaController
     public static function ModificarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
         $mensaje = 'no se pudo dar modificar';
 
         if(Encuesta::ModificarUnoBD($data['id'],$data['nombreDelCliente'],$unaOrden->GetId(),$data['mensaje']))

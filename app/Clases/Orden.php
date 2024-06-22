@@ -161,21 +161,18 @@ class Orden
     {
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
-        if(isset($objAccesoDatos))
-        {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Orden (codigo,nombreDelCliente,idDeMesa,fechaDeOrden,costoTotal,estado,rutaDeLaImagen,nombreDeLaImagen) 
-            values (:codigo,:nombreDelCliente,:idDeMesa,:fechaDeOrden,:costoTotal,:tiempoTotal,:estado,:rutaDeLaImagen,:nombreDeLaImagen)");
-            $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_STR);
-            $consulta->bindValue(':nombreDelCliente',$this->nombreDelCliente,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeMesa',$this->idDeMesa,PDO::PARAM_INT);
-            $consulta->bindValue(':fechaDeOrden',$this->fechaDeOrden->format("y-m-d"),PDO::PARAM_STR);
-            $consulta->bindValue(':estado',$this->GetEstado(),PDO::PARAM_STR);
-            $consulta->bindValue(':costoTotal',$this->costoTotal);
-            $consulta->bindValue(':tiempoTotal',$this->tiempoTotal);
-            $consulta->bindValue(':rutaDeLaImagen',$this->rutaDeLaImagen);
-            $consulta->bindValue(':nombreDeLaImagen',$this->nombreDeLaImagen);
-            $estado = $consulta->execute();
-        }
+        
+        $consulta = $objAccesoDatos->RealizarConsulta("Insert into 
+        Orden (codigo,nombreDelCliente,idDeMesa,fechaDeOrden,costoTotal,estado) 
+        values (:codigo,:nombreDelCliente,:idDeMesa,:fechaDeOrden,:costoTotal,:estado)");
+        $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_STR);
+        $consulta->bindValue(':nombreDelCliente',$this->nombreDelCliente,PDO::PARAM_STR);
+        $consulta->bindValue(':idDeMesa',$this->idDeMesa,PDO::PARAM_INT);
+        $consulta->bindValue(':fechaDeOrden',$this->fechaDeOrden->format("y-m-d"),PDO::PARAM_STR);
+        $consulta->bindValue(':estado',$this->GetEstado(),PDO::PARAM_STR);
+        $consulta->bindValue(':costoTotal',$this->costoTotal);
+        $estado = $consulta->execute();
+        
 
         return $estado;
     }
@@ -216,16 +213,16 @@ class Orden
         return  $estado;
     }
 
-    public function ModificarEstadoBD($estado)
+    public function ModificarEstadoBD($estadoDelaOrden)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
 
-        if(isset($unObjetoAccesoDato) && $this->SetEstado($estado))
+        if(isset($unObjetoAccesoDato) && $this->SetEstado($estadoDelaOrden))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden 
             as o SET estado = :estado where o.id = :id");
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',$estadoDelaOrden,PDO::PARAM_STR);
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
@@ -318,24 +315,6 @@ class Orden
 
         return  $menorImporte;
     }
-    public function VerificarIdDeMesa($idDeMesa)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o 
-            where o.id = :id and o.idDeMesa = :idDeMesa");
-            $consulta->bindValue(':idDeMesa',$this->id,PDO::PARAM_INT);
-            $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
-            $estado = $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $estado = $data !== null && count($data) > 0;
-        }
-
-        return  $estado;
-    }
     public static function FiltrarPorImporteBD($importe)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -353,34 +332,46 @@ class Orden
         return  $listaDeOrdenes;
     }
   
-    public static function BuscarPorCodigoBD($codigo)
+    private static function BuscarPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unaOrden = null;
+        $data = false;
 
         if(isset($codigo))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.codigo = :codigo");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o
+             where LOWER(o.codigo) = LOWER(:codigo)");
             $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unaOrden =  Orden::CrearUnaOrden($data);
+          
         }
 
-        return  $unaOrden;
+        return  $data;
     }
-    public static function VerificarCodigo($codigo)
+    public static function ObtenerUnoPorCodigo($codigo)
+    {
+        return  Orden::CrearUnaOrden(Orden::BuscarPorCodigoBD($codigo));
+    }
+
+     
+
+    public static function VerificarIdDeMesa($codigoDeMesa)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
 
-        if(isset($codigo))
+        if(isset($codigoDeMesa))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) as cantidad FROM Orden as o where o.codigo = :codigo");
-            $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->
+            RealizarConsulta("SELECT COUNT(*) as cantidad FROM Orden as o 
+            join Mesa m on m.id =  o.idDeMesa 
+            where LOWER(m.codigo) = LOWER(:codigo) and o.estado = :estado");
+            $consulta->bindValue(':codigo',$codigoDeMesa,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',ORDEN::ESTADO_ACTIVO,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $estado =  $data['cantidad'] > 0;
+            $estado =  $data['cantidad'] == 0;
         }
 
         return  $estado;
@@ -407,9 +398,10 @@ class Orden
     private static function CrearUnaOrden($unArrayAsosiativo)
     {
         $unaOrden = null;
-        
+      
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
+            
             $unaOrden = new Orden($unArrayAsosiativo['nombreDelCliente'],$unArrayAsosiativo['idDeMesa'],
             $unArrayAsosiativo['rutaDeLaImagen'],$unArrayAsosiativo['nombreDeLaImagen']);
             $unaOrden->SetId($unArrayAsosiativo['id']);
@@ -557,9 +549,8 @@ class Orden
     private function SetEstado($estadoDelaOrden)
     {
         $estado = false;
-        $array = array(Orden::ESTADO_ACTIVO,Orden::ESTADO_INACTIVO);
 
-        if(isset($estado) && in_array($estadoDelaOrden,$array))
+        if(Orden::ValidadorEstado($estadoDelaOrden))
         {
             $this->estado = $estadoDelaOrden;
             $this->CalcularCostoTotal();
@@ -731,6 +722,7 @@ class Orden
         if(isset($data['codigoDeOrden']) && 
         Orden::BuscarPorCodigoBD($data['codigoDeOrden']) !== null)
         {
+            
             $estado = true;
         }
 
@@ -808,27 +800,38 @@ class Orden
 
       #Validaciones
 
-     
-      private static function ValidadorEstado($estadoDelaMesa)
-      {
-          $array = array(Mesa::ESTADO_INICIAL,Mesa::ESTADO_INTERMEDIO,Mesa::ESTADO_FINAL,Mesa::ESTADO_CERRADO);
+    public static function Validador($data)
+    {
+        return  Orden::ValidarNombreDeCliente($data['nombreDelCliente']) 
+                && Orden::ValidarMesa($data['codigoDeMesa']);
+    }
+      
+    private static function ValidarMesa($codigoDeMesa)
+    {
+    return Orden::VerificarIdDeMesa($codigoDeMesa);
+    }
+    private static function ValidarNombreDeCliente($nombreDelCliente)
+    {
+    return Util::ValidadorDeNombre($nombreDelCliente) ;
+    }
+
+
+    public static function VerificarUnoPorCodigo($codigo)
+    {
+        return  Orden::BuscarPorCodigoBD($codigo) !== false;
+    }
+    public static function ValidadorCodigo($data)
+    {
+        return  Orden::VerificarUnoPorCodigo($data['codigo']);
+    }
   
-          return  isset($estado) && in_array($estadoDelaMesa,$array);
+      private static function ValidadorEstado($estadoDelaOrden)
+      {
+          $array = array(Orden::ESTADO_ACTIVO,Orden::ESTADO_INACTIVO);
+  
+          return  isset($estado) && in_array($estadoDelaOrden,$array);
       }
   
-      public static function ValidarMesaYOrden($data)
-      {
-          $estado = false;
-          $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
-          $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
-  
-          if($unaOrden->ValidarOrdenIngresada( $unaMesa->GetId()))
-          {
-              $estado = true;
-          }
-  
-          return $estado;
-      }
       
       #End
  

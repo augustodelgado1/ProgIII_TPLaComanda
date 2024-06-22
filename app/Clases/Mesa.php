@@ -80,21 +80,24 @@ class Mesa
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unMesa = false;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($codigo))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Mesa 
+            $consulta = $unObjetoAccesoDato->RealizarConsulta(
+                "SELECT * FROM Mesa 
             as m where LOWER(m.codigo) = LOWER(:codigo)");
             $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
             $unMesa = $consulta->fetch(PDO::FETCH_ASSOC);
+
+          
         }
 
         return  $unMesa;
     }
     public static function ObtenerUnoPorCodigo($codigo)
     {
-       
-        return   $unMesa =  Mesa::CrearUnaMesa(Mesa::BuscarMesaPorCodigoBD($codigo));
+      
+        return   Mesa::CrearUnaMesa(Mesa::BuscarMesaPorCodigoBD($codigo));
     }
     public static function FiltarMesaEncuestadas()
     {
@@ -151,16 +154,16 @@ class Mesa
     }
 
     
-    public function ModificarEstadoBD($estado)
+    public function ModificarEstadoBD($estadoDeLaMesa)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
 
-        if(isset($unObjetoAccesoDato) && $this->SetEstado($estado))
+        if(isset($unObjetoAccesoDato) && Mesa::ValidadorEstado($estadoDeLaMesa))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Mesa 
             as m SET estado = :estado where m.id = :id");
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',$estadoDeLaMesa,PDO::PARAM_STR);
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
@@ -205,9 +208,10 @@ class Mesa
     private static function CrearUnaMesa($data)
     {
         $unaMesa = null;
-
-        if(isset($data))
+       
+        if(isset($data) && $data !== false)
         {
+            
             $unaMesa = new Mesa();
             $unaMesa->SetId($data['id']);
             $unaMesa->SetCodigo($data['codigo']);
@@ -449,6 +453,10 @@ class Mesa
         return     Mesa::VerificarUnoPorCodigo($data['codigo']) 
                 && Mesa::ValidadorEstado($data['estado']);
     }
+    public static function ValidadorCodigoDeMesa($data)
+    {
+        return   Mesa::VerificarUnoPorCodigo($data['codigoDeMesa']);
+    }
     private static function ValidadorEstado($estadoDelaMesa)
     {
         $array = array(Mesa::ESTADO_INICIAL,Mesa::ESTADO_INTERMEDIO,Mesa::ESTADO_FINAL,Mesa::ESTADO_CERRADO);
@@ -464,7 +472,7 @@ class Mesa
     {
         $estado = false;
         $unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']);
-        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
 
         if($unaOrden->ValidarOrdenIngresada( $unaMesa->GetId()))
         {

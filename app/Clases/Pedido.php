@@ -146,7 +146,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
 
-        if(isset($unObjetoAccesoDato) && $this->SetTiempoEstimado($tiempoEstimado))
+        if(isset($tiempoEstimado) && $this->SetTiempoEstimado($tiempoEstimado))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
             SET p.tiempoEstimado = :tiempoEstimado 
@@ -180,8 +180,8 @@ class Pedido
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
-
-        if(isset($unObjetoAccesoDato) && $this->SetTiempoDeInicio($tiempoInicio))
+        var_dump($tiempoInicio);
+        if($this->SetTiempoDeInicio($tiempoInicio))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
             SET p.tiempoDeInicio = :tiempoInicio 
@@ -197,8 +197,8 @@ class Pedido
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = null;
-
-        if(isset($unObjetoAccesoDato) && $this->SetTiempoDeFinalizacion($tiempoDeFinalizacion))
+        var_dump($tiempoDeFinalizacion);
+        if($this->SetTiempoDeFinalizacion($tiempoDeFinalizacion))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.tiempoDeFinalizacion = :tiempoDeFinalizacion where p.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
@@ -209,22 +209,26 @@ class Pedido
 
         return  $estado;
     }
-    
-    public static function BuscarPorCodigoBD($codigo)
+
+    private static function BuscarPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unPedido = null;
+        $data = false;
 
-        if(isset($unObjetoAccesoDato) && isset($codigo))
+        if(isset($codigo))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where LOWER(p.codigo) = LOWER(:codigo)");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM 
+            Pedido as p where LOWER(p.codigo) = LOWER(:codigo)");
             $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unPedido =  Pedido::CrearUnaPedido($data);
         }
 
-        return  $unPedido;
+        return  $data;
+    }
+    public static function ObtenerUnoPorCodigoBD($codigo)
+    {
+        return  Pedido::CrearUnaPedido( Pedido::BuscarPorCodigoBD($codigo));
     }
 
     public static function FiltrarPorFechaDePedidoBD($fechaDePedido)
@@ -283,7 +287,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $cantidadTotal = null;
 
-        if(isset($unObjetoAccesoDato) && isset($idDeOrden))
+        if(isset($idDeOrden))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalPedidos FROM Pedido as p where p.idDeOrden = :idDeOrden");
             $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
@@ -295,15 +299,17 @@ class Pedido
         return  $cantidadTotal;
     }
     
-    public static function ContarPedidosPorIdDeProductoBD($idDeProducto)
+   
+    public static function ContarPorIdDeEmpeladoBD($idDeEmpelado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $cantidadTotal = null;
 
-        if(isset($unObjetoAccesoDato) && isset($idDeProducto))
+        if(isset($idDeEmpelado))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalPedidos FROM Pedido as p where p.idDeProducto = :idDeProducto");
-            $consulta->bindValue(':idDeProducto',$idDeProducto,PDO::PARAM_INT);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("
+            SELECT COUNT(*) AS totalPedidos FROM Pedido as p where p.idDeEmpelado = :idDeEmpelado");
+            $consulta->bindValue(':idDeEmpelado',$idDeEmpelado,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $cantidadTotal =  $data['totalPedidos'];
@@ -316,7 +322,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaFiltrada = null;
 
-        if(isset($unObjetoAccesoDato) && isset($idDeEmpleado))
+        if(isset($idDeEmpleado))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where p.idDeEmpleado = :idDeEmpleado");
             $consulta->bindValue(':idDeEmpleado',$idDeEmpleado,PDO::PARAM_INT);
@@ -616,9 +622,6 @@ class Pedido
 
         return  $estado ;
     }
-
-    
-
     private function Setcodigo($codigo)
     {
         $estado = false;
@@ -641,18 +644,6 @@ class Pedido
 
         return  $estado ;
     }
-    private function SetIdProducto($idDeProducto)
-    {
-        $estado = false;
-        if(isset( $idDeProducto))
-        {
-            $this->unProducto = $idDeProducto;
-            $estado = true;
-        }
-
-        return  $estado ;
-      
-    }
     private function SetEmpleado($idDeEmpleado)
     {
         $estado = false;
@@ -664,18 +655,7 @@ class Pedido
 
         return  $estado ;
     }
-    private function SetIdOrden($idDeOrden)
-    {
-        $estado = false;
-        if(isset($idDeOrden))
-        {
-            $this->orden = $idDeOrden;
-            $estado = true;
-        }
 
-        
-        return $estado;
-    }
 
 
     //Getters
@@ -950,7 +930,7 @@ class Pedido
     public static function ValidadorAlta($data)
     {
         return     Pedido::ValidarProducto($data)
-                   && Orden::VerificarCodigo($data['codigoDeOrden']);
+                   && Orden::VerificarUnoPorCodigo($data['codigoDeOrden']);
     }
 
     private static function ValidarProducto($data)
@@ -958,6 +938,22 @@ class Pedido
        return   Producto::VerificarPorNombre($data['tipo'],$data['nombre']);
         
     }
+    private static function VerificarCodigo($data)
+    {
+       return   Pedido::BuscarPorCodigoBD($data['codigo']) !== null;
+        
+    }
+
+    public static function  ValidadorPreparacion($data)
+    {
+        return Pedido::ValidadorTiempo($data['hora']) ||  
+               Pedido::ValidadorTiempo($data['minutos']);
+    }
+    private static function  ValidadorTiempo($tiempo)
+    {
+        return  isset($tiempo) && $tiempo > 0;
+    }
+
     private static function ValidarEstado($estadoDelaPedido)
     {
         $array = array(Pedido::ESTADO_INICIAL,Pedido::ESTADO_INTERMEDIO,Pedido::ESTADO_FINAL,Pedido::ESTADO_CANCELADO);

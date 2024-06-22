@@ -278,7 +278,7 @@ class Encuesta
     public static function ValidadorModificacion($data)
     {
         return  Encuesta::ValidadorDeMensaje($data['mensaje'])
-        && Orden::VerificarCodigo($data['numeroDeOrden'])
+        && Orden::VerificarUnoPorCodigo($data['numeroDeOrden'])
         && Encuesta::ValidadorDeCliente($data['nombre']);
     }
     private static function ValidadorDeCliente($nombre)
@@ -291,9 +291,9 @@ class Encuesta
     {
         return isset($mensaje) && strlen($mensaje) <= 66;
     }
-    public static function VerificarUnoPorId($id)
+    public static function ValidadorId($data)
     {
-        return Encuesta::BuscarUnoPorIdBD($id) !== false;
+        return Encuesta::BuscarUnoPorIdBD($data['id']) !== false;
     }
 
     #Getters

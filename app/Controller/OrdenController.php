@@ -18,7 +18,8 @@ class OrdenController
 
         if( $unaOrden->AgregarBD())
         {
-            $mensaje = 'la Orden se dio de alta ';
+            $mensaje = 'la Orden se dio de alta '.
+                        $unaOrden->ToString();
         }
         
         
@@ -31,10 +32,11 @@ class OrdenController
     public static function AgregarFoto($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $unaOrden = Orden::BuscarOrdenPorIdBD($data['codigoDeOrden']);
+        $unaOrden = Orden::BuscarOrdenPorIdBD($data['codigo']);
         File::CrearUnDirectorio('Imagenes');
         File::CrearUnDirectorio('Imagenes/Mesa');
-        
+        $mensaje = 'No se pudo guarder la foto';
+
         if($unaOrden->GuardarImagen($_FILES['imagen']['tmp_name']
         ,"Imagenes/Mesa/",
         $_FILES['imagen']['name']))
@@ -52,10 +54,11 @@ class OrdenController
     public static function ModificarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-       
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
+
         $mensaje = 'no se pudo dar modificar';
 
-        if(Orden::ModificarUnoBD($data['id'],$data['nombreDelCliente'],$data['idDeMesa']))
+        if(Orden::ModificarUnoBD($unaOrden->GetId(),$data['nombreDelCliente'],$data['idDeMesa']))
         {
             $mensaje = 'El Orden se modifico correctamente';
         }
@@ -68,10 +71,10 @@ class OrdenController
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
         $mensaje = 'no se pudo dar de alta';
 
-        if(Orden::BorrarUnoPorIdBD($data['id']))
+        if(Orden::BorrarUnoPorIdBD($unaOrden->GetId()))
         {
             $mensaje = 'El Orden se borro correctamente';
         }
@@ -107,9 +110,11 @@ class OrdenController
 
     public static function ListarUno($request, $response, array $args)
     {
-        $data = $request->getHeaders();
+        $data = $request->getQueryParams();
+     
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
-        $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']);
+        
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigo']);
     
         if($unaOrden->VerificarIdDeMesa($unaMesa->GetId()))
         {

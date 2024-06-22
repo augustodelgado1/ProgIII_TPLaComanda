@@ -48,6 +48,7 @@ class CargoController
 
         return $response;
     }
+    
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
@@ -56,7 +57,7 @@ class CargoController
 
         if(Cargo::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Cargo se borror correctamente';
+            $mensaje = 'El Cargo se borro correctamente';
         }
 
         $response->getBody()->write($mensaje);
