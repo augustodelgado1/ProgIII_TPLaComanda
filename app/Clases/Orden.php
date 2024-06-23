@@ -773,7 +773,7 @@ class Orden
         return $acumulador;
     }
 
-      #Validaciones
+    #Validaciones
 
     public static function Validador($data)
     {
