@@ -27,10 +27,6 @@ class UsuarioController
 
         return $response;
     }
-    
-
-
-
 
 }
 

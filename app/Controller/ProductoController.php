@@ -35,6 +35,40 @@ class ProductoController
         return $response;
     }
 
+    public static function ModificarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+        $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']) ;   
+
+        $mensaje = 'no se pudo dar modificar';
+
+        if(Producto::ModificarUnoBD($data['id'],$data['nombre'],$unTipoDeProducto->GetId(),$data['precio']))
+        {
+            $mensaje = 'El Producto se modifico correctamente';
+        }
+        
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function BorrarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+     
+        $mensaje = 'no se pudo borrar';
+
+        if(Producto::BorrarUnoPorIdBD($data['id']))
+        {
+            $mensaje = 'El Pedido se borro correctamente';
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
     public static function Listar($request, $response, array $args)
     {
        

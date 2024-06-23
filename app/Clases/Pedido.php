@@ -69,7 +69,7 @@ class Pedido
 
         return $estado;
     }
-    public static function ModificarUnoBD($id,$idDeOrden,$idDeProducto,$estado)
+    public static function ModificarUnoBD($id,$idDeOrden,$idDeProducto)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
@@ -84,7 +84,6 @@ class Pedido
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
             $consulta->bindValue(':idDeProducto',$idDeProducto,PDO::PARAM_INT);
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
             $estado = $consulta->execute();
         }
 
@@ -690,6 +689,10 @@ class Pedido
     {
         return  $this->CalcularImporteTotal();
     }
+    public function GetId()
+    {
+        return  $this->id;
+    }
 
     public function GetEstado()
     {
@@ -1006,15 +1009,6 @@ class Pedido
     // {
     //     return Usuario::BuscarPorIdBD($data['id']) !== false;
     // }
- 
-
-    
- 
- 
-   
-
-    
-
     
 }
 

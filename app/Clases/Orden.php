@@ -143,7 +143,7 @@ class Orden
     public function GuardarImagen($tmpNombre,$rutaASubir,$nombreDeArchivo)
     {
         $estado = false;
-    
+       
         if(File::MoverArchivoSubido($tmpNombre,$rutaASubir,$nombreDeArchivo))
         {
             $this->SetImagen($rutaASubir,$nombreDeArchivo);

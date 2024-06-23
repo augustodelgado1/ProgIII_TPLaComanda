@@ -34,9 +34,9 @@ class Encuesta
        
         if( $cantidadDePuntuaciones > 0 )
         {
-            $listaDePuntuaciones = $this->ObtenerListaDePuntuaciones();
-            $cantidadDeNegativas = Puntuacion::ContarPorEstado($listaDePuntuaciones,Puntuacion::ESTADO_NEGATIVO);
-            $cantidadDePositivas = Puntuacion::ContarPorEstado($listaDePuntuaciones,Puntuacion::ESTADO_POSITIVO);
+            // $listaDePuntuaciones = $this->ObtenerListaDePuntuaciones();
+            $cantidadDeNegativas = Puntuacion::CantidadDePuntuacionesDeUnaEncuestaPorEstadoBD($this->id,Puntuacion::ESTADO_NEGATIVO);
+            $cantidadDePositivas = Puntuacion::CantidadDePuntuacionesDeUnaEncuestaPorEstadoBD($this->id,Puntuacion::ESTADO_POSITIVO);
 
             if($cantidadDePositivas  >  $cantidadDeNegativas)
             {

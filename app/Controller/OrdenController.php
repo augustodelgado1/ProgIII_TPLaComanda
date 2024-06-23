@@ -19,7 +19,7 @@ class OrdenController
        
         if( $unaOrden->AgregarBD())
         {
-            $mensaje = 'la Orden se dio de alta '.
+            $mensaje = 'la Orden se dio de alta <br> '.
                         $unaOrden->ToString();
         }
         
@@ -38,9 +38,11 @@ class OrdenController
         File::CrearUnDirectorio('Imagenes/Mesa');
         $mensaje = 'No se pudo guarder la foto';
 
+        $nombreDeArchivo = $unaOrden->GetCodigo().$_FILES['imagen']['name'];
+
         if($unaOrden->GuardarImagen($_FILES['imagen']['tmp_name']
         ,"Imagenes/Mesa/",
-        $_FILES['imagen']['name']))
+        $nombreDeArchivo))
         {
             $mensaje = 'La foto se guardo correctamente ';
         }
@@ -73,7 +75,7 @@ class OrdenController
     {
         $data = $request->getParsedBody();
         $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
-        $mensaje = 'no se pudo dar de alta';
+        $mensaje = 'no se pudo borrar';
 
         if(Orden::BorrarUnoPorIdBD($unaOrden->GetId()))
         {

@@ -41,12 +41,12 @@ class MesaController
     {
         $data = $request->getParsedBody();
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
-        $mensaje = 'no se pudo dar de alta';
+        $mensaje = 'no se pudo borrar';
 
         
         if(Mesa::BorrarUnoPorIdBD($unaMesa->GetId()))
         {
-            $mensaje = 'Esta Mesa se borro correctamente <br>'. $unaMesa->ToString();
+            $mensaje = 'La Mesa se borro correctamente ';
         }
 
         $response->getBody()->write($mensaje);
@@ -298,7 +298,7 @@ class MesaController
         $data = $request->getQueryParams();
         $listaDeMesas = Mesa::FiltarMesaEncuestadas();
         // $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_POSITIVO);
-        $listaDeEncuesta = Encuesta::FiltrarPorEstadoBD(Encuesta::ESTADO_NEGATIVA);
+        $listaDeEncuesta = Encuesta::FiltrarPorEstadoBD(Encuesta::ESTADO_POSITIVO);
 
         $mensaje = "Hubo error en la funcion";
         if(isset($listaDeEncuesta))
@@ -319,11 +319,13 @@ class MesaController
     {
         $data = $request->getQueryParams();
         $listaDeMesas = Mesa::FiltarMesaEncuestadas();
-        $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_NEGATIVO);
+        // $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_NEGATIVO);
+        $listaDeEncuesta = Encuesta::FiltrarPorEstadoBD(Encuesta::ESTADO_NEGATIVA);
+
         
         if(isset($listaDeMesas))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = "No se encontraron comentarios ".Encuesta::ESTADO_NEGATIVA.'s';
             if(count($listaDeMesas) > 0)
             {
                 $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta);

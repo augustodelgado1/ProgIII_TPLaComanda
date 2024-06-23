@@ -174,15 +174,15 @@ $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas)
 	->add(new VerificarRoles(array('Empleado')));
 
 
-	$grupoDeRutas->delete('[/]',\PedidoController::class.':CancelarUnPedido')
+	$grupoDeRutas->delete('/{cancelar}',\PedidoController::class.':CancelarUnPedido')
 	->add(new ValidadorMiddleware(array(Pedido::class,'VerificarCodigo'),'el codigo ingresadado no existe'))
 	->add(new ValidarCargo(array('mozo')))
 	->add(new VerificarRoles(array('Empleado')));;
 
-	// $grupoDeRutas->delete('[/]',\PedidoController::class.':BorrarUnPedido')
-	// ->add(new ValidadorMiddleware(array(Pedido::class,'VerificarCodigo'),'el codigo ingresadado no existe'))
-	// ->add(new ValidarCargo(array('mozo')))
-	// ->add(new VerificarRoles(array('Empleado')));;
+	$grupoDeRutas->delete('[/]',\PedidoController::class.':BorrarUnPedido')
+	->add(new ValidadorMiddleware(array(Pedido::class,'VerificarCodigo'),'el codigo ingresadado no existe'))
+	->add(new ValidarCargo(array('mozo')))
+	->add(new VerificarRoles(array('Socio')));;
 
 	
 	$grupoDeRutas->get('[/]',\PedidoController::class.':Listar')
@@ -196,7 +196,7 @@ $app->group('/orden', function (RouteCollectorProxy $grupoDeRutas)
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\OrdenController::class.':CargarUno')
-	->add(new ValidadorMiddleware(array(Orden::class,'Validador'),'Debe ingresar todos los datos de la mesa'));;
+	->add(new ValidadorMiddleware(array(Orden::class,'Validador'),'Debe ingresar todos los datos de la Orden'));;
 
 	$grupoDeRutas->post('/{foto}',\OrdenController::class.':AgregarFoto')
 	->add(new ValidadorMiddleware(array(Orden::class,'ValidadorCodigo'),'el codigo ingresadado no existe'));;

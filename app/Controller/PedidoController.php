@@ -40,6 +40,45 @@ class PedidoController
         return $response;
     }
 
+    public static function ModificarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+        $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigoDePedido']);
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
+        $unTipo = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']);
+        $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipo->GetId()) ; 
+        $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
+
+        $mensaje = 'no se pudo dar modificar';
+
+        if(isset($unProducto) && Pedido::ModificarUnoBD($unPedido->GetId(),$unaOrden->GetId(),$unProducto->GetId()))
+        {
+            $mensaje = 'El Pedido se modifico correctamente';
+        }
+        
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function BorrarUno($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+        $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigoDePedido']);
+        $mensaje = 'no se pudo borrar';
+
+        if(Pedido::BorrarUnoPorIdBD($unPedido->GetId()))
+        {
+            $mensaje = 'El Pedido se borro correctamente';
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+
     public static function Listar($request, $response, array $args)
     {
         // $data = $request->getHeaders();
