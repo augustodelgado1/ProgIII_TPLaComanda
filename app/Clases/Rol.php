@@ -10,8 +10,6 @@ class Rol
 {
     private $id;
     private $descripcion;
-
-
     public function __construct($descripcion) {
         $this->descripcion = $descripcion;
     }
@@ -179,7 +177,6 @@ class Rol
           return Rol::BuscarRolPorDescripcionBD($descripcion) !== false;
       }
   
-
       public static function Validador($data)
       {
           return  Rol::ValidarDescrpcion($data['descripcion']);

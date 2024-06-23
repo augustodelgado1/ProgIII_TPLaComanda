@@ -1,5 +1,5 @@
 
-<!-- 
+
  <?php
 
 
@@ -92,4 +92,4 @@ class AutentificadorJWT
 }
 
 
-?>  -->
+?>  

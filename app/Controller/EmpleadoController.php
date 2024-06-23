@@ -35,7 +35,8 @@ class EmpleadoController
            
             if($unEmpleado->AgregarBD())
             {
-                $mensaje = 'El Empleado se dio de alta';
+                $mensaje = 'El Empleado se dio de alta: <br>'.
+                $unEmpleado->ToString();
             }
         }
 
@@ -134,7 +135,8 @@ class EmpleadoController
             $mensaje = "la lista esta vacia";
             if(count($listaFiltrada) > 0)
             {
-                $mensaje = Usuario::ToStringList($listaFiltrada);
+                $mensaje = 'Empleados:'.'<br>'.
+                Usuario::ToStringList($listaFiltrada);
             }
         }
 
@@ -158,7 +160,8 @@ class EmpleadoController
             $mensaje = "la lista esta vacia";
             if(count($listaFiltrada) > 0)
             {
-                $mensaje = Usuario::ToStringList($listaFiltrada);
+                $mensaje = 'Empleados:'.'<br>'.
+                Usuario::ToStringList($listaFiltrada);
             }
         }
 
@@ -212,7 +215,8 @@ class EmpleadoController
             $mensaje = "la lista esta vacia";
             if(count($listaDeEmpleados) > 0)
             {
-                $mensaje = Usuario::MostarCantidadDePedidos($listaDeEmpleados);
+                $mensaje = 'Empleados:'.'<br>'.
+                Usuario::MostarCantidadDePedidos($listaDeEmpleados);
             }
         }
 
@@ -263,7 +267,8 @@ class EmpleadoController
             $mensaje = "la lista esta vacia";
             if(count($listaFiltrada) > 0)
             {
-                $mensaje = Usuario::ToStringList($listaFiltrada);
+                $mensaje = 'Empleados:'.'<br>'.
+                Usuario::ToStringList($listaFiltrada);
             }
         }
 

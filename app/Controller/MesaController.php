@@ -94,26 +94,6 @@ class MesaController
 
         return $response;
     }
-    public static function SetEstadoInicial($request, $response, array $args)
-    { 
-        $data = $request->getParsedBody();
-       
-       
-        $mensaje = 'No se pudo modificar';  
-       
-       
-        $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
-       
-        if(isset($unMesa) &&  $unMesa->ModificarEstadoBD(Mesa::ESTADO_INICIAL))
-        {
-            $mensaje = 'Se modifico correctamente';  
-        }
-
-        $response->getBody()->write($mensaje);
-
-
-        return $response;
-    }
     public static function SetEstadoServirComida($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
@@ -316,7 +296,8 @@ class MesaController
     {
         $data = $request->getQueryParams();
         $listaDeMesas = Mesa::FiltarMesaEncuestadas();
-        $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_POSITIVO);
+        // $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_POSITIVO);
+        $listaDeEncuesta = Encuesta::FiltrarPorEstadoBD(Encuesta::ESTADO_NEGATIVA);
 
         $mensaje = "Hubo error en la funcion";
         if(isset($listaDeEncuesta))

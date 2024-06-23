@@ -159,14 +159,15 @@ class PedidoController
         $mensaje = 'Hubo un error  al intentar preparar un pedido';  
        
         $unPedido = Pedido::ObtenerUnoPorCodigoBD($dataBody['codigo']);
-        $horaEstimada = $dataBody['hora'];
-        $minutosEstimada = $dataBody['minutos'];
+       
         
         if(isset($unPedido) && isset($data))
         {
+            $unPedido->SetHora($dataBody['hora']);
+            $unPedido->SetMinuto($dataBody['minutos']);
             $unPedido->ModificarIdDeEmpleadoBD($data['id']);
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_INTERMEDIO);
-            $unPedido->ModificarTiempoEstimadoBD(DateInterval::createFromDateString($horaEstimada.' hours '.$minutosEstimada .' Minutes'));
+            $unPedido->ModificarTiempoEstimadoBD($unPedido->GetTiempoEstimado());
             $unPedido->ModificarTiempoDeInicioBD(new DateTime('now'));
             $mensaje = 'Se modifico Correctamente';
         }
@@ -179,7 +180,7 @@ class PedidoController
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = 'Hubo un error al intentar finalizar un Pedido';  
        
         $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigo']);
        
@@ -188,7 +189,7 @@ class PedidoController
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_FINAL);
             $unPedido->ModificarTiempoDeFinalizacionBD(new DateTime("now"));
             $unPedido->EvaluarEstadoDelTiempo();
-            $mensaje = 'Se modifico Correctamente';
+            $mensaje = 'Se finalizo Correctamente';
         }
 
         $response->getBody()->write($mensaje);

@@ -31,11 +31,11 @@ class SectorController
     {
         $data = $request->getParsedBody();
        
-        $mensaje = 'no se pudo dar modificar';
+        $mensaje = 'no se pudo modificar';
 
         if(Sector::ModificarUnoBD($data['id'],$data['descripcion']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'el Sector se modifico correctamente';
         }
         
         $response->getBody()->write($mensaje);
@@ -51,7 +51,7 @@ class SectorController
 
         if(Sector::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'el Sector se borro correctamente';
         }
 
         $response->getBody()->write($mensaje);

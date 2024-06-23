@@ -15,7 +15,8 @@ class OrdenController
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
       
         $unaOrden = new Orden($data['nombreDelCliente'],$unaMesa->GetId());
-
+        $unaMesa->ModificarEstadoBD(Mesa::ESTADO_INICIAL);
+       
         if( $unaOrden->AgregarBD())
         {
             $mensaje = 'la Orden se dio de alta '.
@@ -113,14 +114,10 @@ class OrdenController
         $data = $request->getQueryParams();
      
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
-        
         $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigo']);
-    
-        if($unaOrden->VerificarIdDeMesa($unaMesa->GetId()))
-        {
-            $mensaje = 'Usted pidio: <br><br>'.$unaOrden->ToString(); 
-        }
-
+        
+        $mensaje = 'Usted pidio: <br><br>'.$unaOrden->ToString(); 
+        
         $response->getBody()->write($mensaje);
 
         return $response;

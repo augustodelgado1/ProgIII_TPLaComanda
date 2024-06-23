@@ -75,7 +75,7 @@ class Mesa
         return  $estado;
     }
 
-    private static function BuscarMesaPorCodigoBD($codigo)
+    public static function BuscarMesaPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unMesa = false;

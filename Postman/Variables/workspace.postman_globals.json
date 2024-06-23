@@ -1,0 +1,34 @@
+{
+	"id": "ec1cebff-f125-4eaa-8dfd-f1faf6ea325e",
+	"values": [
+		{
+			"key": "JwtSocio",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTg5MTMyNjUsImRhdGEiOmZhbHNlLCJhcHAiOiJBcGkgUmVzdGF1cmFudGUifQ.8F8JQnmaQBr6EfEbq68xrLvNpO0u8wO5ezfJEq3UdMw",
+			"enabled": true
+		},
+		{
+			"key": "Mozo",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTg5MTQzMDMsImRhdGEiOmZhbHNlLCJhcHAiOiJBcGkgUmVzdGF1cmFudGUifQ.M3_zBBO2WnwtIqy39suYPNpuOK0_JS920550OVjrjgo",
+			"enabled": true
+		},
+		{
+			"key": "Batender",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTkwMDE2NDEsImRhdGEiOmZhbHNlLCJhcHAiOiJBcGkgUmVzdGF1cmFudGUifQ.rqqdX_fF9NuCAWh2BsZSYXYl1T3uFy0xAe7HHQfFMgQ",
+			"enabled": true
+		},
+		{
+			"key": "Cervecero",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTkwMDE3NjUsImRhdGEiOmZhbHNlLCJhcHAiOiJBcGkgUmVzdGF1cmFudGUifQ.4ma7zWfM7gpRSX94nHo4sAFNgXDCDvuUMfcB0x1t3Mo",
+			"enabled": true
+		},
+		{
+			"key": "Cocinero",
+			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTkwMDIwNDMsImRhdGEiOnsiaWQiOjIzLCJub21icmUiOiJmZWxpcGUiLCJkbmkiOiIxMjM0NTY3OCIsInJvbCI6IkVtcGxlYWRvIiwiY2FyZ28iOiJjb2NpbmVybyJ9LCJhcHAiOiJBcGkgUmVzdGF1cmFudGUifQ.Q_S3R9Z5pc_UQoGZx6py0_KhfyJ2h63ERtdFle6eMtk",
+			"enabled": true
+		}
+	],
+	"name": "Globals",
+	"_postman_variable_scope": "globals",
+	"_postman_exported_at": "2024-06-22T21:02:05.735Z",
+	"_postman_exported_using": "Postman/11.2.13"
+}

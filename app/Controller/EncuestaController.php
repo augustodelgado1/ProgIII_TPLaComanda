@@ -33,6 +33,7 @@ class EncuestaController
         Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Cocinero",$data['puntuacionDelCocinero']) && 
         Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Mozo",$data['puntuacionDelMozo']))
         {
+            $unaEncuesta->EvaluarEstado();
             $mensaje = 'la encuesta se relizo correctamente';
         }
 
@@ -41,21 +42,15 @@ class EncuestaController
         return $response;
     }
 
-   
-    // private $id;
-    // private $nombreDelCliente;
-    // private $idDeOrden;
-    // private $mensaje;
-    // private $estado;
     public static function ModificarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
         $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
-        $mensaje = 'no se pudo dar modificar';
+        $mensaje = 'no se pudo modificar';
 
         if(Encuesta::ModificarUnoBD($data['id'],$data['nombreDelCliente'],$unaOrden->GetId(),$data['mensaje']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'la Encuesta se modifico correctamente';
         }
         
         $response->getBody()->write($mensaje);
@@ -67,11 +62,12 @@ class EncuestaController
     {
         $data = $request->getParsedBody();
 
-        $mensaje = 'no se pudo dar de alta';
+        $mensaje = 'no se pudo borrar';
 
         if(Encuesta::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            
+            $mensaje = 'la Encuesta se borro correctamente';
         }
 
         $response->getBody()->write($mensaje);

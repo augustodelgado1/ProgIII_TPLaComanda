@@ -40,6 +40,7 @@ class Pedido
         $this->unProducto = $idDeProducto;
         $this->estado = Pedido::ESTADO_INICIAL;
         $this->fechaDelPedido = new DateTime("now");
+        $this->tiempoEstimado = new DateInterval('PT0H0M');
         $this->estadoDelTiempo = Pedido::ESTADO_TIEMPO_INDETERMINADO;
         $this->ObtenerSector();
         $this->CalcularImporteTotal();
@@ -154,6 +155,7 @@ class Pedido
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $consulta->bindValue(':tiempoEstimado',$this->GetStrTiempoEstimado(),PDO::PARAM_STR);
             $estado =$consulta->execute();
+          
         }
 
         return  $estado;
@@ -180,7 +182,7 @@ class Pedido
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
-        var_dump($tiempoInicio);
+       
         if($this->SetTiempoDeInicio($tiempoInicio))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
@@ -189,6 +191,7 @@ class Pedido
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $consulta->bindValue(':tiempoInicio',$this->GetTiempoDeInicio(),PDO::PARAM_STR);
             $estado =$consulta->execute();
+            // var_dump($estado);
         }
 
         return  $estado;
@@ -197,7 +200,7 @@ class Pedido
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = null;
-        var_dump($tiempoDeFinalizacion);
+        // var_dump($tiempoDeFinalizacion);
         if($this->SetTiempoDeFinalizacion($tiempoDeFinalizacion))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.tiempoDeFinalizacion = :tiempoDeFinalizacion where p.id = :id");
@@ -409,8 +412,7 @@ class Pedido
 
             foreach($listaDePedidos as $unPedido)
             {
-                // var_dump($unPedido->estado);
-                // var_dump($estado);
+                
                 if(strcasecmp($unPedido->estado,$estado) === 0)
                 {
                     array_push($listaFiltrada,$unPedido);
@@ -454,6 +456,7 @@ class Pedido
             $unaPedido->SetEmpleado($data['idDeEmpleado']);
             $unaPedido->Setcodigo($data['codigo']);
 
+           
             if(isset($data['tiempoEstimado']) )
             {
                 $unaPedido->SetTiempoEstimado(DateInterval::createFromDateString($data['tiempoEstimado']));
@@ -519,7 +522,6 @@ class Pedido
             $cantidad = 0;
             foreach ($listaDePedidos as $unPedidoDeLaLista) 
             {
-               
                 if($unPedidoDeLaLista->idDeSector === $idDeSector)
                 {
                     $cantidad++;
@@ -587,9 +589,32 @@ class Pedido
     public function SetTiempoEstimado($tiempoEstimado)
     {
         $estado = false;
+        // var_dump($tiempoEstimado);
         if(isset($tiempoEstimado))
         {
             $this->tiempoEstimado = $tiempoEstimado;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+    public function SetHora($horaEstimada)
+    {
+        $estado = false;
+        if(Pedido::ValidadorTiempo($horaEstimada) )
+        {
+            $this->tiempoEstimado->h = $horaEstimada;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+    public function SetMinuto($minutosEstimada)
+    {
+        $estado = false;
+        if(Pedido::ValidadorTiempo($minutosEstimada))
+        {
+            $this->tiempoEstimado->i = $minutosEstimada;
             $estado = true;
         }
 
@@ -676,23 +701,27 @@ class Pedido
     public function GetStrTiempoEstimado()
     {
         $mensaje = "No definido";
-
-        if(isset($this->tiempoEstimado) 
-        && ($this->tiempoEstimado->h > 0 || $this->tiempoEstimado->m > 0) )
+      
+       
+        if(isset($this->tiempoEstimado) && 
+        ($this->tiempoEstimado->h > 0
+        || $this->tiempoEstimado->i > 0))
         {
-            $mensaje = $this->tiempoEstimado->format('%h hours %i minutes');;
+            $mensaje = $this->tiempoEstimado->h." hours ".$this->tiempoEstimado->i." minutes"; 
+           
         }
 
         return  $mensaje;
     }
     public function GetTiempoDeInicio()
     {
-        return  $this->tiempoDeInicio->format("H:i:s");
+      
+        return  $this->tiempoDeInicio->format("Y-m-d H-i-s");
     }
 
     public function GetTiempoDeFinalizacion()
     {
-        return  $this->tiempoDeFinalizacion->format("H:i:s");
+        return  $this->tiempoDeFinalizacion->format("Y-m-d H-i-s");
     }
     public function Getcodigo()
     {
@@ -764,7 +793,7 @@ class Pedido
         {
             $this->estadoDelTiempo  = Pedido::ESTADO_TIEMPO_CUMPLIDO;
             if($diferencia->h > $this->tiempoEstimado->h 
-            || ($diferencia->h === $this->tiempoEstimado->h && $diferencia->i >  $this->tiempoEstimado->i)  )
+            || ($diferencia->i >  $this->tiempoEstimado->i)  )
             {
                 $this->estadoDelTiempo  = Pedido::ESTADO_TIEMPO_NOCUMPLIDO;
             }
@@ -790,7 +819,7 @@ class Pedido
         $this->idDeSector = null;
         if(isset($this->unProducto))
         {
-            $this->idDeSector =  $this->GetProducto()->GetTipo()->GetSector();
+            $this->idDeSector =  $this->GetProducto()->GetTipo()->GetIdSector();
         }
 
         return $this->idDeSector ;
@@ -935,23 +964,23 @@ class Pedido
 
     private static function ValidarProducto($data)
     {
-       return   Producto::VerificarPorNombre($data['tipo'],$data['nombre']);
+       return   Producto::VerificarPorNombre($data['tipoDeProducto'],$data['nombreDeProducto']);
         
     }
-    private static function VerificarCodigo($data)
+    public static function VerificarCodigo($data)
     {
-       return   Pedido::BuscarPorCodigoBD($data['codigo']) !== null;
+       return   Pedido::BuscarPorCodigoBD($data['codigo']) !== false;
         
     }
 
     public static function  ValidadorPreparacion($data)
     {
-        return Pedido::ValidadorTiempo($data['hora']) ||  
+        return Pedido::ValidadorTiempo($data['hora']) || 
                Pedido::ValidadorTiempo($data['minutos']);
     }
     private static function  ValidadorTiempo($tiempo)
     {
-        return  isset($tiempo) && $tiempo > 0;
+        return  isset($tiempo) && $tiempo > 0 && $tiempo <= 60;
     }
 
     private static function ValidarEstado($estadoDelaPedido)
@@ -962,20 +991,6 @@ class Pedido
         
     }
 
-
-    private static function ValidadorDeCargo($desripcion)
-    {
-        try 
-        {
-            $estado = Cargo::VerificarUnoPorDescripcionBD($desripcion);
-        } catch (Exception $th) {
-            $estado = false;
-        }
-       
-        return $estado;
-        
-    }
-    
     // public static function ValidarLoggin($data)
     // {
     //     return Usuario::ValidadorEmail($data['email']) && 
@@ -986,66 +1001,11 @@ class Pedido
     // {
     //     return Usuario::BuscarPorIdBD($data['id']) !== false;
     // }
-    public static function ValidarRolSocio($data)
-    {
-        $estado = false;
-        $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
-
-        if(isset($unUsuario))
-        {
-            $estado = $unUsuario['rol'] === 'Socio';
-        }
-
-        return $estado;
-    }
-    public static function ValidarRolEmpleado($data)
-    {
-        $estado = false;
-        $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
-
-        if(isset($unUsuario))
-        {
-            $estado = $unUsuario['rol'] === 'Empleado';
-        }
-
-        return $estado;
-    }
+ 
 
     
-    private static function ValidadorEmail($email)
-    {
-        $estado = false; 
-
-        if(isset($email) && isset($email) && strlen($email) >= 8)
-        {
-            $estado = true; 
-        }
-
-        
-        return $estado;
-    }
-
-    private static function ValidadorClave($clave)
-    {
-        $estado = false; 
-  
-        if(isset($clave) && isset($clave)
-        && strlen($clave) >= 8)
-        {
-            $estado = true; 
-        }
-        return $estado;
-    }
-    private static function ValidadorDni($dni)
-    {
-        $estado = false; 
-        
-        if(isset($dni) && strlen($dni) === 8 && Util::VerificarQueContengaSoloNumeros($dni))
-        {
-            $estado = true; 
-        }
-        return $estado;
-    }
+ 
+ 
    
 
     

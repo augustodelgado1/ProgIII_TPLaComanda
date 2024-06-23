@@ -15,9 +15,6 @@ class TipoDeProducto
         $this->idDeSector = $sector;
     }
 
-   
-
-
     private function SetSector($idDeSector)
     {
         $estado  = false;
@@ -233,7 +230,7 @@ class TipoDeProducto
     {
         return  $this->nombre;
     }
-    public function GetSector()
+    public function GetIdSector()
     {
         return  $this->idDeSector;
     }
@@ -242,8 +239,6 @@ class TipoDeProducto
     {
         return  $this->id;
     }
-
-    
 
     #Mostrar
     public static function ToStringList($listaDeTipoDeProductos)
@@ -264,7 +259,7 @@ class TipoDeProducto
 
     public function ToString()
     {
-        return "nombre: ".$this->nombre.'<br>';
+        return "tipo: ".$this->nombre.'<br>';
     }
         
 

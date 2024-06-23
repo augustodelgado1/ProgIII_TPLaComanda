@@ -12,11 +12,9 @@ class UsuarioController
     {
         $data = $request->getParsedBody();
         $mensaje =  json_encode(array('Error' => 'Usuario no exixtente'),JSON_PRETTY_PRINT);
-        $unUsuario = Usuario::ObtenerUnoPorLoggin($data['email'],$data['clave']);
+        $unUsuario = Usuario::BuscarPorLoggin($data['email'],$data['clave']);
             
-        if(isset($unUsuario) && $unUsuario !== false &&
-        $unUsuario['estado'] !==  Usuario::ESTADO_SUSPENDIDO 
-        && $unUsuario['estado'] !==  Usuario::ESTADO_BORRADO)
+        if(isset($unUsuario) && $unUsuario !== false)
         {
             $dataUsuario = Usuario::ObtenerUnoCompletoBD($unUsuario['id']);
             $token = AutentificadorJWT::CrearUnToken($dataUsuario);

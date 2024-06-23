@@ -63,7 +63,6 @@ class Orden
        
         if(isset($this->listaDePedidos) && count($this->listaDePedidos) > 0)
         {
-            // echo "El tiempito";
             $tiempoTotal = new DateTime('00:00');
             foreach ($this->listaDePedidos as $unPedido) {
                
@@ -344,7 +343,7 @@ class Orden
             $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-          
+             
         }
 
         return  $data;
@@ -353,30 +352,6 @@ class Orden
     {
         return  Orden::CrearUnaOrden(Orden::BuscarPorCodigoBD($codigo));
     }
-
-     
-
-    public static function VerificarIdDeMesa($codigoDeMesa)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-
-        if(isset($codigoDeMesa))
-        {
-            $consulta = $unObjetoAccesoDato->
-            RealizarConsulta("SELECT COUNT(*) as cantidad FROM Orden as o 
-            join Mesa m on m.id =  o.idDeMesa 
-            where LOWER(m.codigo) = LOWER(:codigo) and o.estado = :estado");
-            $consulta->bindValue(':codigo',$codigoDeMesa,PDO::PARAM_STR);
-            $consulta->bindValue(':estado',ORDEN::ESTADO_ACTIVO,PDO::PARAM_STR);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $estado =  $data['cantidad'] == 0;
-        }
-
-        return  $estado;
-    }
-
     public static function ListarBD()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -803,13 +778,10 @@ class Orden
     public static function Validador($data)
     {
         return  Orden::ValidarNombreDeCliente($data['nombreDelCliente']) 
-                && Orden::ValidarMesa($data['codigoDeMesa']);
+                && ($unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']))
+                && $unaMesa['estado'] === Mesa::ESTADO_CERRADO; ;
     }
       
-    private static function ValidarMesa($codigoDeMesa)
-    {
-    return Orden::VerificarIdDeMesa($codigoDeMesa);
-    }
     private static function ValidarNombreDeCliente($nombreDelCliente)
     {
     return Util::ValidadorDeNombre($nombreDelCliente) ;

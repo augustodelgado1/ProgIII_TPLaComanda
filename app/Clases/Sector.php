@@ -134,13 +134,9 @@ class Sector
 
         return   $listaFiltrada;
     }
+   
 
     #end
-
-    public function ObtenerListaDeCargos()
-    {
-        return Cargo::FiltrarPorSectorBD($this->id);
-    }
 
     public function ObtenerListaDePedidos()
     {
@@ -203,7 +199,7 @@ class Sector
             $leght = count($listaDeSectors); 
             for ($i=0; $i < $leght; $i++) { 
          
-                if($listaDeSectors[$i]->id == $id)
+                if($listaDeSectors[$i]->id === $id)
                 {
                     $index = $i;
                     break;
@@ -212,17 +208,6 @@ class Sector
         }
 
         return $index;
-    }
-
-    public function Equals($unSector)
-    {
-        $estado = false;
- 
-        if(isset($unSector))
-        {
-            $estado =  $unSector->id === $this->id;
-        }
-        return  $estado ;
     }
 
     #Setters
@@ -261,6 +246,31 @@ class Sector
         return  $this->id;
     }
 
+    public function CantidadDePedidos()
+    {
+        $cantidad = -1;
+        $listaDePedidos = $this->ObtenerListaDePedidos();
+        if(isset( $listaDePedidos))
+        {
+            $cantidad = count($listaDePedidos);
+        }
+
+        return $cantidad;
+    }
+
+    public function GetStrCantidadDeOpereaciones()
+    {
+        $mensaje = "No se realizaron operaciones";
+        $cantidad = $this->CantidadDePedidos();
+
+        if($cantidad > 0)
+        {
+            $mensaje = "Cantidad: ".$cantidad;
+        }
+
+        return  $mensaje;
+    }
+
     #Mostrar
      public static function ToStringList($listaDeSectores)
     {
@@ -278,254 +288,12 @@ class Sector
         return   $strLista;
     }
  
-
     public function ToString()
     {
-        return "Sector: ".$this->descripcion.'<br>'.
-        $this->GetStrCantidadDeOpereaciones();
+        return "Sector: ".$this->descripcion.'<br>';
     }
 
-    public function CantidadDePedidos()
-    {
-        $cantidad = -1;
-        $listaDePedidos = $this->ObtenerListaDePedidos();
-        if(isset( $listaDePedidos))
-        {
-            $cantidad = count($listaDePedidos);
-        }
-
-        return $cantidad;
-    }
-
-
-    public function GetStrCantidadDeOpereaciones()
-    {
-        $mensaje = "No se realizaron operaciones";
-        $cantidad = $this->CantidadDePedidos();
-
-        if($cantidad > 0)
-        {
-            $mensaje = "Cantidad: ".$cantidad;
-        }
-
-        return  $mensaje;
-    }
-
-    //  public static function EscribirJson($listaDeSector,$claveDeArchivo)
-    //  {
-    //      $estado = false; 
- 
-    //      if(isset($listaDeSector))
-    //      {
-    //          $estado =  Json::EscribirEnArrayJson($listaDeSector,$claveDeArchivo,JSON_PRETTY_PRINT);
-    //      }
-    //      return  $estado;
-    //  }
- 
-    //  public static function LeerJson($claveDeArchivo)
-    //  {
-    //      return Sector::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
-    //  }
- 
-    //  private static function DeserializarListaJson($listaDeArrayAsosiativos)
-    //  {
-    //      $listaDeSector = null; 
-    //      $unSector = null;
-    //      if(isset($listaDeArrayAsosiativos))
-    //      {
-    //          $listaDeSector = [];
- 
-    //          foreach($listaDeArrayAsosiativos as $unArrayAsosiativo)
-    //          {
-    //              $unSector = Sector::DeserializarUnSectorPorArrayAsosiativo($unArrayAsosiativo);
-    //              if(isset($unSector))
-    //              {
-    //                  array_push($listaDeSector,$unSector);
-    //              }
-                 
-    //          }
-    //      }
- 
-    //      return  $listaDeSector ;
-    //  }
-
-    
-
-
-    // public function SetCuponDeDescuento($cuponDeDescuento)
-    // {
-    //     $estado = false;
-    //     if(isset($cuponDeDescuento))
-    //     {
-    //         $this->cuponDeDescuento = $cuponDeDescuento;
-    //         $estado = true;
-    //     }
-
-    //     return  $estado ;
-    // }
-
-    // public function GetCuponDeDescuento()
-    // {
-    //     return  $this->cuponDeDescuento;
-    // }
-
-    
-   
-
-
-   
-
-    // public static function CompararPorclave($unSector,$otroSector)
-    // {
-    //     $retorno = 0;
-    //     $comparacion = strcmp($unSector->clave,$otroSector->clave);
-
-    //     if( $comparacion  > 0)
-    //     {
-    //         $retorno = 1;
-    //     }else{
-
-    //         if( $comparacion < 0)
-    //         {
-    //             $retorno = -1;
-    //         }
-    //     }
-
-    //     return $retorno ;
-    // }
-
-    // public static function BuscarSectorPorId($listaDeSector,$id)
-    // {
-    //     $unaSectorABuscar = null; 
-
-    //     if(isset($listaDeSector) )
-    //     {
-    //         foreach($listaDeSector as $unaSector)
-    //         {
-    //             if($unaSector->id == $id)
-    //             {
-    //                 $unaSectorABuscar = $unaSector; 
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     return  $unaSectorABuscar;
-    // }
-
-    // public function __construct($mail,$unProducto,$clave,$unSector,$ruta = null,$claveDeLaImagen = null) {
-    //     $this->clave = $clave;
-    //     $this->unSector = $unSector;
-    //     $this->mail = $mail;
-    //     $this->unProducto = $unProducto;
-    //     $this->fechaDeRegistro = date("Y-m-d");
-    //     $this->SetId(Sector::ObtenerIdAutoIncremental());
-    //     $this->SetImagen($ruta,$claveDeLaImagen);
-    // }
-    
-   
-
-   
-    
-
-
-    // public function CambiarRutaDeLaImagen($nuevaRuta)
-    // {
-    //     $estado = false;
-
-    //     if(rename($this->rutaDeLaImagen.$this->claveDeLaImagen,$nuevaRuta.$this->claveDeLaImagen))
-    //     {
-    //         $this->rutaDeLaImagen = $nuevaRuta;
-    //         $estado = true;
-    //     }
-
-    //     return $estado;
-    // }
-
-   
-
-    // public static function BuscarSectorPorId($listaDeSectors,$id)
-    // {
-    //     $unaSectorABuscar = null; 
-
-    //     if(isset($listaDeSectors)  
-    //     && isset($id) )
-    //     {
-    //         foreach($listaDeSectors as $unaSector)
-    //         {
-    //             if($unaSector->id == $id)
-    //             {
-    //                 $unaSectorABuscar = $unaSector; 
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     return  $unaSectorABuscar;
-    // }
   
-    // public static function ToStringList($listaDeSectors)
-    // {
-    //     $strLista = null; 
-
-    //     if(isset($listaDeSectors) )
-    //     {
-    //         foreach($listaDeSectors as $unaSector)
-    //         {
-    //             $strLista = $unaSector->ToString().'<br>';
-    //         }
-    //     }
-
-    //     return   $strLista;
-    // }
-
-//Filtrar
-
-    // public static function FiltrarPizzaPorTipo($listaDePizzas,$tipo)
-    // {
-    //     $listaDeTipoDePizza = null;
-
-    //     if(isset($listaDePizzas) && isset($tipo) && count($listaDePizzas) > 0)
-    //     {
-    //         $listaDeTipoDePizza =  [];
-
-    //         foreach($listaDePizzas as $unaPizza)
-    //         {
-    //             if($unaPizza->tipo == $tipo)
-    //             {
-    //                 array_push($listaDeTipoDePizza,$unaPizza);
-    //             }
-    //         }
-    //     }
-
-    //     return  $listaDeTipoDePizza;
-    // }
-
-
-     //  //Contar
- 
-    //  public static function ContarPorUnaFecha($listaDeSector,$fecha)
-    //  {
-    //      $filtraPorUnaFecha = null;
-    //      $cantidad = -1;
- 
-    //      if(isset($listaDeSector) && isset($fecha))
-    //      {
-    //          $cantidad = 0;
- 
-    //          foreach($listaDeSector as $unaSector)
-    //          {
-    //              if($unaSector::$fechaDeSector == $fecha)
-    //              {
-    //                  $cantidad++;
-    //              }
-    //          }
-    //      }
- 
-    //      return  $filtraPorUnaFecha;
-    //  }
-
-   
 }
 
 

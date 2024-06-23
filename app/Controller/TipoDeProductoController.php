@@ -14,15 +14,13 @@ class TipoDeProductoController
         $mensaje = 'Hubo un error con los parametros al intentar dar de alta un TipoDeProducto';
         $unSector = Sector::BuscarPorDescripcionBD($data['sector']) ;   
         
-
-        
-        if(isset($data) && isset($unSector))
+        if(isset($unSector))
         {
             $mensaje = 'no se pudo dar de alta';
             $unTipoDeProducto = new TipoDeProducto($data['nombre'],$unSector->GetId());
             if($unTipoDeProducto->AgregarBD())
             {
-                $mensaje = 'El Tipo De Producto se dio de alta';
+                $mensaje = 'El Tipo De Producto se dio de alta <br>'. $unTipoDeProducto->ToString();
             }
         }
 
@@ -37,11 +35,12 @@ class TipoDeProductoController
     {
         $data = $request->getParsedBody();
        
-        $mensaje = 'no se pudo dar modificar';
+        $mensaje = 'no se pudo modificar';
 
         if(TipoDeProducto::ModificarUnoBD($data['id'],$data['descripcion'],$data['idDeSector']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'El Tipo De Producto se modifico correctamente';
+           
         }
         
         $response->getBody()->write($mensaje);
@@ -53,11 +52,11 @@ class TipoDeProductoController
     {
         $data = $request->getParsedBody();
 
-        $mensaje = 'no se pudo dar de alta';
+        $mensaje = 'no se pudo borrar';
 
         if(TipoDeProducto::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'el Tipo De Producto se borro correctamente';
         }
 
         $response->getBody()->write($mensaje);

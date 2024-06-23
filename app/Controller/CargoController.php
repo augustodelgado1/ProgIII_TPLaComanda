@@ -21,7 +21,8 @@ class CargoController
             
             if($unCargo->AgregarBD())
             {
-                $mensaje = 'un Cargo se dio de alta';
+                $mensaje = 'un Cargo se dio de alta <br>'.
+                $unCargo->ToString();
             }
         }
 

@@ -13,9 +13,6 @@ class Producto implements IFileManejadorCSV
     private $tipoDeProducto;
     private $precio;
 
-   
-
-   
     public function __construct($nombre,$tipoDeProducto,$precio) 
     {
         $this->nombre = $nombre;
@@ -55,7 +52,7 @@ class Producto implements IFileManejadorCSV
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
        
-        if(isset($unObjetoAccesoDato))
+        if(isset($nombre) && isset($tipoDeProducto) && isset($precio))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Producto as p
             SET `nombre`= :nombre,
@@ -77,7 +74,7 @@ class Producto implements IFileManejadorCSV
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
         
-        if(isset($unObjetoAccesoDato))
+        if(isset($idDeProducto))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Producto as p where p.id = :id");
             $consulta->bindValue(':id',$idDeProducto,PDO::PARAM_INT);
@@ -91,7 +88,7 @@ class Producto implements IFileManejadorCSV
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeProductos = null;
       
-        if(isset($unObjetoAccesoDato))
+        if(isset($tipo))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Producto as p where p.idDeTipo = :tipo");
             $consulta->bindValue(':tipo',$tipo);
@@ -172,23 +169,24 @@ class Producto implements IFileManejadorCSV
     public static function BuscarPorNombreTipoBD($nombre,$tipoDeProducto)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unSector = null;
+        $unProducto = false;
 
         if(isset($unObjetoAccesoDato))
         {
+          
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Producto 
             as p 
             JOIN TipoDeProducto t ON t.id = p.idDeTipo  
-            where LOWER(p.nombre) = LOWER(:nombre) and LOWER(t.descripcion) = LOWER(:tipoDeProducto) ");
+            where LOWER(p.nombre) = LOWER(:nombre) and LOWER(t.nombre) = LOWER(:tipoDeProducto) ");
             $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
             $consulta->bindValue(':tipoDeProducto',$tipoDeProducto,PDO::PARAM_STR);
             $consulta->execute();
-            $unSector = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unProducto = Producto::CrearUnProducto($consulta->fetch(PDo::FETCH_ASSOC));
-         
+            $unProducto = $consulta->fetch(PDO::FETCH_ASSOC);
+          
+           
         }
 
-        return  $unSector;
+        return  $unProducto;
     }
 
     public static function BuscarPorNombre($listaDeProductos,$nombre)
@@ -266,7 +264,7 @@ class Producto implements IFileManejadorCSV
     protected function SetPrecio($precio)
     {
         $estado = false;
-        if(isset($precio) && $precio > 0)
+        if(Producto::ValidadorPrecio($precio))
         {
             $this->precio = $precio;
             $estado = true;
@@ -349,19 +347,6 @@ class Producto implements IFileManejadorCSV
 
         return   $listaDeProductos;
     }
-
-    // private static function DeserializarUnoCsv($data)
-    // {
-    //     $unProducto = null;
-        
-    //     if(isset($data))
-    //     {
-    //         $unProducto = new Producto($data[1],$data[2],$data[3]);
-    //         $unProducto->SetId($data[0]);
-    //     }
-
-    //     return   $unProducto;
-    // }
     private static function DeserializarListaCsv($listaDeRenglones)
     {
         $listaDeProductos = null;
@@ -395,9 +380,9 @@ class Producto implements IFileManejadorCSV
     {
         return Producto::BuscarProductoPorIdBD($data['id']) !== false;
     }
-    private static function ValidadorPrecio($data)
+    private static function ValidadorPrecio($precio)
     {
-        return  isset($data['precio']) && $data['precio'] > 0;
+        return  isset($precio) && $precio > 0;
     }
 
     public static function ValidarTipo($descripcion)

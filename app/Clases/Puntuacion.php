@@ -113,35 +113,14 @@ class Puntuacion
 
         if(isset($unObjetoAccesoDato) && isset($idDeEncuesta))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalPedidos FROM Puntuacion as p where p.idDeEncuesta = :idDeEncuesta");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalDePuntaciones FROM Puntuacion as p where p.idDeEncuesta = :idDeEncuesta");
             $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $cantidadTotal =  $data['totalPedidos'];
+            $cantidadTotal =  $data['totalDePuntaciones'];
         }
 
         return  $cantidadTotal;
-    }
-
-  
-    public static function FiltrarPordescripcionBD($listaDePuntuaciones,$descripcion)
-    {
-        $listaFiltrada = null;
-
-        if(isset($listaDePuntuaciones) && isset($descripcion) && count($listaDePuntuaciones) > 0)
-        {
-            $listaFiltrada =  [];
-
-            foreach($listaDePuntuaciones as $unaPuntuacion)
-            {
-                if(strcasecmp($unaPuntuacion->descripcion,$descripcion) == 0)
-                {
-                    array_push($listaFiltrada,$unaPuntuacion);
-                }
-            }
-        }
-
-        return  $listaFiltrada;
     }
 
     public static function FiltrarPorEstado($listaDePuntuaciones,$estado)
@@ -162,6 +141,25 @@ class Puntuacion
         }
 
         return  $listaFiltrada;
+    }
+    public static function ContarPorEstado($listaDePuntuaciones,$estado)
+    {
+        $cantidad = -1;
+
+        if(isset($listaDePuntuaciones) && isset($estado))
+        {
+            $cantidad = 0;
+
+            foreach($listaDePuntuaciones as $unaPuntuacion)
+            {
+                if(strcasecmp($unaPuntuacion->estado,$estado) === 0)
+                {
+                    $cantidad++;
+                }
+            }
+        }
+
+        return  $cantidad;
     }
 
     #end

@@ -3,7 +3,6 @@
 <?php
 
 require_once './db/AccesoDatos.php';
-
 require_once 'Sector.php';
 
 class Cargo 
@@ -19,19 +18,15 @@ class Cargo
     }
     public function AgregarBD()
     {
-        $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         $idDeEncuesta = null;
-        if(isset($objAccesoDatos))
-        {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Cargo (descripcion,idDeSector) 
-            values (:descripcion,:idDeSector)");
-            $consulta->bindValue(':descripcion',$this->descripcion,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
-            $consulta->execute();
-            $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
-        }
-
+        $consulta = $objAccesoDatos->RealizarConsulta("Insert into Cargo (descripcion,idDeSector) 
+        values (:descripcion,:idDeSector)");
+        $consulta->bindValue(':descripcion',$this->descripcion,PDO::PARAM_STR);
+        $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
+        $consulta->execute();
+        $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
+        
         return $idDeEncuesta;
     }
 
@@ -100,7 +95,7 @@ class Cargo
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unRol = null;
 
-        if(isset($unObjetoAccesoDato) && isset($id))
+        if(isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Cargo as c where c.idDeSector = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
@@ -192,18 +187,6 @@ class Cargo
 
         return   $listaDeRoles;
     }
-
-    public function Equals($unCargo)
-    {
-        $estado = false;
- 
-        if(isset($unCargo))
-        {
-            $estado =  $unCargo->id === $this->id;
-        }
-        return  $estado ;
-    }
-
     //Setters
     private function SetId($id)
     {
@@ -243,6 +226,13 @@ class Cargo
     public function GetSector()
     {
         return   Sector::BuscarSectorPorIdBD($this->idDeSector);
+    }
+
+    
+    public function ToString()
+    {
+        return "Cargo: ".$this->descripcion.'<br>'.
+                $this->GetSector()->ToString();
     }
 
    

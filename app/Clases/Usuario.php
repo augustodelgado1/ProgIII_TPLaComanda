@@ -50,6 +50,16 @@ class Usuario
         
         return $unUsuario ;
     }
+    public function ObtenerListaDePedidos()
+    {
+        $listaDePedidos = null;
+
+        if($this->GetRolDeUsuario()->GetDescripcion()  === 'Empleado')
+        {
+            $listaDePedidos = Pedido::FiltrarPorIdDeEmpleadoBD($this->id);
+        }
+        return  $listaDePedidos ;
+    }
 
     private static function CrearLista($data)
     {
@@ -129,29 +139,30 @@ class Usuario
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($cargo))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Usuario` SET cargo = :cargo Where id=:id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Usuario` 
+            SET idDeCargo = :cargo Where id=:id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
-            $consulta->bindValue(':cargo',$cargo,PDO::PARAM_STR);
+            $consulta->bindValue(':cargo',$cargo,PDO::PARAM_INT);
             $estado= $consulta->execute();
         }
 
         return  $estado;
     }
 
-    protected static function ModificarEstadoBD($id,$estado)
+    private static function ModificarEstadoBD($id,$estadoDeUsuario)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estadoDeLaFuncion = false;
 
-        if(isset($estado) )
+        if(Usuario::ValidarEstado($estadoDeUsuario))
         {
             // var_dump($estado);
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Usuario` 
             SET estado = :estado Where id=:id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta->bindValue(':estado',$estadoDeUsuario,PDO::PARAM_STR);
             $estadoDeLaFuncion= $consulta->execute();
         }
 
@@ -519,15 +530,21 @@ class Usuario
     protected function SetEstado($estadoDeUsuario)
     {
         $estado = false;
-        $array = array(Usuario::ESTADO_ACTIVO,Usuario::ESTADO_BORRADO,Usuario::ESTADO_SUSPENDIDO);
 
-        if(isset($estado) && in_array($estadoDeUsuario,$array))
+        if(Usuario::ValidarEstado($estadoDeUsuario))
         {
             $this->estado = $estadoDeUsuario;
             $estado = true;
         }
 
         return  $estado ;
+    }
+
+    private static function ValidarEstado($estadoDeUsuario)
+    {
+        $array = array(Usuario::ESTADO_ACTIVO,Usuario::ESTADO_BORRADO,Usuario::ESTADO_SUSPENDIDO);
+
+        return isset($estadoDeUsuario) && in_array($estadoDeUsuario,$array);
     }
     
 
@@ -572,16 +589,15 @@ class Usuario
        
         return  $this->nombre." ".$this->apellido;
     }
-
-    public static function ObtenerUnoPorLoggin($email,$clave)
+    public static function BuscarPorLoggin($email,$clave)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $data = null;
 
-        if(isset($unObjetoAccesoDato) && isset($email) && isset($clave))
+        if(isset($email) && isset($clave))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Usuario as u 
-            where LOWER(u.email) = LOWER(:email) and LOWER(u.clave) = LOWER(:clave)");
+            where LOWER(u.email) = LOWER(:email) and u.clave = :clave");
             $consulta->bindValue(':email',$email,PDO::PARAM_STR);
             $consulta->bindValue(':clave',$clave,PDO::PARAM_STR);
             $consulta->execute();
@@ -592,7 +608,7 @@ class Usuario
     }
     public static function Validador($data)
     {
-        return     Usuario::ValidadorEmail($data['email']) 
+        return  isset($data) && Usuario::ValidadorEmail($data['email']) 
                 && Usuario::ValidadorClave($data['clave'])
                 && Util::ValidadorDeNombre($data['nombre'])
                 && Util::ValidadorDeNombre($data['apellido'])
@@ -608,15 +624,16 @@ class Usuario
         } catch (Exception $th) {
             $estado = false;
         }
-       
+
         return $estado;
-        
     }
     
     public static function ValidarLoggin($data)
     {
         return Usuario::ValidadorEmail($data['email']) && 
-        Usuario::ValidadorClave($data['clave']);
+        Usuario::ValidadorClave($data['clave']) &&
+        ($unUsuario = Usuario::BuscarPorLoggin($data['email'],$data['clave'])) !== false
+        && $unUsuario['estado'] === Usuario::ESTADO_ACTIVO;
     }
 
     public static function VerificarUno($data)
@@ -640,10 +657,13 @@ class Usuario
         $estado = false;
         $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
 
-        if(isset($unUsuario))
+        if(isset($unUsuario) && $unUsuario !== false)
         {
-            $estado = $unUsuario['rol'] === 'Empleado';
+
+            $estado = strcasecmp($unUsuario['rol'],'Empleado') === 0;
         }
+
+    
 
         return $estado;
     }
@@ -655,6 +675,7 @@ class Usuario
 
         if(isset($email) && isset($email) && strlen($email) >= 8)
         {
+
             $estado = true; 
         }
 
@@ -671,6 +692,8 @@ class Usuario
         {
             $estado = true; 
         }
+
+       
         return $estado;
     }
     private static function ValidadorDni($dni)
@@ -681,6 +704,8 @@ class Usuario
         {
             $estado = true; 
         }
+
+        
         return $estado;
     }
    

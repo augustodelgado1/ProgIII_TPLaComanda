@@ -8,17 +8,13 @@ class PuntuacionController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Sector';
-        if(isset($data))
+        $mensaje = 'Hubo un error con los parametros al intentar dar de alta una puntuacion';
+    
+        if(Puntuacion::DarDeAltaUnPuntuacion($data['idDeEncuesta'],$data['descripcion'],$data['puntuacion']))
         {
-            $mensaje = 'no se pudo dar de alta';
-           
-
-            if(Puntuacion::DarDeAltaUnPuntuacion($data['idDeEncuesta'],$data['descripcion'],$data['puntuacion']))
-            {
-                $mensaje = 'El Sector se dio de alta';
-            }
+            $mensaje = 'la puntuacion se dio de alta';
         }
+        
 
         $response->getBody()->write($mensaje);
         return $response;
@@ -33,7 +29,7 @@ class PuntuacionController
 
         if(Puntuacion::ModificarUnoBD($data['id'],$data['descripcion'],$data['puntuacion'],$data['idDeEncuesta']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'la puntuacion se modifico correctamente';
         }
         
         $response->getBody()->write($mensaje);
@@ -45,11 +41,11 @@ class PuntuacionController
     {
         $data = $request->getParsedBody();
 
-        $mensaje = 'no se pudo dar de alta';
+        $mensaje = 'no se pudo borrar';
 
         if(Puntuacion::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Socio se registro correctamente';
+            $mensaje = 'la puntuacion se borro correctamente';
         }
 
         $response->getBody()->write($mensaje);

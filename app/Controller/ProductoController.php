@@ -62,7 +62,7 @@ class ProductoController
         $data = $request->getQueryParams();
         
         $mensaje = 'Hubo un error  al intentar listar los Productos';
-        $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorNombreBD($data['unTipoDeProducto']) ;         
+        $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipo']) ;         
         
         $listaDeProductos = Producto::FiltrarPorTipoDeProductoBD($unTipoDeProducto);
 
