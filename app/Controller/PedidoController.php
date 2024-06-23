@@ -225,11 +225,14 @@ class PedidoController
         // $listaDePedidos = Pedido::FiltrarPorFechaDePedidoBD($data['fechaIngresada']);
         $listaDeProducto = Producto::ObtenerListaBD();
 
-        $unPedido = Pedido::BuscarElPedidoMasVendido($listaDeProducto, $listaDePedidos );
-       
+        $cantidad = Pedido::BuscarElPedidoMasVendido($listaDeProducto, $listaDePedidos );
+        $unPedido =  Pedido::BuscarPorCantidad($listaDePedidos,$cantidad);
+        
         if(isset($unPedido))
         {
-            $mensaje = "El Pedido mas Vendido es ".$unPedido->ToString();
+            $mensaje = "El Pedido mas Vendido es ".
+            $unPedido->ToString().
+            "<br> Y La Cantidad es " .$cantidad;
         }
 
         $response->getBody()->write($mensaje);
@@ -244,13 +247,14 @@ class PedidoController
         $mensaje = 'Hubo un error al intentar obtener el mas vendido ';  
       
         $listaDePedidos = Pedido::ObtenerListaBD();
-        // $listaDePedidos = Pedido::FiltrarPorFechaDePedidoBD($data['fechaIngresada']);
         $listaDeProducto = Producto::ObtenerListaBD();
-        $unPedido = Pedido::BuscarElPedidoMasVendido($listaDeProducto, $listaDePedidos );
+        // $listaDePedidos = Pedido::FiltrarPorFechaDePedidoBD($data['fechaIngresada']);
+        $cantidad = Pedido::BuscarElPedidoMenosVendido($listaDeProducto, $listaDePedidos );
+        $unPedido =  Pedido::BuscarPorCantidad($listaDePedidos,$cantidad);
 
         if(isset($unPedido))
         {
-            $cantidad = Pedido::ContarProductosVendidos($listaDePedidos ,$unPedido->GetProducto());
+           
             $mensaje = "El Pedido mas Vendido es ".$unPedido->ToString(). "<br> y la cantidad es ".$cantidad;
         }
 

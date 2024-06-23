@@ -26,7 +26,7 @@ class Cargo
         $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
         $consulta->execute();
         $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
-        
+
         return $idDeEncuesta;
     }
 
@@ -55,9 +55,9 @@ class Cargo
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
         
-        if(isset($unObjetoAccesoDato))
+        if(isset($id))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Cargo as c where c.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Cargo where id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }

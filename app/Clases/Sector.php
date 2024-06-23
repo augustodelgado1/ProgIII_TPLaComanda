@@ -34,11 +34,9 @@ class Sector
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
        
-        if(isset($unObjetoAccesoDato) )
+        if(isset($descripcion) && isset($id))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Sector as s
-            SET `descripcion`= :descripcion,
-            Where s.id=:id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE `Sector` SET descripcion = :descripcion WHERE id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $estado = $consulta->execute();
@@ -54,7 +52,7 @@ class Sector
         
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Sector as s where s.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Sector where id = :id");
             $consulta->bindValue(':id',$idDeSector,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }

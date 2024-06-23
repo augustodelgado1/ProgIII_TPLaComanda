@@ -268,6 +268,12 @@ class Puntuacion
                "Puntaje: ".$this->puntuacion.'<br>';
     }
 
+    public static function ValidarUnaPuntacion($unaPuntuacion)
+    {
+        return   isset($unaPuntuacion) && $unaPuntuacion > 0 && $unaPuntuacion < 11;
+    }
+      
+
     //  public static function EscribirJson($listaDePuntuacion,$claveDeArchivo)
     //  {
     //      $estado = false; 

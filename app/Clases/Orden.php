@@ -794,7 +794,7 @@ class Orden
     }
     public static function ValidadorCodigo($data)
     {
-        return  Orden::VerificarUnoPorCodigo($data['codigo']);
+        return  Orden::VerificarUnoPorCodigo($data['codigoDeOrden']);
     }
   
       private static function ValidadorEstado($estadoDelaOrden)

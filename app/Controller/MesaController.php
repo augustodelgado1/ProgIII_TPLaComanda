@@ -43,9 +43,10 @@ class MesaController
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
         $mensaje = 'no se pudo dar de alta';
 
+        
         if(Mesa::BorrarUnoPorIdBD($unaMesa->GetId()))
         {
-            $mensaje = 'El Mesa se borro correctamente';
+            $mensaje = 'Esta Mesa se borro correctamente <br>'. $unaMesa->ToString();
         }
 
         $response->getBody()->write($mensaje);
@@ -81,12 +82,12 @@ class MesaController
         $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
         $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
        
-        if(isset($unMesa))
+        if(isset($unMesa) && isset($unaOrden))
         {
             $unMesa->ModificarEstadoBD(Mesa::ESTADO_CERRADO);
             $unaOrden->ModificarEstadoBD(Orden::ESTADO_INACTIVO);
             $unaOrden->ActualizarImporte();
-            $mensaje = 'Se modifico correctamente';  
+            $mensaje = 'Se modifico correctamente <br>'.$unMesa->ToString();  
         }
 
         $response->getBody()->write($mensaje);
@@ -104,7 +105,7 @@ class MesaController
        
         if(isset($unMesa) && $unMesa->ModificarEstadoBD(Mesa::ESTADO_INTERMEDIO))
         {
-            $mensaje = 'Se modifico correctamente';  
+            $mensaje = 'Se modifico correctamente <br>'.$unMesa->ToString();  
         }
 
         $response->getBody()->write($mensaje);
@@ -120,9 +121,9 @@ class MesaController
        
         $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
        
-        if(isset($unMesa) && $unMesa->ModificarEstadoBD(Mesa::ESTADO_FINAL) == true)
+        if(isset($unMesa) && $unMesa->ModificarEstadoBD(Mesa::ESTADO_FINAL))
         {
-            $mensaje = 'Se modifico correctamente';  
+            $mensaje = 'Se modifico correctamente <br>'.$unMesa->ToString();  
         }
 
         $response->getBody()->write($mensaje);

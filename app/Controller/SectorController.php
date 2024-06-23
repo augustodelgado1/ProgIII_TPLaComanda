@@ -19,7 +19,7 @@ class SectorController
 
             if($unSector->AgregarBD())
             {
-                $mensaje = 'El Sector se dio de alta';
+                $mensaje = 'El Sector se dio de alta <br>'.$unSector->ToString();
             }
         }
 

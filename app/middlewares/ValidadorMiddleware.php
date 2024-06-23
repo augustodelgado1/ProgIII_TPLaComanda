@@ -33,8 +33,8 @@ class ValidadorMiddleware
             }
         }
         else{
-            var_dump($this->funcValidador);
-            echo "Entotttttttt";
+            // var_dump($this->funcValidador);
+            // echo "Entotttttttt";
         }
         
 

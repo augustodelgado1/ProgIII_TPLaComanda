@@ -45,7 +45,7 @@ class Mesa
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
        
-        if(isset($unObjetoAccesoDato))
+        if(isset($id) && isset($codigo) && isset($estado))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Mesa as m
             SET `codigo`= :codigo,
@@ -64,10 +64,10 @@ class Mesa
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
-        
-        if(isset($unObjetoAccesoDato))
+       
+        if(isset($id))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Mesa as m where m.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Mesa where id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
@@ -159,8 +159,9 @@ class Mesa
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
 
-        if(isset($unObjetoAccesoDato) && Mesa::ValidadorEstado($estadoDeLaMesa))
+        if($this->SetEstado($estadoDeLaMesa))
         {
+            
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Mesa 
             as m SET estado = :estado where m.id = :id");
             $consulta->bindValue(':estado',$estadoDeLaMesa,PDO::PARAM_STR);
@@ -461,7 +462,7 @@ class Mesa
     {
         $array = array(Mesa::ESTADO_INICIAL,Mesa::ESTADO_INTERMEDIO,Mesa::ESTADO_FINAL,Mesa::ESTADO_CERRADO);
 
-        return  isset($estado) && in_array($estadoDelaMesa,$array);
+        return  isset($estadoDelaMesa) && in_array($estadoDelaMesa,$array);
     }
     public static function VerificarUnoPorCodigo($codigo)
     {

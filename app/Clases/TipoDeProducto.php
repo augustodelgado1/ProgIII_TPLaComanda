@@ -67,7 +67,7 @@ class TipoDeProducto
         
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM TipoDeProducto as t where t.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM TipoDeProducto where id = :id");
             $consulta->bindValue(':id',$idDeTipoDeProducto,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }

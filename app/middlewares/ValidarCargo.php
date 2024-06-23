@@ -17,7 +17,8 @@ class ValidarCargo
         $token = trim(explode("Bearer", $header)[1]);
         $data = (array) AutentificadorJWT::ObtenerData($token);
         
-        // var_dump($data["cargo"]);
+
+        // var_dump($data);
         $response = new Response();
 
         if(isset($data)  && in_array($data["cargo"], $this->listaDeCargos))

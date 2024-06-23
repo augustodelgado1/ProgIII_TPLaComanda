@@ -52,7 +52,7 @@ class Producto implements IFileManejadorCSV
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
        
-        if(isset($nombre) && isset($tipoDeProducto) && isset($precio))
+        if(isset($nombre) && isset($tipoDeProducto) && isset($precio) && isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Producto as p
             SET `nombre`= :nombre,
@@ -76,7 +76,7 @@ class Producto implements IFileManejadorCSV
         
         if(isset($idDeProducto))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Producto as p where p.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Producto where id = :id");
             $consulta->bindValue(':id',$idDeProducto,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }

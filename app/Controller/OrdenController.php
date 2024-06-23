@@ -33,7 +33,7 @@ class OrdenController
     public static function AgregarFoto($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $unaOrden = Orden::BuscarOrdenPorIdBD($data['codigo']);
+        $unaOrden = Orden::BuscarOrdenPorIdBD($data['codigoDeOrden']);
         File::CrearUnDirectorio('Imagenes');
         File::CrearUnDirectorio('Imagenes/Mesa');
         $mensaje = 'No se pudo guarder la foto';
@@ -114,8 +114,8 @@ class OrdenController
         $data = $request->getQueryParams();
      
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
-        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigo']);
-        
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
+
         $mensaje = 'Usted pidio: <br><br>'.$unaOrden->ToString(); 
         
         $response->getBody()->write($mensaje);

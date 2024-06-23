@@ -25,6 +25,8 @@ class Encuesta
         $this->EvaluarEstado();
     }
 
+    
+
     private  function EvaluarEstado()
     {
         $this->estado = Encuesta::ESTADO_INTERMEDIO;
@@ -89,16 +91,21 @@ class Encuesta
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
-        $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Encuesta as e
-        SET `nombreDelCliente`= :nombreDelCliente,
-        `mensaje`= :mensaje,
-        `idDeOrden`= :idDeOrden,
-        Where e.id=:id");
-        $consulta->bindValue(':id',$id,PDO::PARAM_INT);
-        $consulta->bindValue(':nombreDelCliente',$nombreDelCliente,PDO::PARAM_STR);
-        $consulta->bindValue(':mensaje',$mensaje,PDO::PARAM_STR);
-        $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
-        $estado = $consulta->execute();
+
+        if(isset($nombreDelCliente) && isset($mensaje) && isset($idDeOrden) && isset($id))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Encuesta as e
+            SET `nombreDelCliente`= :nombreDelCliente,
+            `mensaje`= :mensaje,
+            `idDeOrden`= :idDeOrden,
+            Where e.id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':nombreDelCliente',$nombreDelCliente,PDO::PARAM_STR);
+            $consulta->bindValue(':mensaje',$mensaje,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
+        
 
         return  $estado;
     }
@@ -118,11 +125,14 @@ class Encuesta
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unEncuesta = false;
-        $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta as e where e.id = :idDeEncuesta");
-        $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
-        $consulta->execute();
-        $unEncuesta = $consulta->fetch(PDO::FETCH_ASSOC);
-        
+
+        if(isset($idDeEncuesta))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta as e where e.id = :idDeEncuesta");
+            $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
+            $consulta->execute();
+            $unEncuesta = $consulta->fetch(PDO::FETCH_ASSOC);
+        }
 
         return  $unEncuesta;
     }
@@ -135,11 +145,14 @@ class Encuesta
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeEncuestas = null;
-        $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta as e where e.idDeOrden = :idDeOrden");
-        $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
-        $consulta->execute();
-        $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
-          
+
+        if(isset($idDeOrden))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta as e where e.idDeOrden = :idDeOrden");
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $consulta->execute();
+            $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
+        }
 
         return  $listaDeEncuestas;
     }
@@ -164,7 +177,7 @@ class Encuesta
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeEncuestas = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($descripcion))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombreDelCliente,e.mensaje,e.idDeOrden,e.estado FROM Encuesta e
             JOIN Puntuacion p ON p.idDeEncuesta = e.id WHERE LOWER(p.descripcion) = LOWER(:descripcion) AND LOWER(p.estado) = LOWER(:estado)");
@@ -183,14 +196,11 @@ class Encuesta
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeEncuestaes = null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta");
-            $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $listaDeEncuestaes = Encuesta::CrearLista($data);
-        }
+        $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Encuesta");
+        $consulta->execute();
+        $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+        $listaDeEncuestaes = Encuesta::CrearLista($data);
+        
 
         return  $listaDeEncuestaes;
     }
@@ -237,11 +247,9 @@ class Encuesta
      public static function ObtenerIndicePorId($listaDeEncuestas,$id)
     {
         $index = -1;
-       
       
         if(isset($listaDeEncuestas)  && isset($id))
         {
-            
             $leght = count($listaDeEncuestas); 
             for ($i=0; $i < $leght; $i++) { 
          
@@ -254,17 +262,6 @@ class Encuesta
         }
 
         return $index;
-    }
-
-    public function Equals($unEncuesta)
-    {
-        $estado = false;
- 
-        if(isset($unEncuesta))
-        {
-            $estado =  $unEncuesta->id === $this->id;
-        }
-        return  $estado ;
     }
 
     #Setters
@@ -314,12 +311,13 @@ class Encuesta
 
     public static function ValidadorAlta($data)
     {
-        return  Encuesta::ValidadorModificacion($data)
-        && isset($data['puntuacionDeLaMesa'])
-        && isset($data['puntuacionDelRestaurante'])
-        && isset($data['puntuacionDelCocinero'])
-        && isset($data['puntuacionDelMozo'])
-        && Mesa::VerificarUnoPorCodigo($data['codigoDeMesa']);
+        return Encuesta::ValidadorModificacion($data)
+        && Puntuacion::ValidarUnaPuntacion($data['puntuacionDeLaMesa'])
+        && Puntuacion::ValidarUnaPuntacion($data['puntuacionDelRestaurante'])
+        && Puntuacion::ValidarUnaPuntacion($data['puntuacionDelCocinero'])
+        && Puntuacion::ValidarUnaPuntacion($data['puntuacionDelMozo'])
+        && Mesa::VerificarUnoPorCodigo($data['codigoDeMesa'])
+        && Orden::VerificarUnoPorCodigo($data['codigoDeMesa']);
     }
     public static function ValidadorModificacion($data)
     {
@@ -415,221 +413,6 @@ class Encuesta
         $this->GetStrPuntuacion(). 
         "Comentario: ".$this->mensaje.'<br>';
     }
-    
-    //  public static function EscribirJson($listaDeEncuesta,$claveDeArchivo)
-    //  {
-    //      $estado = false; 
- 
-    //      if(isset($listaDeEncuesta))
-    //      {
-    //          $estado =  Json::EscribirEnArrayJson($listaDeEncuesta,$claveDeArchivo,JSON_PRETTY_PRINT);
-    //      }
-    //      return  $estado;
-    //  }
- 
-    //  public static function LeerJson($claveDeArchivo)
-    //  {
-    //      return Encuesta::DeserializarListaJson(Json::LeerListaJson($claveDeArchivo,true));
-    //  }
- 
-    //  private static function DeserializarListaJson($listaDeArrayAsosiativos)
-    //  {
-    //      $listaDeEncuesta = null; 
-    //      $unEncuesta = null;
-    //      if(isset($listaDeArrayAsosiativos))
-    //      {
-    //          $listaDeEncuesta = [];
- 
-    //          foreach($listaDeArrayAsosiativos as $unArrayAsosiativo)
-    //          {
-    //              $unEncuesta = Encuesta::DeserializarUnEncuestaPorArrayAsosiativo($unArrayAsosiativo);
-    //              if(isset($unEncuesta))
-    //              {
-    //                  array_push($listaDeEncuesta,$unEncuesta);
-    //              }
-                 
-    //          }
-    //      }
- 
-    //      return  $listaDeEncuesta ;
-    //  }
-
-    
-
-
-    // public function SetCuponDeDescuento($cuponDeDescuento)
-    // {
-    //     $estado = false;
-    //     if(isset($cuponDeDescuento))
-    //     {
-    //         $this->cuponDeDescuento = $cuponDeDescuento;
-    //         $estado = true;
-    //     }
-
-    //     return  $estado ;
-    // }
-
-    // public function GetCuponDeDescuento()
-    // {
-    //     return  $this->cuponDeDescuento;
-    // }
-
-    
-   
-
-
-   
-
-    // public static function CompararPorclave($unEncuesta,$otroEncuesta)
-    // {
-    //     $retorno = 0;
-    //     $comparacion = strcmp($unEncuesta->clave,$otroEncuesta->clave);
-
-    //     if( $comparacion  > 0)
-    //     {
-    //         $retorno = 1;
-    //     }else{
-
-    //         if( $comparacion < 0)
-    //         {
-    //             $retorno = -1;
-    //         }
-    //     }
-
-    //     return $retorno ;
-    // }
-
-    // public static function BuscarEncuestaPorId($listaDeEncuesta,$id)
-    // {
-    //     $unaEncuestaABuscar = null; 
-
-    //     if(isset($listaDeEncuesta) )
-    //     {
-    //         foreach($listaDeEncuesta as $unaEncuesta)
-    //         {
-    //             if($unaEncuesta->id == $id)
-    //             {
-    //                 $unaEncuestaABuscar = $unaEncuesta; 
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     return  $unaEncuestaABuscar;
-    // }
-
-    // public function __construct($mail,$unProducto,$clave,$unEncuesta,$ruta = null,$claveDeLaImagen = null) {
-    //     $this->clave = $clave;
-    //     $this->unEncuesta = $unEncuesta;
-    //     $this->mail = $mail;
-    //     $this->unProducto = $unProducto;
-    //     $this->fechaDeRegistro = date("Y-m-d");
-    //     $this->SetId(Encuesta::ObtenerIdAutoIncremental());
-    //     $this->SetImagen($ruta,$claveDeLaImagen);
-    // }
-    
-   
-
-   
-    
-
-
-    // public function CambiarRutaDeLaImagen($nuevaRuta)
-    // {
-    //     $estado = false;
-
-    //     if(rename($this->rutaDeLaImagen.$this->claveDeLaImagen,$nuevaRuta.$this->claveDeLaImagen))
-    //     {
-    //         $this->rutaDeLaImagen = $nuevaRuta;
-    //         $estado = true;
-    //     }
-
-    //     return $estado;
-    // }
-
-   
-
-    // public static function BuscarEncuestaPorId($listaDeEncuestas,$id)
-    // {
-    //     $unaEncuestaABuscar = null; 
-
-    //     if(isset($listaDeEncuestas)  
-    //     && isset($id) )
-    //     {
-    //         foreach($listaDeEncuestas as $unaEncuesta)
-    //         {
-    //             if($unaEncuesta->id == $id)
-    //             {
-    //                 $unaEncuestaABuscar = $unaEncuesta; 
-    //                 break;
-    //             }
-    //         }
-    //     }
-
-    //     return  $unaEncuestaABuscar;
-    // }
-  
-    // public static function ToStringList($listaDeEncuestas)
-    // {
-    //     $strLista = null; 
-
-    //     if(isset($listaDeEncuestas) )
-    //     {
-    //         foreach($listaDeEncuestas as $unaEncuesta)
-    //         {
-    //             $strLista = $unaEncuesta->ToString().'<br>';
-    //         }
-    //     }
-
-    //     return   $strLista;
-    // }
-
-//Filtrar
-
-    // public static function FiltrarPorLista($listaDePizzas,$tipo)
-    // {
-    //     $listaDeTipoDePizza = null;
-
-    //     if(isset($listaDePizzas) && isset($tipo) && count($listaDePizzas) > 0)
-    //     {
-    //         $listaDeTipoDePizza =  [];
-
-    //         foreach($listaDePizzas as $unaPizza)
-    //         {
-    //             if($unaPizza->tipo == $tipo)
-    //             {
-    //                 array_push($listaDeTipoDePizza,$unaPizza);
-    //             }
-    //         }
-    //     }
-
-    //     return  $listaDeTipoDePizza;
-    // }
-
-
-     //  //Contar
- 
-    //  public static function ContarPorUnaFecha($listaDeEncuesta,$fecha)
-    //  {
-    //      $filtraPorUnaFecha = null;
-    //      $cantidad = -1;
- 
-    //      if(isset($listaDeEncuesta) && isset($fecha))
-    //      {
-    //          $cantidad = 0;
- 
-    //          foreach($listaDeEncuesta as $unaEncuesta)
-    //          {
-    //              if($unaEncuesta::$fechaDeEncuesta == $fecha)
-    //              {
-    //                  $cantidad++;
-    //              }
-    //          }
-    //      }
- 
-    //      return  $filtraPorUnaFecha;
-    //  }
-
    
 }
 

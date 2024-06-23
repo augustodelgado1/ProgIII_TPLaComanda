@@ -98,7 +98,7 @@ class Pedido
         
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Pedido as p where p.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Pedido where id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
@@ -262,7 +262,7 @@ class Pedido
             as p where p.estadoDelTiempo = :estadoDelTiempo");
             $consulta->bindValue(':estadoDelTiempo',$estadoDelTiempo,PDO::PARAM_STR);
             $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $listaFiltrada =  Pedido::CrearLista($data);
         }
 
@@ -310,9 +310,9 @@ class Pedido
 
         if(isset($idDeEmpelado))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("
-            SELECT COUNT(*) AS totalPedidos FROM Pedido as p where p.idDeEmpelado = :idDeEmpelado");
-            $consulta->bindValue(':idDeEmpelado',$idDeEmpelado,PDO::PARAM_INT);
+            // var_dump($idDeEmpelado);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalPedidos FROM Pedido as p where p.idDeEmpleado = :idDeEmpleado");
+            $consulta->bindValue(':idDeEmpleado',$idDeEmpelado,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $cantidadTotal =  $data['totalPedidos'];
@@ -448,7 +448,8 @@ class Pedido
     {
         $unaPedido = null;
 
-        if(isset($data))
+        
+        if(isset($data) && $data !== false)
         {
            
             $unaPedido = new Pedido($data['idDeOrden'],$data['idDeProducto']);
@@ -713,6 +714,30 @@ class Pedido
 
         return  $mensaje;
     }
+    public function GetStrTiempoInicio()
+    {
+        $mensaje = "No definido";
+
+       
+        if(isset($this->tiempoDeInicio))
+        {
+            $mensaje = $this->GetTiempoDeInicio(); 
+           
+        }
+
+        return  $mensaje;
+    }
+    public function GetStrTiempoFinalizacion()
+    {
+        $mensaje = "No definido";
+      
+        if(isset($this->tiempoDeFinalizacion))
+        {
+            $mensaje = $this->GetTiempoDeFinalizacion(); 
+        }
+
+        return  $mensaje;
+    }
     public function GetTiempoDeInicio()
     {
       
@@ -777,6 +802,8 @@ class Pedido
         return 
         "Codigo Del Pedido: ".$this->codigo.'<br>'.
         "Tiempo de preparacion estimado: ".$this->GetStrTiempoEstimado().'<br>'.
+        "Tiempo de Inicio: ".$this->GetStrTiempoInicio().'<br>'.
+        "Tiempo de Finalizacion: ".$this->GetStrTiempoFinalizacion().'<br>'.
         $this->GetStrClienteIngresado().'<br>'.
         "Producto Pedido: ".'<br>'.$this->GetProducto()->ToString().'<br>'.
         "importe Total: ".$this->GetImporteTotal().'<br>'
@@ -837,7 +864,7 @@ class Pedido
             {
                 $cantidad = Pedido::ContarProductosVendidos($listaDePedidos,$unProducto);
 
-                if($mayor > $cantidad || $flag === false)
+                if($cantidad > $mayor || $flag === false)
                 {
                     $mayor = $cantidad;
                     $flag = true;
@@ -860,9 +887,10 @@ class Pedido
             {
                 $cantidad = Pedido::ContarProductosVendidos($listaDePedidos,$unProducto);
 
-                if($menor < $cantidad || $flag === false)
+                if($cantidad > 0 && ($cantidad < $menor || $flag === false))
                 {
                     $menor = $cantidad;
+                    
                     $flag = true;
                 }
                 
@@ -880,26 +908,29 @@ class Pedido
         {
             foreach ($listaDePedidos as $unPedido) 
             {
+                
                 if($unProducto->Equals($unPedido->GetProducto()))
                 {
                     $cantidad++;
+                    
                 }
             }
         }
 
-        return $unPedido;
+        return $cantidad;
     }
     public static function BuscarPorCantidad($listaDePedidos,$cantidad)
     {
        $unPedido = null;
       
         
-        if(isset($listaDePedidos) && isset($unProducto))
+        if(isset($listaDePedidos) && isset($cantidad))
         {
             foreach ($listaDePedidos as $unPedidoDelaLista) 
             {
-                $cantidadVendida = Pedido::ContarProductosVendidos($listaDePedidos,$unPedidoDelaLista->unProducto);
+                $cantidadVendida = Pedido::ContarProductosVendidos($listaDePedidos,$unPedidoDelaLista->GetProducto());
 
+           
                 if($cantidadVendida === $cantidad)
                 {
                     $unPedido = $unPedidoDelaLista;
@@ -929,32 +960,6 @@ class Pedido
 
         return $strLista;
     }
-
-    // public static function CargarUno($request, $response, array $args)
-    // {
-    //     $data = $request->getParsedBody();
-    //     $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Pedido';
-    //     $unTipo = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']);
-    //     $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipo->GetId()) ; 
-    //     $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
-    //     $unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden']) ;     
-
-    //     if(isset($unProducto) && isset($unaOrden) )
-    //     {
-    //         $unPedido = new Pedido($unaOrden->GetId(),$unProducto->GetId());
-            
-    //         if($unPedido->AgregarBD())
-    //         {
-    //             $mensaje = 'Se dio de alta correctamente <br>'.$unPedido->ToString();
-    //         }
-            
-    //     }
-        
-    //     $response->getBody()->write($mensaje);
-
-
-    //     return $response;
-    // }
 
     public static function ValidadorAlta($data)
     {

@@ -34,7 +34,7 @@ class Rol
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
        
-        if(isset($unObjetoAccesoDato))
+        if(isset($id) && isset($descripcion)  && isset($idDeSector))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Rol as r
             SET `descripcion`= :descripcion,
@@ -54,7 +54,7 @@ class Rol
         
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Rol as r where r.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Rol where id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
