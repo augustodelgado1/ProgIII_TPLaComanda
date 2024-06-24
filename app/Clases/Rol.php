@@ -86,7 +86,7 @@ class Rol
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Sector");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Rol");
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             
@@ -216,6 +216,10 @@ class Rol
       public static function VerificarDescripcionBD($descripcion)
       {
           return Rol::BuscarRolPorDescripcionBD($descripcion) !== null;
+      }
+      public static function VerificarUno($data)
+      {
+          return Rol::BuscarRolPorIdBD($data['id']) !== null;
       }
   
       public static function Validador($data)

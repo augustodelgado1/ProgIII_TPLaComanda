@@ -17,7 +17,7 @@ class RolController
             $mensaje = "La lista esta vacia";
             if(count($listaDeRoles) > 0)
             {
-                $mensaje = "Rols".'<br>'.Rol::ToStringList($listaDeRoles);
+                $mensaje = Rol::ToStringList($listaDeRoles);
             }
         }
         

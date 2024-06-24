@@ -10,20 +10,214 @@
 			"name": "Mesa",
 			"item": [
 				{
-					"name": "MesaMasUsada",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": []
+					"name": "Listados",
+					"item": [
+						{
+							"name": "MesaMasUsada",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/consultaMesa/"
+							},
+							"response": []
 						},
-						"url": "http://localhost:666/consultaMesa/"
-					},
-					"response": []
+						{
+							"name": "MesaMenosUsada",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/consultaMesa/menos"
+							},
+							"response": []
+						},
+						{
+							"name": "ComentariosNegativos",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/comentarios/negativos"
+							},
+							"response": []
+						},
+						{
+							"name": "ComentariosPositivos",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/comentarios"
+							},
+							"response": []
+						},
+						{
+							"name": "MesaQueMasFacturo",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/facturacionMesa"
+							},
+							"response": []
+						},
+						{
+							"name": "MesaQueMenosFacturo",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/facturacionMesa/menos"
+							},
+							"response": []
+						},
+						{
+							"name": "MesasConMayorImporte",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/consultaMesa"
+							},
+							"response": []
+						},
+						{
+							"name": "MesasConMenorImporte",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/consultaMesa/menor"
+							},
+							"response": []
+						},
+						{
+							"name": "FacturacionEntreDosFechas",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "fechaInicial",
+											"value": "2024-06-22",
+											"type": "text"
+										},
+										{
+											"key": "fechaFinal",
+											"value": "2024-06-23",
+											"type": "text"
+										},
+										{
+											"key": "codigoDeMesa",
+											"value": "eit64",
+											"type": "text"
+										}
+									]
+								},
+								"url": "http://localhost:666/facturacionMesa"
+							},
+							"response": []
+						}
+					]
 				},
 				{
 					"name": "ListarMesas",
@@ -46,6 +240,59 @@
 									"key": "codigoDeMesa",
 									"value": "eit64",
 									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/mesa"
+					},
+					"response": []
+				},
+				{
+					"name": "AltaMesa",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "codigo",
+								"value": "4fh3f",
+								"type": "text"
+							},
+							{
+								"key": "codigoDeMesa",
+								"value": "eit64",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "nombreDelCliente",
+									"value": "julian",
+									"type": "text"
+								},
+								{
+									"key": "codigoDeMesa",
+									"value": "eit64",
+									"type": "text"
+								},
+								{
+									"key": "imagen",
+									"type": "file",
+									"src": "/C:/Users/PC/Desktop/mesa.jpg",
+									"disabled": true
+								},
+								{
+									"key": "codigo",
+									"value": "4fh3f",
+									"type": "text",
+									"disabled": true
 								}
 							]
 						},
@@ -110,28 +357,6 @@
 					"response": []
 				},
 				{
-					"name": "MesaMenosUsada",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{JwtSocio}}"
-							}
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": []
-						},
-						"url": "http://localhost:666/consultaMesa/menos"
-					},
-					"response": []
-				},
-				{
 					"name": "CerrarMesa",
 					"request": {
 						"auth": {
@@ -153,8 +378,7 @@
 								{
 									"key": "codigoDeOrden",
 									"value": "4fh3f",
-									"type": "text",
-									"disabled": true
+									"type": "text"
 								}
 							]
 						},
@@ -184,7 +408,8 @@
 								{
 									"key": "codigoDeOrden",
 									"value": "4fh3f",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								}
 							]
 						},
@@ -200,6 +425,12 @@
 				{
 					"name": "AltaOrden",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{Mozo}}"
+							}
+						},
 						"method": "POST",
 						"header": [
 							{
@@ -247,6 +478,12 @@
 				{
 					"name": "AgregarFoto",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{Mozo}}"
+							}
+						},
 						"method": "POST",
 						"header": [
 							{
@@ -276,8 +513,8 @@
 									"disabled": true
 								},
 								{
-									"key": "codigo",
-									"value": "4fh3f",
+									"key": "codigoDeOrden",
+									"value": "4A395",
 									"type": "text"
 								},
 								{
@@ -287,7 +524,7 @@
 								}
 							]
 						},
-						"url": "http://localhost:666/orden"
+						"url": "http://localhost:666/orden/foto"
 					},
 					"response": []
 				},
@@ -390,6 +627,100 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "ModificarOrden",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "codigo",
+								"value": "4fh3f",
+								"type": "text"
+							},
+							{
+								"key": "codigoDeMesa",
+								"value": "eit64",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "nombreDelCliente",
+									"value": "julian",
+									"type": "text"
+								},
+								{
+									"key": "codigoDeMesa",
+									"value": "eit64",
+									"type": "text"
+								},
+								{
+									"key": "imagen",
+									"type": "file",
+									"src": "/C:/Users/PC/Desktop/mesa.jpg",
+									"disabled": true
+								},
+								{
+									"key": "codigo",
+									"value": "4fh3f",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": "http://localhost:666/orden"
+					},
+					"response": []
+				},
+				{
+					"name": "BorrarOrden",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "codigo",
+								"value": "4fh3f",
+								"type": "text"
+							},
+							{
+								"key": "codigoDeMesa",
+								"value": "eit64",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "nombreDelCliente",
+									"value": "julian",
+									"type": "text"
+								},
+								{
+									"key": "codigoDeMesa",
+									"value": "eit64",
+									"type": "text"
+								},
+								{
+									"key": "imagen",
+									"type": "file",
+									"src": "/C:/Users/PC/Desktop/mesa.jpg",
+									"disabled": true
+								},
+								{
+									"key": "codigo",
+									"value": "4fh3f",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": "http://localhost:666/orden"
+					},
+					"response": []
 				}
 			]
 		},
@@ -402,6 +733,12 @@
 						{
 							"name": "ListarNoEntregadosEnElTiempoEstimado",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
 								"method": "GET",
 								"header": [],
 								"url": "http://localhost:666/consultaPedidos"
@@ -411,6 +748,12 @@
 						{
 							"name": "ListarPedidosCancelados",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
 								"method": "GET",
 								"header": [],
 								"url": "http://localhost:666/consultaPedidos/cancelados"
@@ -420,6 +763,12 @@
 						{
 							"name": "ListarPedidosMasVendido",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
 								"method": "POST",
 								"header": [],
 								"url": "http://localhost:666/consultaPedidos"
@@ -429,6 +778,12 @@
 						{
 							"name": "ListarPedidosMenosVendido",
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
 								"method": "POST",
 								"header": [],
 								"url": "http://localhost:666/consultaPedidos/menos"
@@ -603,99 +958,47 @@
 						"url": "http://localhost:666/pedido/finalizar"
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "CSV",
-			"item": [
+				},
 				{
-					"name": "TraerCsv",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
+					"name": "CancelarUnPedido",
 					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "nombreDelArchivo",
-								"value": "pepe.csv",
-								"type": "text",
-								"disabled": true
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{Batender}}"
 							}
-						],
+						},
+						"method": "DELETE",
+						"header": [],
 						"body": {
-							"mode": "formdata",
-							"formdata": [
+							"mode": "urlencoded",
+							"urlencoded": [
 								{
-									"key": "nombreDelArchivo",
-									"value": "pepe.csv",
+									"key": "codigo",
+									"value": "kbppy",
+									"type": "text"
+								},
+								{
+									"key": "hora",
+									"value": "2",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "minutos",
+									"value": "15",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "",
+									"value": "",
 									"type": "text",
 									"disabled": true
 								}
 							]
 						},
-						"url": {
-							"raw": "http://localhost:666/producto/csv?nombreDelArchivo=pepe.csv",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "666",
-							"path": [
-								"producto",
-								"csv"
-							],
-							"query": [
-								{
-									"key": "nombreDelArchivo",
-									"value": "pepe.csv"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GurdarCsv",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "nombreDelArchivo",
-								"value": "pepe.csv",
-								"type": "text",
-								"disabled": true
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "nombreDelArchivo",
-									"value": "pepe.csv",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "http://localhost:666/producto/csv?nombreDelArchivo=pepe.csv",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "666",
-							"path": [
-								"producto",
-								"csv"
-							],
-							"query": [
-								{
-									"key": "nombreDelArchivo",
-									"value": "pepe.csv"
-								}
-							]
-						}
+						"url": "http://localhost:666/pedido/cancelar"
 					},
 					"response": []
 				}
@@ -744,7 +1047,12 @@
 								},
 								{
 									"key": "nombreDelCliente",
-									"value": "Eduardo",
+									"value": "Marcelo",
+									"type": "text"
+								},
+								{
+									"key": "codigoDeMesa",
+									"value": "prnqk",
 									"type": "text"
 								}
 							]
@@ -1088,9 +1396,232 @@
 			"name": "Producto",
 			"item": [
 				{
+					"name": "CSV",
+					"item": [
+						{
+							"name": "TraerCsv",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "nombreDelArchivo",
+										"value": "pepe.csv",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "nombreDelArchivo",
+											"value": "pepe.csv",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "http://localhost:666/producto/csv?nombreDelArchivo=pepe.csv",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "666",
+									"path": [
+										"producto",
+										"csv"
+									],
+									"query": [
+										{
+											"key": "nombreDelArchivo",
+											"value": "pepe.csv"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GurdarCsv",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "nombreDelArchivo",
+										"value": "pepe.csv",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "nombreDelArchivo",
+											"value": "pepe.csv",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "http://localhost:666/producto/csv?nombreDelArchivo=pepe.csv",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "666",
+									"path": [
+										"producto",
+										"csv"
+									],
+									"query": [
+										{
+											"key": "nombreDelArchivo",
+											"value": "pepe.csv"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "AltaProducto",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
 						"method": "POST",
+						"header": [
+							{
+								"key": "rolDeTrabajo",
+								"value": "mozo",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "manu@gmail.com",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "clave",
+									"value": "123456789",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "nombre",
+									"value": "hamburguesa de garbanzo",
+									"type": "text"
+								},
+								{
+									"key": "sector",
+									"value": "1",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "nombre",
+									"value": "barraDeChoperas",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "rolDeTrabajo",
+									"value": "mozo",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "categoria",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "sector",
+									"value": "CandyBar",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "tipoDeProducto",
+									"value": "Comida",
+									"type": "text"
+								},
+								{
+									"key": "precio",
+									"value": "8500",
+									"type": "text"
+								},
+								{
+									"key": "apellido",
+									"value": "moroco",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": "http://localhost:666/producto"
+					},
+					"response": []
+				},
+				{
+					"name": "ListadoProducto",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "rolDeTrabajo",
+								"value": "mozo",
+								"type": "text"
+							}
+						],
+						"url": "http://localhost:666/producto"
+					},
+					"response": []
+				},
+				{
+					"name": "ModificarProducto",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "PUT",
 						"header": [
 							{
 								"key": "rolDeTrabajo",
@@ -1169,9 +1700,15 @@
 					"response": []
 				},
 				{
-					"name": "ListadoProducto",
+					"name": "BorrarProducto",
 					"request": {
-						"method": "GET",
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "DELETE",
 						"header": [
 							{
 								"key": "rolDeTrabajo",
@@ -1179,6 +1716,37 @@
 								"type": "text"
 							}
 						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "precio",
+									"value": "4500",
+									"type": "text"
+								},
+								{
+									"key": "tipoDeProducto",
+									"value": "Comida",
+									"type": "text"
+								},
+								{
+									"key": "",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "nombre",
+									"value": "hamburguesa de garbanzo",
+									"type": "text"
+								},
+								{
+									"key": "id",
+									"value": "14",
+									"type": "text"
+								}
+							]
+						},
 						"url": "http://localhost:666/producto"
 					},
 					"response": []
@@ -1191,6 +1759,12 @@
 				{
 					"name": "AltaSocio",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -1198,7 +1772,7 @@
 							"formdata": [
 								{
 									"key": "email",
-									"value": "julakami@gmail.com",
+									"value": "mariogomez@gmail.com",
 									"type": "text"
 								},
 								{
@@ -1208,12 +1782,12 @@
 								},
 								{
 									"key": "nombre",
-									"value": "julio",
+									"value": "mario",
 									"type": "text"
 								},
 								{
 									"key": "apellido",
-									"value": "Damatto",
+									"value": "gomez",
 									"type": "text"
 								},
 								{
@@ -1224,27 +1798,17 @@
 								{
 									"key": "id",
 									"value": "2",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "cargo",
+									"value": "Director",
 									"type": "text"
 								}
 							]
 						},
-						"url": {
-							"raw": "http://localhost:666/socio?julakami@gmail.com=",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "666",
-							"path": [
-								"socio"
-							],
-							"query": [
-								{
-									"key": "julakami@gmail.com",
-									"value": ""
-								}
-							]
-						}
+						"url": "http://localhost:666/socio"
 					},
 					"response": []
 				},
@@ -1318,6 +1882,174 @@
 							]
 						},
 						"url": "http://localhost:666/usuario"
+					},
+					"response": []
+				},
+				{
+					"name": "ModificacionSocio",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "id",
+									"value": "27",
+									"type": "text"
+								},
+								{
+									"key": "apellido",
+									"value": "gomez",
+									"type": "text"
+								},
+								{
+									"key": "nombre",
+									"value": "mario",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "mariogomez@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "dni",
+									"value": "12345678",
+									"type": "text"
+								},
+								{
+									"key": "cargo",
+									"value": "Director",
+									"type": "text"
+								},
+								{
+									"key": "clave",
+									"value": "12345679",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/socio"
+					},
+					"response": []
+				},
+				{
+					"name": "BorrarSocio",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "id",
+									"value": "27",
+									"type": "text"
+								},
+								{
+									"key": "apellido",
+									"value": "gomez",
+									"type": "text"
+								},
+								{
+									"key": "nombre",
+									"value": "mario",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "mariogomez@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "dni",
+									"value": "12345678",
+									"type": "text"
+								},
+								{
+									"key": "cargo",
+									"value": "Director",
+									"type": "text"
+								},
+								{
+									"key": "clave",
+									"value": "12345679",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/socio"
+					},
+					"response": []
+				},
+				{
+					"name": "ListarSocios",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "id",
+									"value": "27",
+									"type": "text"
+								},
+								{
+									"key": "apellido",
+									"value": "gomez",
+									"type": "text"
+								},
+								{
+									"key": "nombre",
+									"value": "mario",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "mariogomez@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "dni",
+									"value": "12345678",
+									"type": "text"
+								},
+								{
+									"key": "cargo",
+									"value": "Director",
+									"type": "text"
+								},
+								{
+									"key": "clave",
+									"value": "12345679",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/socio"
 					},
 					"response": []
 				}
@@ -1620,7 +2352,7 @@
 						"auth": {
 							"type": "bearer",
 							"bearer": {
-								"token": ""
+								"token": "{{JwtSocio}}"
 							}
 						},
 						"method": "PUT",
@@ -1641,6 +2373,154 @@
 							]
 						},
 						"url": "http://localhost:666/sector"
+					},
+					"response": []
+				},
+				{
+					"name": "BorrarSector",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "id",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "descripcion",
+									"value": "BarraDeTragos",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/sector"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rol",
+			"item": [
+				{
+					"name": "AltaRol",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "descripcion",
+									"value": "Cliente",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/rol"
+					},
+					"response": []
+				},
+				{
+					"name": "ListarRoles",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "descripcion",
+									"value": "Cliente",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/rol"
+					},
+					"response": []
+				},
+				{
+					"name": "ModificarRol",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "descripcion",
+									"value": "Socio",
+									"type": "text"
+								},
+								{
+									"key": "id",
+									"value": "2",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/rol"
+					},
+					"response": []
+				},
+				{
+					"name": "BorrarRol",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "descripcion",
+									"value": "Socio",
+									"type": "text"
+								},
+								{
+									"key": "id",
+									"value": "2",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/rol"
 					},
 					"response": []
 				}
@@ -1686,22 +2566,6 @@
 					]
 				},
 				"url": "http://localhost:666/empleado/consulta"
-			},
-			"response": []
-		},
-		{
-			"name": "Comentarios",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": []
-				},
-				"url": "http://localhost:666/comentarios/negativos"
 			},
 			"response": []
 		},

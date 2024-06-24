@@ -15,6 +15,7 @@ require_once './Controller/EncuestaController.php';
 require_once './Controller/SocioController.php';
 require_once './Controller/CargoController.php';
 require_once './Controller/PuntuacionController.php';
+require_once './Controller/RolController.php';
 require_once './Herramientas/File.php';
 
 
@@ -405,6 +406,25 @@ $app->group('/sector', function (RouteCollectorProxy $grupoDeRutas)
 
 	$grupoDeRutas->delete('[/]',\SectorController::class.':BorrarUno')
 	->add(new ValidadorMiddleware(array(Sector::class,'VerificarUno'),'El id ingresado no pertenece a ninguna puntuacion'))
+	->add(new VerificarRoles(array('Socio')));;
+});
+
+$app->group('/rol', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	$grupoDeRutas->get('[/]',\RolController::class.':Listar')
+	->add(new VerificarRoles(array('Socio')));
+
+	$grupoDeRutas->post('[/]',\RolController::class.':CargarUno')
+	->add(new ValidadorMiddleware(array(Rol::class,'Validador'),'Debe ingresar el nombre del Rol'))
+	->add(new VerificarRoles(array('Socio')));;
+
+	$grupoDeRutas->put('[/]',\RolController::class.':ModificarUno')
+	->add(new ValidadorMiddleware(array(Rol::class,'Validador'),'Debe ingresar el nombre del Rol'))
+	->add(new ValidadorMiddleware(array(Rol::class,'VerificarUno'),'El id ingresado no pertenece a ningun Rol'))
+	->add(new VerificarRoles(array('Socio')));
+
+	$grupoDeRutas->delete('[/]',\RolController::class.':BorrarUno')
+	->add(new ValidadorMiddleware(array(Rol::class,'VerificarUno'),'El id ingresado no pertenece a ningun Rol'))
 	->add(new VerificarRoles(array('Socio')));;
 });
 
