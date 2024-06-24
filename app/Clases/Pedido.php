@@ -805,6 +805,7 @@ class Pedido
         "Tiempo de Inicio: ".$this->GetStrTiempoInicio().'<br>'.
         "Tiempo de Finalizacion: ".$this->GetStrTiempoFinalizacion().'<br>'.
         $this->GetStrClienteIngresado().'<br>'.
+        "Fecha Del Pedido: ".$this->fechaDelPedido->format('y-m-d H:i:s').'<br>'.
         "Producto Pedido: ".'<br>'.$this->GetProducto()->ToString().'<br>'.
         "importe Total: ".$this->GetImporteTotal().'<br>'
         ."Estado: ".$this->estado.'<br>';
@@ -997,18 +998,6 @@ class Pedido
        return   isset($estadoDelaPedido) && in_array($estadoDelaPedido,$array);
         
     }
-
-    // public static function ValidarLoggin($data)
-    // {
-    //     return Usuario::ValidadorEmail($data['email']) && 
-    //     Usuario::ValidadorClave($data['clave']);
-    // }
-
-    // public static function VerificarUno($data)
-    // {
-    //     return Usuario::BuscarPorIdBD($data['id']) !== false;
-    // }
-    
 }
 
 

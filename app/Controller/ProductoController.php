@@ -44,7 +44,8 @@ class ProductoController
 
         if(Producto::ModificarUnoBD($data['id'],$data['nombre'],$unTipoDeProducto->GetId(),$data['precio']))
         {
-            $mensaje = 'El Producto se modifico correctamente';
+            $unProducto = Producto::ObtenerUnoPorIdBD($data['id']);
+            $mensaje = 'El Producto se modifico correctamente: <br>'.$unProducto->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -55,12 +56,12 @@ class ProductoController
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-     
+        $unProducto = Producto::ObtenerUnoPorIdBD($data['id']);
         $mensaje = 'no se pudo borrar';
 
         if(Producto::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Pedido se borro correctamente';
+            $mensaje = 'Este Producto se borro correctamente: <br>'.$unProducto->ToString();
         }
 
         $response->getBody()->write($mensaje);

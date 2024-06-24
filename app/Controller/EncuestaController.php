@@ -27,12 +27,12 @@ class EncuestaController
         $unaEncuesta = new Encuesta($unaOrden->GetId(),$data['nombreDelCliente'],$data['mensaje']);
         $idDeEncuesta = $unaEncuesta->AgregarBD();
         
-        $mensaje = 'no se pudo dar de alta';
+        Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Mesa",$data['puntuacionDeLaMesa']);
+        Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Restaurante",$data['puntuacionDelRestaurante']);
+        Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Cocinero",$data['puntuacionDelCocinero']);
+        Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Mozo",$data['puntuacionDelMozo']);
 
-        if(Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Mesa",$data['puntuacionDeLaMesa']) && 
-        Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Restaurante",$data['puntuacionDelRestaurante']) && 
-        Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Cocinero",$data['puntuacionDelCocinero']) && 
-        Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Mozo",$data['puntuacionDelMozo']))
+        if($idDeEncuesta > 0)
         {
             $mensaje = 'la encuesta se relizo correctamente <br>'. $unaEncuesta->ToString();
         }
@@ -50,7 +50,8 @@ class EncuestaController
 
         if(Encuesta::ModificarUnoBD($data['id'],$data['nombreDelCliente'],$unaOrden->GetId(),$data['mensaje']))
         {
-            $mensaje = 'la Encuesta se modifico correctamente';
+            $unaEncuesta = Encuesta::ObtenerUnoPorIdBD($data['id']);
+            $mensaje = 'la Encuesta se modifico correctamente <br>'.$unaEncuesta->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -61,13 +62,12 @@ class EncuestaController
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-
+        $unaEncuesta = Encuesta::ObtenerUnoPorIdBD($data['id']);
         $mensaje = 'no se pudo borrar';
 
         if(Encuesta::BorrarUnoPorIdBD($data['id']))
         {
-            
-            $mensaje = 'la Encuesta se borro correctamente';
+            $mensaje = 'Esta Encuesta se borro correctamente: <br>'.$unaEncuesta->ToString();;
         }
 
         $response->getBody()->write($mensaje);

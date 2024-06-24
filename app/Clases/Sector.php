@@ -69,7 +69,7 @@ class Sector
         if(isset($idDeSector))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM sector as s where s.id = :idDeSector");
-            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_INT);
             $consulta->execute();
             $unSector = $consulta->fetch(PDO::FETCH_ASSOC);
         }

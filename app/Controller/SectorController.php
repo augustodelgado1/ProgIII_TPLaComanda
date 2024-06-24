@@ -26,16 +26,16 @@ class SectorController
         $response->getBody()->write($mensaje);
         return $response;
     }
-
+    
     public static function ModificarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-       
+        $unSector = Sector::ObtenerUnoPorIdBD($data['id']);
         $mensaje = 'no se pudo modificar';
 
         if(Sector::ModificarUnoBD($data['id'],$data['descripcion']))
         {
-            $mensaje = 'el Sector se modifico correctamente';
+            $mensaje = 'el Sector se modifico correctamente <br>'.$unSector->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -46,12 +46,12 @@ class SectorController
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-
+        $unSector = Sector::ObtenerUnoPorIdBD($data['id']);
         $mensaje = 'no se pudo dar de alta';
 
         if(Sector::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'el Sector se borro correctamente';
+            $mensaje = 'Este Sector se borro correctamente: <br>'.$unSector->ToString();;
         }
 
         $response->getBody()->write($mensaje);

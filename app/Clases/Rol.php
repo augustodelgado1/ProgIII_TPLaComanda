@@ -29,17 +29,17 @@ class Rol
         return $idDeEncuesta;
     }
 
-    public static function ModificarUnoBD($id,$descripcion,$idDeSector)
+    public static function ModificarUnoBD($id,$descripcion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
        
-        if(isset($id) && isset($descripcion)  && isset($idDeSector))
+        if(isset($id) && isset($descripcion))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Rol as r
             SET `descripcion`= :descripcion,
             Where r.id=:id");
-            $consulta->bindValue(':id',$id,PDO::PARAM_STR);
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $estado = $consulta->execute();
         }
@@ -77,6 +77,24 @@ class Rol
         }
 
         return $unRol;
+    }
+
+    public static function ObternerListaBD()
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeRoles= null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Sector");
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            
+            
+            $listaDeRoles = Rol::CrearLista($data);
+        }
+
+        return  $listaDeRoles;
     }
 
     private static function BuscarRolPorDescripcionBD($descripcion)
@@ -132,6 +150,29 @@ class Rol
 
         return   $listaDeRoles;
     }
+
+    #Mostrar
+    public static function ToStringList($listaDeRoles)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeRoles) )
+        {
+            $strLista = "Roles".'<br>';
+            foreach($listaDeRoles as $unRol)
+            {
+                $strLista .= $unRol->ToString().'<br>';
+            }
+        }
+
+        return   $strLista;
+    }
+ 
+    public function ToString()
+    {
+        return "Descripcion: ".$this->descripcion.'<br>';
+    }
+
     //Setters
     private function SetId($id)
     {

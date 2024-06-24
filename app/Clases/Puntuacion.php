@@ -25,11 +25,10 @@ class Puntuacion
     
     public static function DarDeAltaUnPuntuacion($idDeEncuesta,$descripcion,$puntuacion)
     {
-        $estado = false;
         $unPuntuacion = new Puntuacion($idDeEncuesta,$descripcion,$puntuacion);
-        $estado = $unPuntuacion->AgregarBD();
+        $ultimoID = $unPuntuacion->AgregarBD();
 
-        return $estado;
+        return $ultimoID;
     }
 
     #BaseDeDatos
@@ -47,10 +46,11 @@ class Puntuacion
             $consulta->bindValue(':puntuacion',$this->puntuacion,PDO::PARAM_INT);
             $consulta->bindValue(':idDeEncuesta',$this->idDeEncuesta,PDO::PARAM_INT);
             $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
-            $estado = $consulta->execute();
+            $consulta->execute();
+            $this->id = $objAccesoDatos->ObtenerUltimoID();
         }
 
-        return $estado;
+        return $this->id;
     }
 
     public static function ModificarUnoBD($id,$descripcion,$puntuacion,$idDeEncuesta)
@@ -105,9 +105,6 @@ class Puntuacion
            
         }
 
-        
-      
-
         return  $listaDePuntuaciones;
     }
     public static function CantidadDePuntuacionesDeUnaEncuestaPorEstadoBD($idDeEncuesta,$estado)
@@ -144,6 +141,27 @@ class Puntuacion
         }
 
         return  $cantidadTotal;
+    }
+
+    private static function BuscarUnoPorIdBD($id)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $data = null;
+
+        if(isset($id))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion where id = :id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+        }
+
+        return $data;
+    }
+    public static function ObtenerUnoPorIdBD($id)
+    {
+        $data = Puntuacion::BuscarUnoPorIdBD($id);
+        return Puntuacion::CrearUnPuntuacion($data);
     }
 
     // public static function FiltrarPorEstado($listaDePuntuaciones,$estado)
@@ -291,6 +309,22 @@ class Puntuacion
     {
         return "Descripcion: ".$this->descripcion.'<br>'. 
                "Puntaje: ".$this->puntuacion.'<br>';
+    }
+
+    public static function Validador($data)
+    {
+        return  isset($data) && Puntuacion::ValidarDescripcion($data['descripcion']) 
+                            && Puntuacion::ValidarUnaPuntacion($data['puntuacion']) 
+                            && Encuesta::BuscarUnoPorIdBD($data['idDeEncuesta']);;
+    }
+
+    public static function VerificarUno($data)
+    {
+        return Puntuacion::BuscarUnoPorIdBD($data['id']) !== null;
+    }
+    private static function ValidarDescripcion($descripcion)
+    {
+        return  isset($descripcion) && Util::ValidadorDeNombre($descripcion);
     }
 
     public static function ValidarUnaPuntacion($unaPuntuacion)

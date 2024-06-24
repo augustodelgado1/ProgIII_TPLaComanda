@@ -294,7 +294,7 @@ class Producto implements IFileManejadorCSV
 
     public function GetTipo()
     {
-        return TipoDeProducto::BuscarTipoDeProductoPorIdBD($this->tipoDeProducto);
+        return TipoDeProducto::ObtenerUnoPorIdBD($this->tipoDeProducto);
     }
 
     public static function ToStringList($listaDeProducto)

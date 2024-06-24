@@ -55,7 +55,8 @@ class EmpleadoController
         if(Usuario::ModificarUnoBD($data['id'],$data['email'],$data['clave'],$data['nombre'],
         $data['apellido'],$data['dni'],$unCargo->GetId()))
         {
-            $mensaje = 'El Empleado se modifico correctamente';
+            $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
+            $mensaje = 'El Empleado se modifico correctamente: <br>'. $unUsuario->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -66,12 +67,13 @@ class EmpleadoController
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-
+     
         $mensaje = 'no se pudo dar de alta';
 
         if(Usuario::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Empleado se borro correctamente';
+            $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
+            $mensaje = 'Este Empleado se borro correctamente: <br>'. $unUsuario->ToString();
         }
 
         $response->getBody()->write($mensaje);
@@ -87,7 +89,8 @@ class EmpleadoController
 
         if(Usuario::SuspenderUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Empleado se suspendio correctamente';
+            $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
+            $mensaje = 'El Empleado se suspendio correctamente <br>'.$unUsuario->ToString();
         }
 
         $response->getBody()->write($mensaje);

@@ -32,10 +32,11 @@ class ValidadorMiddleware
                 $response->getBody()->write($payload);
             }
         }
-        // else{
-        //    var_dump($this->funcValidador);
-        //     echo "Entotttttttt"; 
-        // }
+        // else
+        // {
+        //     var_dump($this->funcValidador);
+        //      echo "Entotttttttt"; 
+        //  }
         
 
         return $response->withHeader('Content-Type', 'application/json');

@@ -41,7 +41,7 @@ class SocioController
 
         if($unSocio->AgregarBD())
         {
-            $mensaje = 'El Socio se registro correctamente:<br>'.$unSocio->ToString();
+            $mensaje = 'El Socio se registro correctamente: <br>'.$unSocio->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -59,7 +59,8 @@ class SocioController
         if(Usuario::ModificarUnoBD($data['id'],$data['email'],$data['clave'],$data['nombre'] ,
         $data['apellido'],$data['dni'],$unCargo->GetId()))
         {
-            $mensaje = 'El Socio se modifico correctamente';
+            $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
+            $mensaje = 'El Socio se modifico correctamente: <br>'.$unUsuario->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -75,7 +76,8 @@ class SocioController
 
         if(Usuario::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Socio se borro correctamente';
+            $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
+            $mensaje = 'Este Socio se borro correctamente: <br>'.$unUsuario->ToString();
         }
 
         $response->getBody()->write($mensaje);

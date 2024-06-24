@@ -46,7 +46,7 @@ class MesaController
         
         if(Mesa::BorrarUnoPorIdBD($unaMesa->GetId()))
         {
-            $mensaje = 'La Mesa se borro correctamente ';
+            $mensaje = 'La Mesa se borro correctamente: <br>'. $unaMesa->ToString();
         }
 
         $response->getBody()->write($mensaje);

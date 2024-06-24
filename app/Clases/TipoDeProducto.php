@@ -75,21 +75,25 @@ class TipoDeProducto
         return  $estado;
     }
 
-    public static function BuscarTipoDeProductoPorIdBD($id)
+    private static function BuscarTipoDeProductoPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unTipoDeProducto = null;
+        $data = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as t where t.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $unTipoDeProducto = TipoDeProducto::CrearUnTipoDeProducto($data);
         }
 
-        return $unTipoDeProducto;
+        return $data;
+    }
+    public static function ObtenerUnoPorIdBD($id)
+    {
+        $data = TipoDeProducto::BuscarTipoDeProductoPorIdBD($id);
+        return TipoDeProducto::CrearUnTipoDeProducto($data);;
     }
 
     public static function FiltrarTipoDeProductoPorSectorBD($idDeSector)
@@ -187,18 +191,6 @@ class TipoDeProducto
         return $index;
     }
 
-   
-
-    public function Equals($unTipoDeProducto)
-    {
-        $estado = false;
- 
-        if(isset($unTipoDeProducto))
-        {
-            $estado =  $unTipoDeProducto->id === $this->id;
-        }
-        return  $estado ;
-    }
 
     //Setters
     private function SetId($id)
@@ -261,7 +253,21 @@ class TipoDeProducto
     {
         return "tipo: ".$this->nombre.'<br>';
     }
-        
+
+    public static function Validador($data)
+    {
+        return  TipoDeProducto::ValidadorDescripcion($data['descripcion']) 
+                && Sector::BuscarPorDescripcionBD($data['sector']) !== null;
+    }
+
+    public static function VerificarUno($data)
+    {
+        return TipoDeProducto::BuscarTipoDeProductoPorIdBD($data['id']) !== null;
+    }
+    private static function ValidadorDescripcion($descripcion)
+    {
+        return  isset($descripcion) && Util::ValidadorDeNombre($descripcion);
+    }
 
    
 }

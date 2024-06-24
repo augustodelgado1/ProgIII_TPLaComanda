@@ -136,7 +136,7 @@ class Encuesta
 
         return  $estado;
     }
-    private static function BuscarUnoPorIdBD($idDeEncuesta)
+    public static function BuscarUnoPorIdBD($idDeEncuesta)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unEncuesta = null;

@@ -83,7 +83,8 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 
 	$grupoDeRutas->put('[/]',\EmpleadoController::class.':ModificarUno')
 	->add(new ValidadorMiddleware(array(Usuario::class,'Validador'),"Debe ingresar los datos completos del empleado"))
-	->add(new ValidadorMiddleware(array(Usuario::class,'ValidarRolEmpleado'),"Debe ingresar los datos completos del empleado"));
+	->add(new ValidadorMiddleware(array(Usuario::class,'ValidarRolEmpleado'),"Debe ingresar los datos completos del empleado"))
+	->add(new VerificarRoles(array('Socio')));;;
 
 
 	$grupoDeRutas->put('/{suspender}',\EmpleadoController::class.':SuspenderUno')
@@ -97,17 +98,25 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 
 	$grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 
-	$grupoDeRutas->get('/{pedidos}',\EmpleadoController::class.':ListarPedidosPendientes');
+	$grupoDeRutas->get('/{pedidos}',\EmpleadoController::class.':ListarPedidosPendientes')
+	->add(new VerificarRoles(array('Empleado')));;
 });
 
 //LISTADOS
 	
 $app->group('/consultaEmpleados', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	$grupoDeRutas->get('[/]',\EmpleadoController::class.':ListarSuspendidos');
-	$grupoDeRutas->get('/{borrados}',\EmpleadoController::class.':ListarBorrados');
-	$grupoDeRutas->post('[/]',\EmpleadoController::class.':ListarCantidadDeTareasRealizadas');
-	$grupoDeRutas->post('/{sector}',\EmpleadoController::class.':ListarCantidadDeTareasRealizadasSector');
+	$grupoDeRutas->get('[/]',\EmpleadoController::class.':ListarSuspendidos')
+	->add(new VerificarRoles(array('Socio')));;;
+
+	$grupoDeRutas->get('/{borrados}',\EmpleadoController::class.':ListarBorrados')
+	->add(new VerificarRoles(array('Socio')));;;
+
+	$grupoDeRutas->post('[/]',\EmpleadoController::class.':ListarCantidadDeTareasRealizadas')
+	->add(new VerificarRoles(array('Socio')));;;
+
+	$grupoDeRutas->post('/{sector}',\EmpleadoController::class.':ListarCantidadDeTareasRealizadasSector')
+	->add(new VerificarRoles(array('Socio')));;;
 });
 
 $app->group('/socio', function (RouteCollectorProxy $grupoDeRutas) 
@@ -132,28 +141,33 @@ $app->group('/producto', function (RouteCollectorProxy $grupoDeRutas)
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\ProductoController::class.':CargarUno')
-	->add(new ValidadorMiddleware(array(Producto::class,'Validador'),"Debe ingresar todos los datos del producto (nombre,tipo de producto,precio) "));
+	->add(new ValidadorMiddleware(array(Producto::class,'Validador'),"Debe ingresar todos los datos del producto (nombre,tipo de producto,precio) "))
+	->add(new VerificarRoles(array('Socio')));
 	
-	$grupoDeRutas->get('[/]',\ProductoController::class.':Listar');
+	$grupoDeRutas->get('[/]',\ProductoController::class.':Listar')
+	->add(new VerificarRoles(array('Socio')));
 
 	// $grupoDeRutas->get('/{tipo}',\ProductoController::class.':ListarPorTipoDeProducto')
 	// ->add(new ValidadorMiddleware(array(Producto::class.'ValidarTipo'),"El tipo ingresado no existe"))
 	// ;
 
-
 	$grupoDeRutas->put('[/]',\ProductoController::class.':ModificarUno')
 	->add(new ValidadorMiddleware(array(Producto::class,'Validador'),"Debe ingresar todos los datos del producto (nombre,tipo de producto,precio) "))
-	->add(new ValidadorMiddleware(array(Producto::class,'VerificarUno'),"El Producto ingresado no existe"));;;
+	->add(new ValidadorMiddleware(array(Producto::class,'VerificarUno'),"El Producto ingresado no existe"))
+	->add(new VerificarRoles(array('Socio')));
 	
 	$grupoDeRutas->delete('[/]',\ProductoController::class.':BorrarUno')
-	->add(new ValidadorMiddleware(array(Producto::class,'VerificarUno'),"El Producto ingresado no existe"));;
+	->add(new ValidadorMiddleware(array(Producto::class,'VerificarUno'),"El Producto ingresado no existe"))
+	->add(new VerificarRoles(array('Socio')));
 
 	$grupoDeRutas->post('/{csv}',\ProductoController::class.':EscribirListaEnCsv')
-	->add(new ValidadorMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'));
+	->add(new ValidadorMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'))
+	->add(new VerificarRoles(array('Socio')));;;
 	
 	$grupoDeRutas->get('/{csv}',\ProductoController::class.':LeerListaEnCsv')
 	->add(new ValidadorGetMiddleware(array(File::class,'ValidarExistenciaDelArchivo'),'El archivo no existe'))
-	->add(new ValidadorGetMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'));
+	->add(new ValidadorGetMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'))
+	->add(new VerificarRoles(array('Socio')));
 
 	
 });
@@ -162,7 +176,8 @@ $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas)
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\PedidoController::class.':CargarUno')
-	->add(new ValidadorMiddleware(array(Pedido::class,'ValidadorAlta'),'Debe ingresar el nombre del producto y el tipo y el codigo de una orden activa'));
+	->add(new ValidadorMiddleware(array(Pedido::class,'ValidadorAlta'),'Debe ingresar el nombre del producto y el tipo y el codigo de una orden activa'))
+	->add(new ValidarCargo(array('mozo')));
 	
 	$grupoDeRutas->put('[/]',\PedidoController::class.':PreapararUnPedido')
 	->add(new ValidadorMiddleware(array(Pedido::class,'ValidadorPreparacion'),'Debe ingresar horas y minutos estimado de preparacion'))
@@ -197,10 +212,12 @@ $app->group('/orden', function (RouteCollectorProxy $grupoDeRutas)
 {
 	// $grupoDeRutas->get('[/]',\EmpleadoController::class.':Listar');
 	$grupoDeRutas->post('[/]',\OrdenController::class.':CargarUno')
-	->add(new ValidadorMiddleware(array(Orden::class,'Validador'),'Debe ingresar todos los datos de la Orden'));;
+	->add(new ValidadorMiddleware(array(Orden::class,'Validador'),'Debe ingresar todos los datos de la Orden'))
+	->add(new ValidarCargo(array('mozo')));
 
 	$grupoDeRutas->post('/{foto}',\OrdenController::class.':AgregarFoto')
-	->add(new ValidadorMiddleware(array(Orden::class,'ValidadorCodigo'),'el codigo ingresadado no existe'));;
+	->add(new ValidadorMiddleware(array(Orden::class,'ValidadorCodigo'),'el codigo ingresadado no existe'))
+	->add(new ValidarCargo(array('mozo')));;
 
 	$grupoDeRutas->get('/{obtener}',\OrdenController::class.':ListarUno')
 	->add(new ValidadorGetMiddleware(array(Mesa::class,'ValidadorCodigoDeMesa'),'el codigo ingresadado no existe'))
@@ -208,20 +225,16 @@ $app->group('/orden', function (RouteCollectorProxy $grupoDeRutas)
 	
 	
 	$grupoDeRutas->put('[/]',\OrdenController::class.':ModificarUno')
-	->add(new ValidadorMiddleware(array(Orden::class,'ValidadorCodigo'),'el codigo ingresadado no existe'));;
+	->add(new ValidadorMiddleware(array(Orden::class,'ValidadorCodigo'),'el codigo ingresadado no existe'))
+	->add(new VerificarRoles(array('Socio')));
 
 	$grupoDeRutas->delete('[/]',\OrdenController::class.':BorrarUno')
-	->add(new ValidadorMiddleware(array(Orden::class,'ValidadorCodigo'),'el codigo ingresadado no existe'));;
+	->add(new ValidadorMiddleware(array(Orden::class,'ValidadorCodigo'),'el codigo ingresadado no existe'))
+	->add(new VerificarRoles(array('Socio')));
 
-	$grupoDeRutas->get('[/]',\OrdenController::class.':Listar');
+	$grupoDeRutas->get('[/]',\OrdenController::class.':Listar')
+	->add(new VerificarRoles(array('Socio')));
 });
-
-$app->group('/consultaOrdenes', function (RouteCollectorProxy $grupoDeRutas) 
-{
-	$grupoDeRutas->get('[/]',\OrdenController::class.':ListarActivas');
-	$grupoDeRutas->get('/{inactivas}',\OrdenController::class.':ListarInactivas');
-});
-
 
 
 $app->group('/encuesta', function (RouteCollectorProxy $grupoDeRutas) 
@@ -310,41 +323,89 @@ $app->group('/facturacionMesa',function (RouteCollectorProxy $grupoDeRutas)
 
 $app->group('/consultaPedidos', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	$grupoDeRutas->get('[/]',\PedidoController::class.':ListarNoEntregadoEnElTimpoEstipulado');
-	$grupoDeRutas->get('/{cancelados}',\PedidoController::class.':ListarCancelados');
-	$grupoDeRutas->post('[/]',\PedidoController::class.':ListarElPedidoMasVendido');
-	$grupoDeRutas->post('/{menos}',\PedidoController::class.':ListarElPedidoMenosVendido');
+	$grupoDeRutas->get('[/]',\PedidoController::class.':ListarNoEntregadoEnElTimpoEstipulado')
+	->add(new VerificarRoles(array('Socio')));;;;
+
+	$grupoDeRutas->get('/{cancelados}',\PedidoController::class.':ListarCancelados')
+	->add(new VerificarRoles(array('Socio')));;;;
+
+	$grupoDeRutas->post('[/]',\PedidoController::class.':ListarElPedidoMasVendido')
+	->add(new VerificarRoles(array('Socio')));;;;
+
+	$grupoDeRutas->post('/{menos}',\PedidoController::class.':ListarElPedidoMenosVendido')
+	->add(new VerificarRoles(array('Socio')));;;;
 });
 
 $app->group('/cargo', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	$grupoDeRutas->get('[/]',\CargoController::class.':Listar');
-	$grupoDeRutas->post('[/]',\CargoController::class.':CargarUno');
-	$grupoDeRutas->put('[/]',\CargoController::class.':ModificarUno');
-	$grupoDeRutas->delete('[/]',\CargoController::class.':BorrarUno');
+	$grupoDeRutas->get('[/]',\CargoController::class.':Listar')
+	->add(new VerificarRoles(array('Socio')));;
+
+	$grupoDeRutas->post('[/]',\CargoController::class.':CargarUno')
+	->add(new ValidadorMiddleware(array(Cargo::class,'Validador'),'Debe ingresar la descripcion'))
+	->add(new VerificarRoles(array('Socio')));;;;
+
+	$grupoDeRutas->put('[/]',\CargoController::class.':ModificarUno')
+	->add(new ValidadorMiddleware(array(Cargo::class,'Validador'),'Debe ingresar la descripcion'))
+	->add(new VerificarRoles(array('Socio')));;;;
+
+	$grupoDeRutas->delete('[/]',\CargoController::class.':BorrarUno')
+	->add(new ValidadorMiddleware(array(Cargo::class,'VerificarUno'),'Debe ingresar la descripcion'))
+	->add(new VerificarRoles(array('Socio')));;;;
 });
 
 $app->group('/tipoDeProducto', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	$grupoDeRutas->get('[/]',\TipoDeProductoController::class.':Listar');
-	$grupoDeRutas->post('[/]',\TipoDeProductoController::class.':CargarUno');
-	$grupoDeRutas->put('[/]',\TipoDeProductoController::class.':ModificarUno');
-	$grupoDeRutas->delete('[/]',\TipoDeProductoController::class.':BorrarUno');
+	$grupoDeRutas->get('[/]',\TipoDeProductoController::class.':Listar')
+	->add(new VerificarRoles(array('Socio')));;
+
+	$grupoDeRutas->post('[/]',\TipoDeProductoController::class.':CargarUno')
+	->add(new ValidadorMiddleware(array(TipoDeProducto::class,'Validador'),'Debe ingresar el nombre del tipo'))
+	->add(new VerificarRoles(array('Socio')));
+
+	$grupoDeRutas->put('[/]',\TipoDeProductoController::class.':ModificarUno')
+	->add(new ValidadorMiddleware(array(TipoDeProducto::class,'Validador'),'Debe ingresar el nombre del tipo'))
+	->add(new ValidadorMiddleware(array(TipoDeProducto::class,'VerificarUno'),'El id ingresado no pertenece a ningun tipo de producto'))
+	->add(new VerificarRoles(array('Socio')));
+
+	$grupoDeRutas->delete('[/]',\TipoDeProductoController::class.':BorrarUno')
+	->add(new ValidadorMiddleware(array(TipoDeProducto::class,'VerificarUno'),'El id ingresado no pertenece a ningun tipo de producto'))
+	->add(new VerificarRoles(array('Socio')));;
 });
 
 $app->group('/puntuacion', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	$grupoDeRutas->post('[/]',\PuntuacionController::class.':CargarUno');
-	$grupoDeRutas->put('[/]',\PuntuacionController::class.':ModificarUno');
-	$grupoDeRutas->delete('[/]',\PuntuacionController::class.':BorrarUno');
+	$grupoDeRutas->post('[/]',\PuntuacionController::class.':CargarUno')
+	->add(new ValidadorMiddleware(array(Puntuacion::class,'Validador'),'Debe ingresar el nombre y la puntuacion y el id de la encuesta'))
+	->add(new VerificarRoles(array('Socio')));;
+
+	$grupoDeRutas->put('[/]',\PuntuacionController::class.':ModificarUno')
+	->add(new ValidadorMiddleware(array(Puntuacion::class,'Validador'),'Debe ingresar el nombre y la puntuacion y el id de la encuesta'))
+	->add(new ValidadorMiddleware(array(Puntuacion::class,'VerificarUno'),'El id ingresado no pertenece a ninguna puntuacion'))
+	->add(new VerificarRoles(array('Socio')));;;
+
+	$grupoDeRutas->delete('[/]',\PuntuacionController::class.':BorrarUno')
+	->add(new ValidadorMiddleware(array(Puntuacion::class,'VerificarUno'),'El id ingresado no pertenece a ninguna puntuacion'))
+	->add(new VerificarRoles(array('Socio')));
 });
 
 $app->group('/sector', function (RouteCollectorProxy $grupoDeRutas) 
 {
-	$grupoDeRutas->get('[/]',\SectorController::class.':Listar');
-	$grupoDeRutas->post('[/]',\SectorController::class.':CargarUno');
-	$grupoDeRutas->put('[/]',\SectorController::class.':ModificarUno');
-	$grupoDeRutas->delete('[/]',\SectorController::class.':BorrarUno');
+	$grupoDeRutas->get('[/]',\SectorController::class.':Listar')
+	->add(new VerificarRoles(array('Socio')));
+
+	$grupoDeRutas->post('[/]',\SectorController::class.':CargarUno')
+	->add(new ValidadorMiddleware(array(Sector::class,'Validador'),'Debe ingresar el nombre del Sector'))
+	->add(new VerificarRoles(array('Socio')));;
+
+	$grupoDeRutas->put('[/]',\SectorController::class.':ModificarUno')
+	->add(new ValidadorMiddleware(array(Sector::class,'Validador'),'Debe ingresar el nombre del Sector'))
+	->add(new ValidadorMiddleware(array(Sector::class,'VerificarUno'),'El id ingresado no pertenece a ninguna puntuacion'))
+	->add(new VerificarRoles(array('Socio')));
+
+	$grupoDeRutas->delete('[/]',\SectorController::class.':BorrarUno')
+	->add(new ValidadorMiddleware(array(Sector::class,'VerificarUno'),'El id ingresado no pertenece a ninguna puntuacion'))
+	->add(new VerificarRoles(array('Socio')));;
 });
 
 $app->run();

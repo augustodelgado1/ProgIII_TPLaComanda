@@ -4,22 +4,20 @@
 
 require_once './Clases/Usuario.php';
 
-class AdminController
+class RolController
 {
 
     public static function Listar($request, $response, array $args)
     {
-        $mensaje = 'Hubo un error  al intentar listar los Admin';
-        $unRol = Rol::ObtenerUnoPorDescripcionBD('Admin');
+        $mensaje = 'Hubo un error  al intentar listar los Rol';
+        $listaDeRoles =  Rol::ObternerListaBD();
 
-        $listaDeAdmins = Usuario::FiltrarPorRolBD( $unRol->GetId());
-
-        if(isset($listaDeAdmins))
+        if(isset($listaDeRoles))
         {
             $mensaje = "La lista esta vacia";
-            if(count($listaDeAdmins) > 0)
+            if(count($listaDeRoles) > 0)
             {
-                $mensaje = "Admins".'<br>'.Usuario::ToStringList($listaDeAdmins);
+                $mensaje = "Rols".'<br>'.Rol::ToStringList($listaDeRoles);
             }
         }
         
@@ -32,16 +30,14 @@ class AdminController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $unCargo = Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;   
-        $unRol = Rol::ObtenerUnoPorDescripcionBD('Admin');
+       
         $mensaje = 'no se pudo dar de alta';
 
-        $unAdmin = new Usuario($data['email'],$data['clave'],$data['nombre'],
-        $data['apellido'],$data['dni'],$unCargo->GetId(),$unRol->GetId());
+        $unRol = new Rol($data['descripcion']);
 
-        if($unAdmin->AgregarBD())
+        if($unRol->AgregarBD())
         {
-            $mensaje = 'El Admin se registro correctamente:<br>'.$unAdmin->ToString();
+            $mensaje = 'El Rol se registro correctamente:<br>'.$unRol->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -56,10 +52,10 @@ class AdminController
         
         $mensaje = 'no se pudo dar modificar';
 
-        if(Usuario::ModificarUnoBD($data['id'],$data['email'],$data['clave'],$data['nombre'] ,
-        $data['apellido'],$data['dni'],$data['cargo']))
+        if(Rol::ModificarUnoBD($data['id'],$data['descripcion']))
         {
-            $mensaje = 'El Admin se modifico correctamente';
+            $unRol = Rol::BuscarRolPorIdBD($data['id']);
+            $mensaje = 'El Rol se modifico correctamente <br>'.$unRol->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -70,12 +66,12 @@ class AdminController
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-       
+        $unRol = Rol::BuscarRolPorIdBD($data['id']);
         $mensaje = 'no se pudo borrar';
 
-        if(Usuario::BorrarUnoPorIdBD($data['id']))
+        if(Rol::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Admin se borro correctamente';
+            $mensaje = 'Este Rol se borro correctamente: <br>'.$unRol->ToString();
         }
 
         $response->getBody()->write($mensaje);

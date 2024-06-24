@@ -7,7 +7,7 @@ require_once './Clases/Cargo.php';
 
 class CargoController 
 {
-  
+    
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();

@@ -235,6 +235,20 @@ class Cargo
                 $this->GetSector()->ToString();
     }
 
+    public static function Validador($data)
+    {
+        return  Cargo::ValidadorDescripcion($data['descripcion']) 
+                && Sector::BuscarPorDescripcionBD($data['sector']) !== null;
+    }
+    public static function VerificarUno($data)
+    {
+        return Cargo::BuscarCargoPorIdBD($data['id']) !== null;
+    }
+    private static function ValidadorDescripcion($descripcion)
+    {
+        return  isset($descripcion) && Util::ValidadorDeNombre($descripcion);
+    }
+
    
 }
 

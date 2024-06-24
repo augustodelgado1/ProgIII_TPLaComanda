@@ -8,6 +8,8 @@ require_once './Clases/Sector.php';
 class TipoDeProductoController 
 {
   
+    
+  
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
@@ -17,7 +19,7 @@ class TipoDeProductoController
         if(isset($unSector))
         {
             $mensaje = 'no se pudo dar de alta';
-            $unTipoDeProducto = new TipoDeProducto($data['nombre'],$unSector->GetId());
+            $unTipoDeProducto = new TipoDeProducto($data['descripcion'],$unSector->GetId());
             if($unTipoDeProducto->AgregarBD())
             {
                 $mensaje = 'El Tipo De Producto se dio de alta <br>'. $unTipoDeProducto->ToString();
@@ -39,7 +41,8 @@ class TipoDeProductoController
 
         if(TipoDeProducto::ModificarUnoBD($data['id'],$data['descripcion'],$data['idDeSector']))
         {
-            $mensaje = 'El Tipo De Producto se modifico correctamente';
+            $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorIdBD($data['id']);
+            $mensaje = 'El Tipo De Producto se modifico correctamente: <br>'.$unTipoDeProducto->ToString();
            
         }
         
@@ -51,12 +54,12 @@ class TipoDeProductoController
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-
+        $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorIdBD($data['id']);
         $mensaje = 'no se pudo borrar';
 
         if(TipoDeProducto::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'el Tipo De Producto se borro correctamente';
+            $mensaje = 'Este Tipo De Producto se borro correctamente: <br>'.$unTipoDeProducto->ToString();
         }
 
         $response->getBody()->write($mensaje);

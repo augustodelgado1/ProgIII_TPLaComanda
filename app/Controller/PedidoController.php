@@ -53,7 +53,8 @@ class PedidoController
 
         if(isset($unProducto) && Pedido::ModificarUnoBD($unPedido->GetId(),$unaOrden->GetId(),$unProducto->GetId()))
         {
-            $mensaje = 'El Pedido se modifico correctamente';
+            $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigoDePedido']);
+            $mensaje = 'El Pedido se modifico correctamente: <br>'.$unPedido->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -69,7 +70,7 @@ class PedidoController
 
         if(Pedido::BorrarUnoPorIdBD($unPedido->GetId()))
         {
-            $mensaje = 'El Pedido se borro correctamente';
+            $mensaje = 'Este Pedido se borro correctamente: <br>'.$unPedido->ToString();;
         }
 
         $response->getBody()->write($mensaje);

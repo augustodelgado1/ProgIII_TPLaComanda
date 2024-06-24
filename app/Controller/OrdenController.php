@@ -63,7 +63,8 @@ class OrdenController
 
         if(Orden::ModificarUnoBD($unaOrden->GetId(),$data['nombreDelCliente'],$data['idDeMesa']))
         {
-            $mensaje = 'El Orden se modifico correctamente';
+            $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
+            $mensaje = 'El Orden se modifico correctamente <br>'.$unaOrden->ToString();
         }
         
         $response->getBody()->write($mensaje);
@@ -79,7 +80,8 @@ class OrdenController
 
         if(Orden::BorrarUnoPorIdBD($unaOrden->GetId()))
         {
-            $mensaje = 'El Orden se borro correctamente';
+          
+            $mensaje = 'Esta Orden se borro correctamente <br>'.$unaOrden->ToString();
         }
 
         $response->getBody()->write($mensaje);
