@@ -84,6 +84,7 @@ class MesaController
        
         if(isset($unMesa) && isset($unaOrden))
         {
+            
             $unMesa->ModificarEstadoBD(Mesa::ESTADO_CERRADO);
             $unaOrden->ModificarEstadoBD(Orden::ESTADO_INACTIVO);
             $unaOrden->ActualizarImporte();
@@ -184,6 +185,7 @@ class MesaController
         $listaDeMesas = Mesa::ObtenerListaBD();
         $unaMesa = Mesa::BuscarMesaMasFacturo($listaDeMesas);
         
+      
         
         if(isset($unaMesa) && ($facturacion = $unaMesa->ObtenerFacturacionTotal()) > 0)
         {
@@ -226,6 +228,7 @@ class MesaController
         // $listaDeOrdenes = Orden::FiltarPorEstado(Orden::ESTADO_INACTIVO);
         $importeMayor = Orden::BusacarMayorImporteBD();
         $listaDeOrdenes = Orden::FiltrarPorImporteBD($importeMayor);
+        $listafiltrada = Orden::FiltrarPorEstado($listaDeOrdenes,Orden::ESTADO_INACTIVO);
         $listaDeMesas = Mesa::FiltrarPorImporteDeOrden($importeMayor);
        
         
@@ -235,7 +238,7 @@ class MesaController
             if(count($listaDeMesas) > 0)
             {
                 $mensaje = "la factura con el mayor importe tiene el valor de $importeMayor <br>".
-                Mesa::MostrarConOrdenes($listaDeMesas,$listaDeOrdenes);
+                Mesa::MostrarConOrdenes($listaDeMesas,$listafiltrada);
             }
         }
 
@@ -252,6 +255,7 @@ class MesaController
         $data = $request->getQueryParams();
         $importeMenor = Orden::BuscarMenorImporteBD();
         $listaDeOrdenes = Orden::FiltrarPorImporteBD($importeMenor);
+        $listafiltrada = Orden::FiltrarPorEstado($listaDeOrdenes,Orden::ESTADO_INACTIVO);
         $listaDeMesas = Mesa::FiltrarPorImporteDeOrden($importeMenor);
        
         
@@ -261,7 +265,7 @@ class MesaController
             if(count($listaDeMesas) > 0)
             {
                 $mensaje = "la factura con el menor importe tiene el valor de $importeMenor <br>".
-                Mesa::MostrarConOrdenes($listaDeMesas,$listaDeOrdenes);
+                Mesa::MostrarConOrdenes($listaDeMesas,$listafiltrada);
             }
         }
 
@@ -275,11 +279,14 @@ class MesaController
 
     public static function ListarFacturacionEntreDosFechas($request, $response, array $args)
     {
-        $data = $request->getQueryParams();
+        $data = $request->getParsedBody();
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
 
-        $listaFiltrada = Orden::FiltrarEntreDosFechas($unaMesa->ObtenerListaDeOrdenes(),$data['fechaInicial'],$data['fechaFinal']);
-        $facturacionTotal = Orden::CalcularFacturacionTotal($listaFiltrada);
+        
+        $listaFiltradaPorEstado = Orden::FiltrarPorEstado($unaMesa->ObtenerListaDeOrdenes(),Orden::ESTADO_INACTIVO);
+        $listaFiltradaPorFecha = Orden::FiltrarEntreDosFechas($listaFiltradaPorEstado,new DateTime($data['fechaInicial']),new DateTime($data['fechaFinal']));
+        $facturacionTotal = Orden::CalcularFacturacionTotal($listaFiltradaPorFecha);
+        $mensaje = "La facturacion es ".$facturacionTotal;
         
         if($facturacionTotal > 0)
         {
@@ -298,15 +305,18 @@ class MesaController
         $data = $request->getQueryParams();
         $listaDeMesas = Mesa::FiltarMesaEncuestadas();
         // $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_POSITIVO);
-        $listaDeEncuesta = Encuesta::FiltrarPorEstadoBD(Encuesta::ESTADO_POSITIVO);
+        // $listaDeEncuesta = Encuesta::FiltrarPorEstadoBD(Encuesta::ESTADO_POSITIVO);
+        $listaDeEncuesta =  Encuesta::ListarBD();
+        $listaDeFiltrada = Encuesta::FiltrarPorEstado($listaDeEncuesta,Encuesta::ESTADO_POSITIVO);
 
         $mensaje = "Hubo error en la funcion";
-        if(isset($listaDeEncuesta))
+        if(isset($listaDeFiltrada))
         {
+           
             $mensaje = "No se encontraron comentarios ".Puntuacion::ESTADO_POSITIVO.'s';
-            if(count($listaDeEncuesta) > 0)
+            if(count($listaDeFiltrada) > 0)
             {
-                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta);
+                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeFiltrada);
             }
         }
 
@@ -320,15 +330,17 @@ class MesaController
         $data = $request->getQueryParams();
         $listaDeMesas = Mesa::FiltarMesaEncuestadas();
         // $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_NEGATIVO);
-        $listaDeEncuesta = Encuesta::FiltrarPorEstadoBD(Encuesta::ESTADO_NEGATIVA);
+        $listaDeEncuesta =  Encuesta::ListarBD();
+        // var_dump($listaDeEncuesta);
+        $listaDeFiltrada = Encuesta::FiltrarPorEstado($listaDeEncuesta,Encuesta::ESTADO_NEGATIVA);
 
         
-        if(isset($listaDeMesas))
+        if(isset($listaDeFiltrada))
         {
             $mensaje = "No se encontraron comentarios ".Encuesta::ESTADO_NEGATIVA.'s';
-            if(count($listaDeMesas) > 0)
+            if(count($listaDeFiltrada) > 0)
             {
-                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta);
+                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeFiltrada);
             }
         }
 

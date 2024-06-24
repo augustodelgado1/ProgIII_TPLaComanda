@@ -53,11 +53,11 @@ class SocioController
     public static function ModificarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        
+        $unCargo = Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;  
         $mensaje = 'no se pudo dar modificar';
 
         if(Usuario::ModificarUnoBD($data['id'],$data['email'],$data['clave'],$data['nombre'] ,
-        $data['apellido'],$data['dni'],$data['cargo']))
+        $data['apellido'],$data['dni'],$unCargo->GetId()))
         {
             $mensaje = 'El Socio se modifico correctamente';
         }

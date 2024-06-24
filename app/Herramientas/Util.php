@@ -28,8 +28,9 @@ class Util
     public static function VerificarQueContengaSoloLetras($string)
     {
         $estado = false;
-        $caracteresValidos = range('a','z');
         $len = strlen($string);
+
+        $caracteresValidos = range('a','z');
 
         if(isset($string) && $len  > 0)
         {

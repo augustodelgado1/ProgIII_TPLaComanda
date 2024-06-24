@@ -11,8 +11,8 @@ require_once './Clases/Encuesta.php';
 
 class Orden 
 {
-    public const ESTADO_ACTIVO = "activo";
-    public const ESTADO_INACTIVO = "inactivo";
+    public const ESTADO_ACTIVO = "activa";
+    public const ESTADO_INACTIVO = "inactiva";
     private $id;
     private $codigo;
     private $nombreDelCliente;
@@ -217,8 +217,9 @@ class Orden
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
 
-        if(isset($unObjetoAccesoDato) && $this->SetEstado($estadoDelaOrden))
+        if($this->SetEstado($estadoDelaOrden))
         {
+            // var_dump($estadoDelaOrden);
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden 
             as o SET estado = :estado where o.id = :id");
             $consulta->bindValue(':estado',$estadoDelaOrden,PDO::PARAM_STR);
@@ -285,13 +286,14 @@ class Orden
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MAX(costoTotal) as ImporteTotal
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MAX(costoTotal) as importeTotal
             FROM orden
             WHERE estado = :estado");
-            $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_INT);
+            $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $mayorImporte = $data['ImporteTotal'];
+            $mayorImporte = $data['importeTotal'];
+            // var_dump($mayorImporte);
         }
 
         return  $mayorImporte;
@@ -303,13 +305,13 @@ class Orden
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MIN(costoTotal) as ImporteTotal
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MIN(costoTotal) as importeTotal
             FROM orden
             WHERE estado = :estado");
             $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $menorImporte = $data['ImporteTotal'];
+            $menorImporte = $data['importeTotal'];
         }
 
         return  $menorImporte;
@@ -319,9 +321,10 @@ class Orden
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeOrdenes = null;
 
-        if(isset($unObjetoAccesoDato))
+       
+        if(isset($importe))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.importe = :importe");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.costoTotal = :importe");
             $consulta->bindValue(':importe',$importe);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
@@ -331,10 +334,10 @@ class Orden
         return  $listaDeOrdenes;
     }
   
-    private static function BuscarPorCodigoBD($codigo)
+    public static function BuscarPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data = false;
+        $data = null;
 
         if(isset($codigo))
         {
@@ -382,7 +385,7 @@ class Orden
             $unaOrden->SetId($unArrayAsosiativo['id']);
             $unaOrden->SetCodigo($unArrayAsosiativo['codigo']);
             $unaOrden->SetNombreDelCliente($unArrayAsosiativo['nombreDelCliente']);
-            $unaOrden->SetFechaDeOrden($unArrayAsosiativo['fechaDeOrden']);
+            $unaOrden->SetFechaDeOrden(new DateTime($unArrayAsosiativo['fechaDeOrden']));
             $unaOrden->SetCostoTotal($unArrayAsosiativo['costoTotal']);
             $unaOrden->SetEstado($unArrayAsosiativo['estado']);
         }
@@ -659,16 +662,35 @@ class Orden
 
             foreach ($listaDeOrdenes as $unaOrden) 
             {
-                if($unaOrden->fechaDeOrden >= $fechaDesde 
-                && $unaOrden->fechaDeOrden <= $fechaHasta)
+                if( $unaOrden->fechaDeOrden >= $fechaDesde
+                && $unaOrden->fechaDeOrden <= $fechaHasta )
                 {
                     array_push($listaDefiltrada,$unaOrden);
                 }
-                
             }
         }
 
-        return  $listaDeOrdenes;
+        return  $listaDefiltrada;
+    }
+
+    public static function FiltrarPorEstado($listaDeOrdenes,$estado)
+    {
+        $listaFiltrada = null;
+
+        if(isset($listaDeOrdenes) && isset($estado) && count($listaDeOrdenes) > 0)
+        {
+            $listaFiltrada =  [];
+
+            foreach($listaDeOrdenes as $unaOrden)
+            {
+                if(strcasecmp($unaOrden->estado,$estado) === 0)
+                {
+                    array_push($listaFiltrada,$unaOrden);
+                }
+            }
+        }
+
+        return  $listaFiltrada;
     }
     public static function FiltrarOrdenesPorIdDeMesa($listaDeOrdenes,$idDeMesa)
     {
@@ -761,13 +783,10 @@ class Orden
             {
                 if($unaOrden->costoTotal > 0)
                 {
-                    // var_dump(  $unaOrden->costoTotal);
                     $acumulador +=  $unaOrden->costoTotal;
                 }
                 
             }
-
-           
         }
 
         return $acumulador;
@@ -778,19 +797,19 @@ class Orden
     public static function Validador($data)
     {
         return  Orden::ValidarNombreDeCliente($data['nombreDelCliente']) 
-                && ($unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa']))
+                && ($unaMesa = Mesa::BuscarMesaPorCodigoBD($data['codigoDeMesa'])) !== null
                 && $unaMesa['estado'] === Mesa::ESTADO_CERRADO; ;
     }
       
     private static function ValidarNombreDeCliente($nombreDelCliente)
     {
-    return Util::ValidadorDeNombre($nombreDelCliente) ;
+        return Util::ValidadorDeNombre($nombreDelCliente) ;
     }
 
 
     public static function VerificarUnoPorCodigo($codigo)
     {
-        return  Orden::BuscarPorCodigoBD($codigo) !== false;
+        return  Orden::BuscarPorCodigoBD($codigo) !== null;
     }
     public static function ValidadorCodigo($data)
     {
@@ -801,7 +820,7 @@ class Orden
       {
           $array = array(Orden::ESTADO_ACTIVO,Orden::ESTADO_INACTIVO);
   
-          return  isset($estado) && in_array($estadoDelaOrden,$array);
+          return  isset($estadoDelaOrden) && in_array($estadoDelaOrden,$array);
       }
   
       

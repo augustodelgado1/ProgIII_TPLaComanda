@@ -23,7 +23,7 @@ class Cargo
         $consulta = $objAccesoDatos->RealizarConsulta("Insert into Cargo (descripcion,idDeSector) 
         values (:descripcion,:idDeSector)");
         $consulta->bindValue(':descripcion',$this->descripcion,PDO::PARAM_STR);
-        $consulta->bindValue(':idDeSector',$this->idDeSector->GetId(),PDO::PARAM_INT);
+        $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
         $consulta->execute();
         $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
 
@@ -35,7 +35,7 @@ class Cargo
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
        
-        if(isset($unObjetoAccesoDato))
+        if(isset($descripcion) && isset($id) && isset($idDeSector))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Cargo as c
             SET `descripcion`= :descripcion,
@@ -225,7 +225,7 @@ class Cargo
     }
     public function GetSector()
     {
-        return   Sector::BuscarSectorPorIdBD($this->idDeSector);
+        return   Sector::ObtenerUnoPorIdBD($this->idDeSector);
     }
 
     

@@ -60,11 +60,11 @@ class Puntuacion
        
         if(isset($descripcion) && isset($id) && isset($puntuacion) && isset($idDeEncuesta))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Puntuacion as p
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Puntuacion 
             SET `descripcion`= :descripcion,
             `puntuacion`= :puntuacion,
             `idDeEncuesta`= :idDeEncuesta,
-            Where p.id=:id");
+            Where id=:id");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->bindValue(':id',$id,PDO::PARAM_STR);
             $consulta->bindValue(':puntuacion',$puntuacion,PDO::PARAM_INT);
@@ -82,7 +82,7 @@ class Puntuacion
         
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Puntuacion as p where p.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Puntuacion where id = :id");
             $consulta->bindValue(':id',$idDePuntuacion,PDO::PARAM_INT);
             $estado = $consulta->execute();
         }
@@ -93,7 +93,7 @@ class Puntuacion
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDePuntuaciones= null;
-
+        
         if(isset($idDeEncuesta))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion 
@@ -102,7 +102,11 @@ class Puntuacion
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $listaDePuntuaciones = Puntuacion::CrearLista($data);
+           
         }
+
+        
+      
 
         return  $listaDePuntuaciones;
     }
@@ -187,13 +191,15 @@ class Puntuacion
     private static function CrearUnPuntuacion($unArrayAsosiativo)
     {
         $unPuntuacion = null;
-        
+      
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
             $unPuntuacion = new Puntuacion($unArrayAsosiativo['idDeEncuesta'],
             $unArrayAsosiativo['descripcion'],
             $unArrayAsosiativo['puntuacion']);
             $unPuntuacion->SetId($unArrayAsosiativo['id']);
+
+          
         }
         
         return $unPuntuacion ;
@@ -294,7 +300,7 @@ class Puntuacion
 
     private static function ValidarEstado($estado)
     {
-        return   isset($estado) && in_array(array(Puntuacion::ESTADO_NEGATIVO,Puntuacion::ESTADO_POSITIVO),$estado);
+        return   isset($estado) && in_array($estado,array(Puntuacion::ESTADO_NEGATIVO,Puntuacion::ESTADO_POSITIVO));
     }
    
 }

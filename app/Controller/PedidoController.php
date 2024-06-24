@@ -184,10 +184,6 @@ class PedidoController
         return $response;
     }
 
-   
-
-
-
     public static function PreapararUnPedido($request, $response, array $args)
     { 
         $dataBody = $request->getParsedBody();
@@ -208,7 +204,7 @@ class PedidoController
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_INTERMEDIO);
             $unPedido->ModificarTiempoEstimadoBD($unPedido->GetTiempoEstimado());
             $unPedido->ModificarTiempoDeInicioBD(new DateTime('now'));
-            $mensaje = 'Se modifico Correctamente';
+            $mensaje = 'Se modifico Correctamente <br>'.$unPedido->ToString();
         }
 
         $response->getBody()->write($mensaje);
@@ -228,7 +224,7 @@ class PedidoController
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_FINAL);
             $unPedido->ModificarTiempoDeFinalizacionBD(new DateTime("now"));
             $unPedido->EvaluarEstadoDelTiempo();
-            $mensaje = 'Se finalizo Correctamente';
+            $mensaje = 'Se finalizo Correctamente <br>'.$unPedido->ToString();
         }
 
         $response->getBody()->write($mensaje);
@@ -246,8 +242,9 @@ class PedidoController
        
         if(isset($unPedido))
         {
-            $mensaje = 'Se modifico Correctamente';
+           
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_CANCELADO);
+            $mensaje = 'Se modifico Correctamente <br>'.$unPedido->ToString();
         }
 
         $response->getBody()->write($mensaje);

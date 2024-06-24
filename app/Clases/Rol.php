@@ -174,7 +174,7 @@ class Rol
       }
       public static function VerificarDescripcionBD($descripcion)
       {
-          return Rol::BuscarRolPorDescripcionBD($descripcion) !== false;
+          return Rol::BuscarRolPorDescripcionBD($descripcion) !== null;
       }
   
       public static function Validador($data)

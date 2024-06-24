@@ -26,6 +26,7 @@ class EncuestaController
         
         $unaEncuesta = new Encuesta($unaOrden->GetId(),$data['nombreDelCliente'],$data['mensaje']);
         $idDeEncuesta = $unaEncuesta->AgregarBD();
+        
         $mensaje = 'no se pudo dar de alta';
 
         if(Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Mesa",$data['puntuacionDeLaMesa']) && 
@@ -33,8 +34,7 @@ class EncuestaController
         Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Cocinero",$data['puntuacionDelCocinero']) && 
         Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Mozo",$data['puntuacionDelMozo']))
         {
-            $unaEncuesta->EvaluarEstado();
-            $mensaje = 'la encuesta se relizo correctamente';
+            $mensaje = 'la encuesta se relizo correctamente <br>'. $unaEncuesta->ToString();
         }
 
         $response->getBody()->write($mensaje);

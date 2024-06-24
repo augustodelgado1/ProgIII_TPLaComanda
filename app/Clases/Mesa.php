@@ -78,7 +78,7 @@ class Mesa
     public static function BuscarMesaPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unMesa = false;
+        $unMesa = null;
 
         if(isset($codigo))
         {
@@ -88,8 +88,6 @@ class Mesa
             $consulta->bindValue(':codigo',$codigo,PDO::PARAM_STR);
             $consulta->execute();
             $unMesa = $consulta->fetch(PDO::FETCH_ASSOC);
-
-          
         }
 
         return  $unMesa;
@@ -138,13 +136,14 @@ class Mesa
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unMesa = null;
 
-        if(isset($unObjetoAccesoDato))
+        
+        if(isset($importe))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT m.id, m.codigo, m.estado, o.costoTotal
             FROM mesa AS m
             JOIN orden AS o ON o.idDeMesa = m.id
             WHERE o.costoTotal = :importe");
-            $consulta->bindValue(':idDeMesa',$importe);
+            $consulta->bindValue(':importe',$importe);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $unMesa =  Mesa::CrearLista($data);
@@ -312,7 +311,7 @@ class Mesa
             $strLista  = "Mesas".'<br>';
             foreach($listaDeMesas as $unaMesa)
             {
-                $listaFiltrada = Orden::FiltrarOrdenesPorIdDeMesa($listaDeOrdenes,$unaMesa->Id);
+                $listaFiltrada = Orden::FiltrarOrdenesPorIdDeMesa($listaDeOrdenes,$unaMesa->id);
 
                 if(isset( $listaFiltrada) && count( $listaFiltrada) > 0)
                 {
@@ -328,6 +327,7 @@ class Mesa
     {
         $strLista = null; 
         
+    
         if(isset($listaDeMesas) && isset($listaDeEncuesta))
         {
             $strLista  = "Mesas".'<br>';
@@ -402,7 +402,8 @@ class Mesa
             {
                 $facturacionTotal = $unaMesaDeLaLista->ObtenerFacturacionTotal();
 
-                if($facturacionTotal  <  $menor || $flag === false)
+                if($facturacionTotal > 0
+                && ($facturacionTotal  <  $menor || $flag === false))
                 {
                     $unaMesa = $unaMesaDeLaLista;
                     $menor =  $facturacionTotal;
@@ -426,7 +427,7 @@ class Mesa
             {
                 $facturacionTotal = $unaMesaDeLaLista->ObtenerFacturacionTotal();
 
-                if($facturacionTotal  <  $mayor || $flag === false)
+                if($facturacionTotal  >  $mayor || $flag === false)
                 {
                     $unaMesa = $unaMesaDeLaLista;
                     $mayor =  $facturacionTotal;
@@ -451,7 +452,7 @@ class Mesa
 
     public static function Validador($data)
     {
-        return     Mesa::VerificarUnoPorCodigo($data['codigo']) 
+        return     Mesa::ValidadorCodigoDeMesa($data)
                 && Mesa::ValidadorEstado($data['estado']);
     }
     public static function ValidadorCodigoDeMesa($data)

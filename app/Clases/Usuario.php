@@ -230,7 +230,7 @@ class Usuario
     private static function BuscarPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data= false;
+        $data= null;
         
         if(isset($id))
         {
@@ -408,7 +408,7 @@ class Usuario
         return      "Email: ".$this->mail.'<br>'.
             "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
             "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>'.
-            "Cargo: ".$this->GetCargo()->GetDescripcion().'<br>';
+            $this->GetStrCargo();
     }
 
     public function Equals($unUsuario)
@@ -579,6 +579,16 @@ class Usuario
     {
         return  Cargo::BuscarCargoPorIdBD($this->cargo) ;
     }
+    private function GetStrCargo()
+    {
+        $mensaje = "";
+        $unCargo = $this->GetCargo();
+        if(isset($unCargo) && $unCargo !== false)
+        {
+            $mensaje = "Cargo: ".$unCargo->GetDescripcion();
+        }
+        return   $mensaje  ;
+    }
 
     public function GetRolDeUsuario()
     {
@@ -609,11 +619,11 @@ class Usuario
     public static function Validador($data)
     {
         return  isset($data) && Usuario::ValidadorEmail($data['email']) 
-                && Usuario::ValidadorClave($data['clave'])
-                && Util::ValidadorDeNombre($data['nombre'])
-                && Util::ValidadorDeNombre($data['apellido'])
-                && Usuario::ValidadorDni($data['dni'])
-                && Usuario::ValidadorDeCargo($data['cargo']);;
+                             && Usuario::ValidadorClave($data['clave'])
+                             && Util::ValidadorDeNombre($data['nombre'])
+                             && Util::ValidadorDeNombre($data['apellido'])
+                             && Usuario::ValidadorDni($data['dni'])
+                             && Usuario::ValidadorDeCargo($data['cargo']);
     }
 
     private static function ValidadorDeCargo($desripcion)
@@ -638,14 +648,16 @@ class Usuario
 
     public static function VerificarUno($data)
     {
-        return Usuario::BuscarPorIdBD($data['id']) !== false;
+        return Usuario::BuscarPorIdBD($data['id']) !== null;
     }
+
     public static function ValidarRolSocio($data)
     {
         $estado = false;
         $unUsuario = Usuario::ObtenerUnoCompletoBD($data['id']);
 
-        if(isset($unUsuario))
+        
+        if(isset($unUsuario) && $unUsuario !== false)
         {
             $estado = $unUsuario['rol'] === 'Socio';
         }

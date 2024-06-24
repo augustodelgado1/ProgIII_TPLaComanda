@@ -61,20 +61,24 @@ class Sector
     }
 
     
-    public static function BuscarSectorPorIdBD($idDeSector)
+    private static function BuscarSectorPorIdBD($idDeSector)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unSector = null;
 
-        if(isset($unObjetoAccesoDato) && isset($idDeSector))
+        if(isset($idDeSector))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM sector as s where s.id = :idDeSector");
             $consulta->bindValue(':idDeSector',$idDeSector,PDO::PARAM_STR);
             $consulta->execute();
-            $unSector = Sector::CrearUnSector($consulta->fetch(PDO::FETCH_ASSOC));
+            $unSector = $consulta->fetch(PDO::FETCH_ASSOC);
         }
 
         return  $unSector;
+    }
+    public static function ObtenerUnoPorIdBD($idDeSector)
+    {
+        return Sector::CrearUnSector(Sector::BuscarSectorPorIdBD($idDeSector));;
     }
 
     public static function BuscarPorDescripcionBD($descripcion)
@@ -291,7 +295,20 @@ class Sector
         return "Sector: ".$this->descripcion.'<br>';
     }
 
-  
+    public static function Validador($data)
+    {
+        return  Sector::ValidadorDescripcion($data['descripcion']);
+    }
+
+    public static function VerificarUno($data)
+    {
+        return Sector::BuscarSectorPorIdBD($data['id']) !== null;
+    }
+    private static function ValidadorDescripcion($descripcion)
+    {
+        return  isset($descripcion) && Util::ValidadorDeNombre($descripcion);
+    }
+
 }
 
 

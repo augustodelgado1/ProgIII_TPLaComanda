@@ -104,9 +104,6 @@ class Pedido
 
         return  $estado;
     }
-
-    // $unPedido->ModificarIdDeEmpleadoBD($unEmpleado->GetId());
-    // $unPedido->ModificarEstadoBD(Pedido::ESTADO_INTERMEDIO);
     public function ModificarIdDeEmpleadoBD($idDeEmpleado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -129,7 +126,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = null;
 
-        if(isset($estadoDelPedido) && Pedido::ValidarEstado($estadoDelPedido))
+        if($this->SetEstado($estadoDelPedido))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
             SET p.estado = :estado 
@@ -967,17 +964,19 @@ class Pedido
     public static function ValidadorAlta($data)
     {
         return     Pedido::ValidarProducto($data)
-                   && Orden::VerificarUnoPorCodigo($data['codigoDeOrden']);
+                   && ($unaOrden = Orden::BuscarPorCodigoBD($data['codigoDeOrden'])) !== null 
+                   && $unaOrden['estado'] === Orden::ESTADO_ACTIVO;
     }
 
     private static function ValidarProducto($data)
     {
+       
        return   Producto::VerificarPorNombre($data['tipoDeProducto'],$data['nombreDeProducto']);
         
     }
     public static function VerificarCodigo($data)
     {
-       return   Pedido::BuscarPorCodigoBD($data['codigo']) !== false;
+       return   Pedido::BuscarPorCodigoBD($data['codigo']) !== null;
         
     }
 

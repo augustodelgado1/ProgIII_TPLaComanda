@@ -94,7 +94,48 @@ class OrdenController
         $mensaje = 'Hubo un error  al intentar listar los Ordens';  
         $listaDeOrdens = Orden::ListarBD();
 
-      
+        if(isset($listaDeOrdens))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeOrdens) > 0)
+            {
+                $mensaje = Orden::ToStringList($listaDeOrdens);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+
+    public static function ListarActivas($request, $response, array $args)
+    {
+        // $data = $request->getHeaders();
+        $mensaje = 'Hubo un error  al intentar listar los Ordens';  
+        $listaDeOrdens = Orden::ListarBD();
+        Orden::FiltrarPorEstado($listaDeOrdens,Orden::ESTADO_ACTIVO);
+
+        if(isset($listaDeOrdens))
+        {
+            $mensaje = "la lista esta vacia";
+            if(count($listaDeOrdens) > 0)
+            {
+                $mensaje = Orden::ToStringList($listaDeOrdens);
+            }
+        }
+
+        $response->getBody()->write($mensaje);
+
+
+        return $response;
+    }
+    public static function ListarInactivas($request, $response, array $args)
+    {
+        // $data = $request->getHeaders();
+        $mensaje = 'Hubo un error  al intentar listar los Ordens';  
+        $listaDeOrdens = Orden::ListarBD();
+        Orden::FiltrarPorEstado($listaDeOrdens,Orden::ESTADO_INACTIVO);
 
         if(isset($listaDeOrdens))
         {

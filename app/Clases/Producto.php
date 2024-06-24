@@ -54,11 +54,11 @@ class Producto implements IFileManejadorCSV
        
         if(isset($nombre) && isset($tipoDeProducto) && isset($precio) && isset($id))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Producto as p
-            SET `nombre`= :nombre,
-            `tipoDeProducto`= :tipoDeProducto,
-            `precio`= :precio,
-            Where p.id=:id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Producto 
+            SET nombre = :nombre,
+                idDeTipo = :tipoDeProducto,
+                precio = :precio
+            WHERE id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
             $consulta->bindValue(':tipoDeProducto',$tipoDeProducto,PDO::PARAM_INT);
@@ -110,10 +110,14 @@ class Producto implements IFileManejadorCSV
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Producto as p where p.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_STR);
             $consulta->execute();
-            $unProducto = Producto::CrearUnProducto($consulta->fetch(PDo::FETCH_ASSOC));
+            $unProducto = $consulta->fetch(PDO::FETCH_ASSOC);
         }
 
         return $unProducto;
+    }
+    public static function ObtenerUnoPorIdBD($id)
+    {
+        return Producto::CrearUnProducto(Producto::BuscarProductoPorIdBD($id));
     }
 
     public static function ObtenerListaBD()
@@ -372,13 +376,13 @@ class Producto implements IFileManejadorCSV
     public static function Validador($data)
     {
         return     Producto::ValidadorPrecio($data['precio']) 
-                && Producto::ValidarTipo($data['tipo'])
-                && Util::ValidadorDeNombre($data['nombre']);
+                && Producto::ValidarTipo($data['tipoDeProducto'])
+                && isset($data['nombre']);
     }
 
     public static function VerificarUno($data)
     {
-        return Producto::BuscarProductoPorIdBD($data['id']) !== false;
+        return Producto::BuscarProductoPorIdBD($data['id']) !== null;
     }
     private static function ValidadorPrecio($precio)
     {
@@ -387,11 +391,13 @@ class Producto implements IFileManejadorCSV
 
     public static function ValidarTipo($descripcion)
     {
+       
         return  isset($descripcion) 
         && TipoDeProducto::BuscarPorNombreBD($descripcion) !== false;
     }
     public static function VerificarPorNombre($tipoDeProducto,$descripcion)
     {
+        
         return Producto::BuscarPorNombreTipoBD($descripcion,$tipoDeProducto) !== false;
     }
    

@@ -72,18 +72,17 @@ class Encuesta
         $estado = false;
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         $idDeEncuesta = null;
-        if(isset($objAccesoDatos))
-        {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into Encuesta (nombreDelCliente,mensaje,idDeOrden,estado) 
-            values (:nombreDelCliente,:mensaje,:idDeOrden,:estado)");
-            $consulta->bindValue(':mensaje',$this->mensaje,PDO::PARAM_STR);
-            $consulta->bindValue(':nombreDelCliente',$this->nombreDelCliente,PDO::PARAM_STR);
-            $consulta->bindValue(':idDeOrden',$this->idDeOrden,PDO::PARAM_INT);
-            $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
-            $consulta->execute();
-            $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
-        }
-
+       
+        $consulta = $objAccesoDatos->RealizarConsulta("Insert into Encuesta (nombreDelCliente,mensaje,idDeOrden,estado) 
+        values (:nombreDelCliente,:mensaje,:idDeOrden,:estado)");
+        $consulta->bindValue(':mensaje',$this->mensaje,PDO::PARAM_STR);
+        $consulta->bindValue(':nombreDelCliente',$this->nombreDelCliente,PDO::PARAM_STR);
+        $consulta->bindValue(':idDeOrden',$this->idDeOrden,PDO::PARAM_INT);
+        $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
+        $consulta->execute();
+        $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
+        $this->id =  $idDeEncuesta;
+      
         return $idDeEncuesta;
     }
 
@@ -94,11 +93,11 @@ class Encuesta
 
         if(isset($nombreDelCliente) && isset($mensaje) && isset($idDeOrden) && isset($id))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Encuesta as e
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Encuesta 
             SET `nombreDelCliente`= :nombreDelCliente,
             `mensaje`= :mensaje,
             `idDeOrden`= :idDeOrden,
-            Where e.id=:id");
+            Where id=:id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
             $consulta->bindValue(':nombreDelCliente',$nombreDelCliente,PDO::PARAM_STR);
             $consulta->bindValue(':mensaje',$mensaje,PDO::PARAM_STR);
@@ -107,6 +106,22 @@ class Encuesta
         }
         
 
+        return  $estado;
+    }
+    private static function ModificarEstadoBD($id,$estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+
+        if(isset($estado) && isset($id))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Encuesta 
+            SET `estado`= :estado Where id=:id");
+            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $estado = $consulta->execute();
+        }
+        
         return  $estado;
     }
 
@@ -124,7 +139,7 @@ class Encuesta
     private static function BuscarUnoPorIdBD($idDeEncuesta)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unEncuesta = false;
+        $unEncuesta = null;
 
         if(isset($idDeEncuesta))
         {
@@ -167,7 +182,6 @@ class Encuesta
             $consulta->bindValue(':estado',$estadoDeLaEncuesta,PDO::PARAM_INT);
             $consulta->execute();
             $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
-          
         }
 
         return  $listaDeEncuestas;
@@ -208,6 +222,26 @@ class Encuesta
 
     #end
 
+    public static function FiltrarPorEstado($listaDeEncuestas,$estado)
+    {
+        $listaFiltrada = null;
+
+        if(isset($listaDeEncuestas) && isset($estado) && count($listaDeEncuestas) > 0)
+        {
+            $listaFiltrada =  [];
+
+            foreach($listaDeEncuestas as $unaEncuesta)
+            {
+                if(strcasecmp($unaEncuesta->estado,$estado) === 0)
+                {
+                    array_push($listaFiltrada,$unaEncuesta);
+                }
+            }
+        }
+
+        return  $listaFiltrada;
+    }
+
     private static function CrearUnEncuesta($unArrayAsosiativo)
     {
         $unEncuesta = null;
@@ -218,6 +252,8 @@ class Encuesta
             $unArrayAsosiativo['mensaje']);
             $unEncuesta->SetId($unArrayAsosiativo['id']);
             $unEncuesta->EvaluarEstado();
+
+           
         }
         
         return $unEncuesta ;
@@ -316,14 +352,13 @@ class Encuesta
         && Puntuacion::ValidarUnaPuntacion($data['puntuacionDelRestaurante'])
         && Puntuacion::ValidarUnaPuntacion($data['puntuacionDelCocinero'])
         && Puntuacion::ValidarUnaPuntacion($data['puntuacionDelMozo'])
-        && Mesa::VerificarUnoPorCodigo($data['codigoDeMesa'])
-        && Orden::VerificarUnoPorCodigo($data['codigoDeMesa']);
+        && Mesa::VerificarUnoPorCodigo($data['codigoDeMesa']);
     }
     public static function ValidadorModificacion($data)
     {
         return  Encuesta::ValidadorDeMensaje($data['mensaje'])
-        && Orden::VerificarUnoPorCodigo($data['numeroDeOrden'])
-        && Encuesta::ValidadorDeCliente($data['nombre']);
+        && Orden::VerificarUnoPorCodigo($data['codigoDeOrden'])
+        && Encuesta::ValidadorDeCliente($data['nombreDelCliente']);
     }
     private static function ValidadorDeCliente($nombre)
     {
@@ -337,7 +372,7 @@ class Encuesta
     }
     public static function ValidadorId($data)
     {
-        return Encuesta::BuscarUnoPorIdBD($data['id']) !== false;
+        return Encuesta::BuscarUnoPorIdBD($data['id']) !== null;
     }
 
     #Getters
@@ -410,7 +445,7 @@ class Encuesta
         $this->EvaluarEstado();
 
         return "Nombre del Cliente: ".$this->nombreDelCliente.'<br>'.
-        $this->GetStrPuntuacion(). 
+        $this->GetStrPuntuacion().'<br>'.
         "Comentario: ".$this->mensaje.'<br>';
     }
    

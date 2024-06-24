@@ -149,7 +149,7 @@ class TipoDeProducto
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unTipoDeProducto = null;
 
-        if(isset($unObjetoAccesoDato) && isset($nombre))
+        if(isset($nombre))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM TipoDeProducto as t where LOWER(t.nombre) = LOWER(:nombre)");
             $consulta->bindValue(':nombre',$nombre,PDO::PARAM_STR);
