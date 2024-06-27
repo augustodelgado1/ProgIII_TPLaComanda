@@ -26,7 +26,6 @@ class EncuestaController
         
         $unaEncuesta = new Encuesta($unaOrden->GetId(),$data['nombreDelCliente'],$data['mensaje']);
         $idDeEncuesta = $unaEncuesta->AgregarBD();
-        
         Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Mesa",$data['puntuacionDeLaMesa']);
         Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Restaurante",$data['puntuacionDelRestaurante']);
         Puntuacion::DarDeAltaUnPuntuacion($idDeEncuesta,"Cocinero",$data['puntuacionDelCocinero']);

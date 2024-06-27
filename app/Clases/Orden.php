@@ -557,6 +557,14 @@ class Orden
     {
         return  $this->id;
     }
+    public function GetFechaStr()
+    {
+        return  $this->fechaDeOrden->format('Y-m-d-H-i-s');
+    }
+    public function GetFecha()
+    {
+        return  $this->fechaDeOrden;
+    }
     public function GetMesa()
     {
         return  Mesa::BuscarMesaPorIdBD($this->idDeMesa);

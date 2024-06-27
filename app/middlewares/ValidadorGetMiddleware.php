@@ -20,6 +20,7 @@ class ValidadorGetMiddleware
         $response = new Response();
 
         
+        
         if(is_callable($this->funcValidador))
         {
             if (call_user_func($this->funcValidador,$parametros) == true) {

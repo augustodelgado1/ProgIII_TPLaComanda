@@ -37,8 +37,8 @@ class OrdenController
         File::CrearUnDirectorio('Imagenes');
         File::CrearUnDirectorio('Imagenes/Mesa');
         $mensaje = 'No se pudo guarder la foto';
-
-        $nombreDeArchivo = $unaOrden->GetCodigo().$_FILES['imagen']['name'];
+    
+        $nombreDeArchivo = $unaOrden->GetFechaStr().$_FILES['imagen']['name'];
 
         if($unaOrden->GuardarImagen($_FILES['imagen']['tmp_name']
         ,"Imagenes/Mesa/",

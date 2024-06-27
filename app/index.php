@@ -16,6 +16,7 @@ require_once './Controller/SocioController.php';
 require_once './Controller/CargoController.php';
 require_once './Controller/PuntuacionController.php';
 require_once './Controller/RolController.php';
+require_once './Controller/EmpresaController.php';
 require_once './Herramientas/File.php';
 
 
@@ -69,6 +70,14 @@ $app->group('/usuario', function (RouteCollectorProxy $grupoDeRutas)
 {
 	$grupoDeRutas->post('[/]',\UsuarioController::class.':Login')
 	->add(new ValidadorMiddleware(array(Usuario::class,'ValidarLoggin'),"Debe ingresar un email y una clave valida"));
+
+	
+});
+
+$app->group('/empresa', function (RouteCollectorProxy $grupoDeRutas) 
+{
+	$grupoDeRutas->get('/logo',EmpresaController::class.':DescargarLogoPorPDF')
+	->add(new VerificarRoles(array('Socio')));
 
 	
 });
@@ -161,11 +170,11 @@ $app->group('/producto', function (RouteCollectorProxy $grupoDeRutas)
 	->add(new ValidadorMiddleware(array(Producto::class,'VerificarUno'),"El Producto ingresado no existe"))
 	->add(new VerificarRoles(array('Socio')));
 
-	$grupoDeRutas->post('/{csv}',\ProductoController::class.':EscribirListaEnCsv')
+	$grupoDeRutas->post('/{csv}',\ProductoController::class.':GuardarListaEnCsv')
 	->add(new ValidadorMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'))
-	->add(new VerificarRoles(array('Socio')));;;
+	->add(new VerificarRoles(array('Socio')));
 	
-	$grupoDeRutas->get('/{csv}',\ProductoController::class.':LeerListaEnCsv')
+	$grupoDeRutas->get('/{csv}',\ProductoController::class.':CargarListaPorCsv')
 	->add(new ValidadorGetMiddleware(array(File::class,'ValidarExistenciaDelArchivo'),'El archivo no existe'))
 	->add(new ValidadorGetMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'))
 	->add(new VerificarRoles(array('Socio')));

@@ -9,24 +9,24 @@ class SocioController
 
     public static function Listar($request, $response, array $args)
     {
-        $mensaje = 'Hubo un error  al intentar listar los Socio';
+        $mensaje = ['Error' => 'Hubo un error  al intentar listar los Socio'];
         $unRol = Rol::ObtenerUnoPorDescripcionBD('Socio');
 
         $listaDeSocios = Usuario::FiltrarPorRolBD( $unRol->GetId());
 
         if(isset($listaDeSocios))
         {
-            $mensaje = "La lista esta vacia";
+            $mensaje = ['Error' => "La lista esta vacia"];
             if(count($listaDeSocios) > 0)
             {
-                $mensaje = "Socios".'<br>'.Usuario::ToStringList($listaDeSocios);
+                $mensaje = ['OK' => "Socios".'<br>'.Usuario::ToStringList($listaDeSocios)];
             }
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
+        
 
-
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function CargarUno($request, $response, array $args)
@@ -34,20 +34,20 @@ class SocioController
         $data = $request->getParsedBody();
         $unCargo = Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;   
         $unRol = Rol::ObtenerUnoPorDescripcionBD('Socio');
-        $mensaje = 'no se pudo dar de alta';
+        $mensaje = ['Error' => 'No se pudo dar de alta'];
 
         $unSocio = new Usuario($data['email'],$data['clave'],$data['nombre'],
         $data['apellido'],$data['dni'],$unCargo->GetId(),$unRol->GetId());
 
         if($unSocio->AgregarBD())
         {
-            $mensaje = 'El Socio se registro correctamente: <br>'.$unSocio->ToString();
+            $mensaje = ['OK' => 'El Socio se registro correctamente: <br>'.$unSocio->ToString()];
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function ModificarUno($request, $response, array $args)
@@ -66,7 +66,7 @@ class SocioController
         $response->getBody()->write($mensaje);
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function BorrarUno($request, $response, array $args)
     {
@@ -83,7 +83,7 @@ class SocioController
         $response->getBody()->write($mensaje);
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
 }

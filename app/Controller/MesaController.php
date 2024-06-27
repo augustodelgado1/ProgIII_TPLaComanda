@@ -84,7 +84,6 @@ class MesaController
        
         if(isset($unMesa) && isset($unaOrden))
         {
-            
             $unMesa->ModificarEstadoBD(Mesa::ESTADO_CERRADO);
             $unaOrden->ModificarEstadoBD(Orden::ESTADO_INACTIVO);
             $unaOrden->ActualizarImporte();
@@ -142,6 +141,7 @@ class MesaController
         $data = $request->getQueryParams();
         $mensaje = "no se encontro la mesa mas usada";
         $listaDeMesas = Mesa::ObtenerListaBD();
+
         $unaMesa = Mesa::BuscarMesaMasUsada($listaDeMesas);
         
         if(isset($unaMesa))
@@ -309,7 +309,7 @@ class MesaController
         $listaDeEncuesta =  Encuesta::ListarBD();
         $listaDeFiltrada = Encuesta::FiltrarPorEstado($listaDeEncuesta,Encuesta::ESTADO_POSITIVO);
 
-        $mensaje = "Hubo error en la funcion";
+        $mensaje = ['Error' => "No se pudo filtrar las mesas"];
         if(isset($listaDeFiltrada))
         {
            
@@ -320,10 +320,10 @@ class MesaController
             }
         }
 
-        $response->getBody()->write($mensaje);
+     
 
 
-        return $response;
+        return $response->withJson($mensaje);
     }
     public static function ListarComentariosNegativosDeLasMesas($request, $response, array $args)
     {

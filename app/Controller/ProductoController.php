@@ -117,42 +117,41 @@ class ProductoController
         return $response;
     }
 
-    public static function EscribirListaEnCsv($request, $response, array $args)
+    public static function GuardarListaEnCsv($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'Hubo un error al intentar guardar la lista ';  
+        $mensaje =  'Hubo un error al intentar guardar la lista ';  
        
         $listaAGuardar = Producto::ObtenerListaBD();
        
         if(Producto::EscribirCsv($data['nombreDelArchivo'],$listaAGuardar) )
         {
-            $mensaje = 'Se guardo correctamente'; 
+            $nombreDelArchivo = $data['nombreDelArchivo'];
+            $mensaje = File::LeerArchivoCsv($nombreDelArchivo);
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(File::CovertListToFormatCsv($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'text/csv')
+        ->withHeader('Content-Disposition', 'attachment; filename='.$data['nombreDelArchivo']);;
     }
-    public static function LeerListaEnCsv($request, $response, array $args)
+    public static function CargarListaPorCsv($request, $response, array $args)
     { 
         $data = $request->getQueryParams();
        
-        $mensaje = 'Hubo un error al intentar obtener la lista ';  
+        $mensaje = ['Error' => 'Hubo un error al intentar obtener la lista '];  
       
         $listaDeProductos = Producto::LeerCsv($data['nombreDelArchivo']);
-       
-        if(isset($listaDeProductos))
+        Producto::ModificarListaBD($listaDeProductos);
+        Producto::AgregarListaBD($listaDeProductos);
+        if(isset( $listaDeProductos ))
         {
-            $mensaje = "la lista esta vacia";
-            if(count($listaDeProductos) > 0)
-            {
-                $mensaje = Producto::ToStringList($listaDeProductos);
-            }
+            $mensaje = ['OK' => "El Archivo Se cargo correctamente"];
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;

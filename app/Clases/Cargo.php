@@ -248,7 +248,6 @@ class Cargo
     {
         return  isset($descripcion) && Util::ValidadorDeNombre($descripcion);
     }
-
    
 }
 

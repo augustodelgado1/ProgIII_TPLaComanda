@@ -31,15 +31,33 @@ class File
         return $estado;
     }
 
+    public static function CovertListToFormatCsv($listaDeArrays)
+    {
+        $strCsv = null;
+        if(isset($listaDeArrays))
+        {
+            $strCsv = '';
+
+            foreach($listaDeArrays as $unArray)
+            {
+                $strCsv .= implode(',',$unArray).PHP_EOL;
+            }
+           
+        }
+
+        return   $strCsv;
+    }
+
     public static function LeerArchivoCsv($nombreDeArchivo)
     {
         $listaDeLineas  = null;
+        
         $unArchivo = fopen($nombreDeArchivo,"r");
 
         if(isset($unArchivo)){
 
             $listaDeLineas = [];
-    
+            
             while(($unaLinea = fgetcsv($unArchivo)) !== false){
 
                 if(isset($unaLinea))
@@ -67,6 +85,7 @@ class File
                
                 if(!call_user_func($funcEscribirUno,$unArray,$unArchivo))
                 {
+                   
                     $estado = false;
                     break;
                 }

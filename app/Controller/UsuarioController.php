@@ -1,6 +1,7 @@
 
 
 <?php
+use Slim\Psr7\Response;
 
 require_once './Clases/Usuario.php';
 require_once "./Herramientas/AutentificadorJWT.php";
@@ -13,7 +14,7 @@ class UsuarioController
         $data = $request->getParsedBody();
         $mensaje =  json_encode(array('Error' => 'Usuario no exixtente'),JSON_PRETTY_PRINT);
         $unUsuario = Usuario::BuscarPorLoggin($data['email'],$data['clave']);
-            
+    
         if(isset($unUsuario) && $unUsuario !== false)
         {
             $dataUsuario = Usuario::ObtenerUnoCompletoBD($unUsuario['id']);
@@ -25,7 +26,7 @@ class UsuarioController
         $response->getBody()->write($mensaje);
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
 }

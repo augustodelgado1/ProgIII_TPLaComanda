@@ -214,17 +214,6 @@ class Producto implements IFileManejadorCSV
         return $unProducto;
     }
 
-    public function Equals($unProducto)
-    {
-        $estado = false;
- 
-        if(isset($unProducto))
-        {
-            $estado =  strcasecmp($unProducto->GetTipo()->GetDescripcion(),$this->GetTipo()->GetDescripcion())  === 0 &&
-                       strcasecmp($unProducto->nombre,$this->nombre) === 0;
-        }
-        return  $estado ;
-    }
 
     //Setters
     private function SetId($id)
@@ -371,6 +360,38 @@ class Producto implements IFileManejadorCSV
         }
 
         return   $listaDeProductos;
+    }
+    public static function AgregarListaBD($listaDeProductos)
+    {
+        $estado = false;
+        if(isset($listaDeProductos))
+        {
+            foreach($listaDeProductos as $unProducto)
+            {
+                if(Producto::ObtenerUnoPorIdBD($unProducto->id) === null)
+                {
+                    $estado = $unProducto->AgregarBD();
+                }
+            }
+        }
+
+        return   $estado;
+    }
+    public static function ModificarListaBD($listaDeProductos)
+    {
+        $estado = false;
+        if(isset($listaDeProductos))
+        {
+            foreach($listaDeProductos as $unProducto)
+            {
+                if(Producto::ObtenerUnoPorIdBD($unProducto->id) !== null)
+                {
+                    $estado =  Producto::ModificarUnoBD($unProducto->id,$unProducto->nombre,$unProducto->tipoDeProducto,$unProducto->precio);
+                }
+            }
+        }
+
+        return   $estado;
     }
 
     public static function Validador($data)

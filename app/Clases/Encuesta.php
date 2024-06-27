@@ -22,40 +22,8 @@ class Encuesta
         $this->SetMensaje($mensaje);
         $this->idDeOrden = $idDeOrden;
         $this->nombreDelCliente = $nombreDelCliente;
-        $this->EvaluarEstado();
-    }
-
-    
-
-    private  function EvaluarEstado()
-    {
-        $this->estado = Encuesta::ESTADO_INTERMEDIO;
-        $cantidadDePuntuaciones = Puntuacion::ContarPorIdDeEncuestaBD($this->id);
-       
-        if( $cantidadDePuntuaciones > 0 )
-        {
-            // $listaDePuntuaciones = $this->ObtenerListaDePuntuaciones();
-            $cantidadDeNegativas = Puntuacion::CantidadDePuntuacionesDeUnaEncuestaPorEstadoBD($this->id,Puntuacion::ESTADO_NEGATIVO);
-            $cantidadDePositivas = Puntuacion::CantidadDePuntuacionesDeUnaEncuestaPorEstadoBD($this->id,Puntuacion::ESTADO_POSITIVO);
-
-            if($cantidadDePositivas  >  $cantidadDeNegativas)
-            {
-                $this->estado = Encuesta::ESTADO_POSITIVO ;
-               
-            }else{
-    
-                if($cantidadDePositivas  <  $cantidadDeNegativas)
-                {
-                    $this->estado = Encuesta::ESTADO_NEGATIVA;
-                }
-            }
-        }
       
-
-        return  $this->estado;
     }
-
-
     public function ObtenerListaDePuntuaciones()
     {
        return Puntuacion::FiltrarPorIdDeEncuestaBD($this->id);
@@ -64,8 +32,6 @@ class Encuesta
     {
        return Puntuacion::ContarPorIdDeEncuestaBD($this->id);
     }
-    
-
     #BaseDeDatos
     public function AgregarBD()
     {
@@ -251,9 +217,7 @@ class Encuesta
             $unEncuesta = new Encuesta($unArrayAsosiativo['idDeOrden'],$unArrayAsosiativo['nombreDelCliente'],
             $unArrayAsosiativo['mensaje']);
             $unEncuesta->SetId($unArrayAsosiativo['id']);
-            $unEncuesta->EvaluarEstado();
-
-           
+            
         }
         
         return $unEncuesta ;
@@ -442,7 +406,7 @@ class Encuesta
 
     public function ToString()
     {
-        $this->EvaluarEstado();
+       
 
         return "Nombre del Cliente: ".$this->nombreDelCliente.'<br>'.
         $this->GetStrPuntuacion().'<br>'.

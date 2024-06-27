@@ -6,8 +6,6 @@ require_once './db/AccesoDatos.php';
 require_once 'Producto.php';
 require_once 'Orden.php';
 
-
-
 class Pedido 
 {
     
@@ -754,7 +752,7 @@ class Pedido
     }
     public function GetProducto()
     {
-        return  Producto::BuscarProductoPorIdBD($this->unProducto);
+        return  Producto::ObtenerUnoPorIdBD($this->unProducto);
     }
     public function GetOrden()
     {
