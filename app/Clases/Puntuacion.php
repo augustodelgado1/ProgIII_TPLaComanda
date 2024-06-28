@@ -12,7 +12,6 @@ class Puntuacion
     private $idDeEncuesta;
     private $descripcion;
     private $puntuacion;
-    private $estado;
    
 
     public function __construct($idDeEncuesta,$descripcion,$puntuacion) 
@@ -20,7 +19,6 @@ class Puntuacion
         $this->SetPuntuacion($puntuacion);
         $this->descripcion = $descripcion;
         $this->idDeEncuesta = $idDeEncuesta;
-        $this->ObtenerEstado();
     }
     
     public static function DarDeAltaUnPuntuacion($idDeEncuesta,$descripcion,$puntuacion)
@@ -45,7 +43,6 @@ class Puntuacion
             $consulta->bindValue(':descripcion',$this->descripcion,PDO::PARAM_STR);
             $consulta->bindValue(':puntuacion',$this->puntuacion,PDO::PARAM_INT);
             $consulta->bindValue(':idDeEncuesta',$this->idDeEncuesta,PDO::PARAM_INT);
-            $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
             $consulta->execute();
             $this->id = $objAccesoDatos->ObtenerUltimoID();
         }
@@ -107,46 +104,48 @@ class Puntuacion
 
         return  $listaDePuntuaciones;
     }
-    public static function CantidadDePuntuacionesDeUnaEncuestaPorEstadoBD($idDeEncuesta,$estado)
+    public static function FiltrarPorPuntuacionBD($puntuacion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $cantidad= -1;
-
-        if(isset($idDeEncuesta) && Puntuacion::ValidarEstado($estado))
+        $listaDePuntuaciones= null;
+        
+        if(Puntuacion::ValidarUnaPuntacion($puntuacion))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) as total FROM Puntuacion as p
-            where p.idDeEncuesta = :idDeEncuesta and p.estado = :estado");
-            $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion 
+            as p where p.puntuacion = :puntuacion");
+            $consulta->bindValue(':puntuacion',$puntuacion,PDO::PARAM_INT);
             $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $cantidad= $data['total'];
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDePuntuaciones = Puntuacion::CrearLista($data);
+           
         }
 
-        return  $cantidad;
+        return  $listaDePuntuaciones;
     }
-
-    public static function ContarPorIdDeEncuestaBD($idDeEncuesta)
+    
+    public static function FiltrarPorDescripcionBD($descripcion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $cantidadTotal = null;
-
-        if(isset($unObjetoAccesoDato) && isset($idDeEncuesta))
+        $listaDePuntuaciones= null;
+        
+        if(Puntuacion::ValidarDescripcion($descripcion))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalDePuntaciones FROM Puntuacion as p where p.idDeEncuesta = :idDeEncuesta");
-            $consulta->bindValue(':idDeEncuesta',$idDeEncuesta,PDO::PARAM_INT);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion 
+            as p where p.descripcion = :descripcion");
+            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_INT);
             $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $cantidadTotal =  $data['totalDePuntaciones'];
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDePuntuaciones = Puntuacion::CrearLista($data);
+           
         }
 
-        return  $cantidadTotal;
+        return  $listaDePuntuaciones;
     }
 
     private static function BuscarUnoPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data = null;
+        $data = false;
 
         if(isset($id))
         {
@@ -164,45 +163,7 @@ class Puntuacion
         return Puntuacion::CrearUnPuntuacion($data);
     }
 
-    // public static function FiltrarPorEstado($listaDePuntuaciones,$estado)
-    // {
-    //     $listaFiltrada = null;
-
-    //     if(isset($listaDePuntuaciones) && isset($estado) && count($listaDePuntuaciones) > 0)
-    //     {
-    //         $listaFiltrada =  [];
-
-    //         foreach($listaDePuntuaciones as $unaPuntuacion)
-    //         {
-    //             if(strcasecmp($unaPuntuacion->estado,$estado) === 0)
-    //             {
-    //                 array_push($listaFiltrada,$unaPuntuacion);
-    //             }
-    //         }
-    //     }
-
-    //     return  $listaFiltrada;
-    // }
-    // public static function ContarPorEstado($listaDePuntuaciones,$estado)
-    // {
-    //     $cantidad = -1;
-
-    //     if(isset($listaDePuntuaciones) && isset($estado))
-    //     {
-    //         $cantidad = 0;
-
-    //         foreach($listaDePuntuaciones as $unaPuntuacion)
-    //         {
-    //             if(strcasecmp($unaPuntuacion->estado,$estado) === 0)
-    //             {
-    //                 $cantidad++;
-    //             }
-    //         }
-    //     }
-
-    //     return  $cantidad;
-    // }
-
+   
     #end
 
 
@@ -259,25 +220,13 @@ class Puntuacion
     private function SetPuntuacion($puntuacion)
     {
         $estado = false;
-        if(isset($puntuacion) 
-        && $puntuacion >= 0 
-        && $puntuacion <= 10 )
+        if(Puntuacion::ValidarUnaPuntacion($puntuacion))
         {
             $this->puntuacion = $puntuacion;
             $estado = true;
         }
 
         return  $estado ;
-    }
-
-    private function ObtenerEstado()
-    {
-        $this->estado = "negativo";
-
-        if( $this->puntuacion >= 6)
-        {
-            $this->estado = "positivo";
-        }
     }
 
 
@@ -320,7 +269,7 @@ class Puntuacion
 
     public static function VerificarUno($data)
     {
-        return Puntuacion::BuscarUnoPorIdBD($data['id']) !== null;
+        return Puntuacion::BuscarUnoPorIdBD($data['id']) !== false;
     }
     private static function ValidarDescripcion($descripcion)
     {
@@ -329,7 +278,7 @@ class Puntuacion
 
     public static function ValidarUnaPuntacion($unaPuntuacion)
     {
-        return   isset($unaPuntuacion) && $unaPuntuacion > 0 && $unaPuntuacion < 11;
+        return   isset($unaPuntuacion) && $unaPuntuacion >= 0 && $unaPuntuacion < 11;
     }
 
     private static function ValidarEstado($estado)

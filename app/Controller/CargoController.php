@@ -11,7 +11,7 @@ class CargoController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un TipoDeProducto';
+        $mensaje = ['Error'=> 'Hubo un error con los parametros al intentar dar de alta un Cargo'];
         $unSector = Sector::BuscarPorDescripcionBD($data['sector']) ;   
     
         if(isset($data) && isset($unSector))
@@ -21,8 +21,8 @@ class CargoController
             
             if($unCargo->AgregarBD())
             {
-                $mensaje = 'un Cargo se dio de alta <br>'.
-                $unCargo->ToString();
+                $mensaje =  ['OK'=>'un Cargo se dio de alta:'.
+                $unCargo->ToString()];
             }
         }
 
@@ -30,41 +30,41 @@ class CargoController
         $response->getBody()->write($mensaje);
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');;
     }
 
     public static function ModificarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
        
-        $mensaje = 'no se pudo modificar';
+        $mensaje =  ['Error'=> 'no se pudo modificar'];
 
         if(Cargo::ModificarUnoBD($data['id'],$data['descripcion'],$data['idDeSector']))
         {
-            $mensaje = 'El Cargo se Modifico correctamente';
+            $mensaje =  ['OK'=> 'El Cargo se Modifico correctamente'];
         }
         
         $response->getBody()->write($mensaje);
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');;
     }
     
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
 
-        $mensaje = 'no se pudo borrar';
+        $mensaje = ['Error'=> 'no se pudo borrar'];
 
         if(Cargo::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'El Cargo se borro correctamente';
+            $mensaje = ['OK'=>'El Cargo se borro correctamente'];
         }
 
         $response->getBody()->write($mensaje);
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');;
     }
 
    

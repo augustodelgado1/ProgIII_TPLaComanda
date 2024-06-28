@@ -15,7 +15,6 @@ class Encuesta
     private $nombreDelCliente;
     private $idDeOrden;
     private $mensaje;
-    private $estado;
    
     public function __construct($idDeOrden,$nombreDelCliente,$mensaje) 
     {
@@ -27,10 +26,6 @@ class Encuesta
     public function ObtenerListaDePuntuaciones()
     {
        return Puntuacion::FiltrarPorIdDeEncuestaBD($this->id);
-    }
-    public function CantidadDePuntuaciones()
-    {
-       return Puntuacion::ContarPorIdDeEncuestaBD($this->id);
     }
     #BaseDeDatos
     public function AgregarBD()
@@ -44,7 +39,6 @@ class Encuesta
         $consulta->bindValue(':mensaje',$this->mensaje,PDO::PARAM_STR);
         $consulta->bindValue(':nombreDelCliente',$this->nombreDelCliente,PDO::PARAM_STR);
         $consulta->bindValue(':idDeOrden',$this->idDeOrden,PDO::PARAM_INT);
-        $consulta->bindValue(':estado',$this->estado,PDO::PARAM_STR);
         $consulta->execute();
         $idDeEncuesta =  $objAccesoDatos->ObtenerUltimoID();
         $this->id =  $idDeEncuesta;
@@ -74,31 +68,18 @@ class Encuesta
 
         return  $estado;
     }
-    private static function ModificarEstadoBD($id,$estado)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $estado = false;
-
-        if(isset($estado) && isset($id))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Encuesta 
-            SET `estado`= :estado Where id=:id");
-            $consulta->bindValue(':id',$id,PDO::PARAM_INT);
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
-            $estado = $consulta->execute();
-        }
-        
-        return  $estado;
-    }
 
     public static function BorrarUnoPorIdBD($idDeEncuesta)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
-        $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Encuesta as e where e.id = :id");
-        $consulta->bindValue(':id',$idDeEncuesta,PDO::PARAM_INT);
-        $estado = $consulta->execute();
-        
+
+        if(isset($idDeEncuesta))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Encuesta as e where e.id = :id");
+            $consulta->bindValue(':id',$idDeEncuesta,PDO::PARAM_INT);
+            $estado = $consulta->execute();
+        }
 
         return  $estado;
     }
@@ -152,20 +133,44 @@ class Encuesta
 
         return  $listaDeEncuestas;
     }
-    public static function FiltrarPorPuntucionBD($descripcion,$estado)
+
+    public static function FiltrarPorPuntucionBD($descripcion,$puntuacion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeEncuestas = null;
 
-        if(isset($descripcion))
+        if(isset($descripcion) && Puntuacion::ValidarUnaPuntacion($puntuacion) )
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombreDelCliente,e.mensaje,e.idDeOrden,e.estado FROM Encuesta e
-            JOIN Puntuacion p ON p.idDeEncuesta = e.id WHERE LOWER(p.descripcion) = LOWER(:descripcion) AND LOWER(p.estado) = LOWER(:estado)");
+            JOIN Puntuacion p ON p.idDeEncuesta = e.id WHERE LOWER(p.descripcion) = LOWER(:descripcion) 
+            AND p.puntuacion = :puntuacion");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta->bindValue(':puntuacion',$puntuacion,PDO::PARAM_INT);
             $consulta->execute();
             $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
           
+        }
+       
+
+        return  $listaDeEncuestas;
+    }
+    public static function FiltrarPorDosPuntucionBD($descripcion,$puntuacionMinima,$puntuacionMaxima)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeEncuestas = null;
+
+        if(isset($descripcion) && Puntuacion::ValidarUnaPuntacion($puntuacionMinima) && Puntuacion::ValidarUnaPuntacion($puntuacionMaxima)
+        && $puntuacionMinima <= $puntuacionMaxima)
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombreDelCliente,e.mensaje,e.idDeOrden,e.estado 
+            FROM Encuesta e
+            JOIN Puntuacion p ON p.idDeEncuesta = e.id 
+            WHERE LOWER(p.descripcion) = LOWER(:descripcion) 
+            AND p.puntuacion BETWEEN :puntuacionMinima AND :puntuacionMaxima");
+            $consulta->bindValue(':puntuacionMinima',$puntuacionMinima,PDO::PARAM_INT);
+            $consulta->bindValue(':puntuacionMaxima',$puntuacionMaxima,PDO::PARAM_INT);
+            $consulta->execute();
+            $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
         }
        
 
@@ -187,26 +192,6 @@ class Encuesta
 
 
     #end
-
-    public static function FiltrarPorEstado($listaDeEncuestas,$estado)
-    {
-        $listaFiltrada = null;
-
-        if(isset($listaDeEncuestas) && isset($estado) && count($listaDeEncuestas) > 0)
-        {
-            $listaFiltrada =  [];
-
-            foreach($listaDeEncuestas as $unaEncuesta)
-            {
-                if(strcasecmp($unaEncuesta->estado,$estado) === 0)
-                {
-                    array_push($listaFiltrada,$unaEncuesta);
-                }
-            }
-        }
-
-        return  $listaFiltrada;
-    }
 
     private static function CrearUnEncuesta($unArrayAsosiativo)
     {
@@ -244,25 +229,6 @@ class Encuesta
         return   $listaDeEncuestaes;
     }
 
-     public static function ObtenerIndicePorId($listaDeEncuestas,$id)
-    {
-        $index = -1;
-      
-        if(isset($listaDeEncuestas)  && isset($id))
-        {
-            $leght = count($listaDeEncuestas); 
-            for ($i=0; $i < $leght; $i++) { 
-         
-                if($listaDeEncuestas[$i]->id === $id)
-                {
-                    $index = $i;
-                    break;
-                }
-            }
-        }
-
-        return $index;
-    }
 
     #Setters
     private function SetId($id)
@@ -271,19 +237,6 @@ class Encuesta
         if(isset($id))
         {
             $this->id = $id;
-            $estado = true;
-        }
-
-        return  $estado ;
-    }
-
-    private function SetEstado($estadoDelaEncuesta)
-    {
-        $estado = false;
-
-        if(isset($estado) && Encuesta::ValidarEstado($estadoDelaEncuesta))
-        {
-            $this->estado = $estadoDelaEncuesta;
             $estado = true;
         }
 

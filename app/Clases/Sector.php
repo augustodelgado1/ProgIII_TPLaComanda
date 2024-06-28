@@ -80,6 +80,10 @@ class Sector
     {
         return Sector::CrearUnSector(Sector::BuscarSectorPorIdBD($idDeSector));;
     }
+    public function ObtenerListaDePedidos()
+    {
+        return Pedido::FiltrarPorIdDeSectorBD($this->id);;
+    }
 
     public static function BuscarPorDescripcionBD($descripcion)
     {
@@ -114,6 +118,7 @@ class Sector
 
         return  $listaDeSectores;
     }
+  
 
     public static function ContarPedidos($listaDeSectores,$listaDePedidos)
     {
@@ -140,9 +145,10 @@ class Sector
 
     #end
 
-    public function ObtenerListaDePedidos()
+   
+    public function ObtenerListaDeEmpelados()
     {
-        return Pedido::FiltrarPorIdDeSectorBD($this->id);
+        return Usuario::ObternerListaDeEmpledosPorSectorBD($this->id);
     }
 
     private static function CrearUnSector($unArrayAsosiativo)
@@ -248,22 +254,16 @@ class Sector
         return  $this->id;
     }
 
-    public function CantidadDePedidos()
+    public function CantidadDeOperaciones()
     {
-        $cantidad = -1;
-        $listaDePedidos = $this->ObtenerListaDePedidos();
-        if(isset( $listaDePedidos))
-        {
-            $cantidad = count($listaDePedidos);
-        }
-
-        return $cantidad;
+        $listaDeEmpleados = $this->ObtenerListaDeEmpelados();
+        return  Usuario::CantidadDeOperacionesDeUnaLista($listaDeEmpleados);;
     }
 
     public function GetStrCantidadDeOpereaciones()
     {
         $mensaje = "No se realizaron operaciones";
-        $cantidad = $this->CantidadDePedidos();
+        $cantidad = $this->CantidadDeOperaciones();
 
         if($cantidad > 0)
         {
@@ -284,6 +284,38 @@ class Sector
             foreach($listaDeSectores as $unSector)
             {
                 $strLista .= $unSector->ToString().'<br>';
+            }
+        }
+
+        return   $strLista;
+    }
+    public static function MostrarCantidadDeOperaciones($listaDeSectores)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeSectores) )
+        {
+            $strLista = "Sectores".'<br>';
+            foreach($listaDeSectores as $unSector)
+            {
+                $strLista .= $unSector->ToString().'<br>'.
+                "Cantidad De Operaciones: ".$unSector->GetStrCantidadDeOpereaciones().'<br>';
+            }
+        }
+
+        return   $strLista;
+    }
+    public static function MostrarCantidadDeOperacionesPorCadaEmpleado($listaDeSectores)
+    {
+        $strLista = null; 
+
+        if(isset($listaDeSectores) )
+        {
+            $strLista = "";
+            foreach($listaDeSectores as $unSector)
+            {
+                $strLista .= $unSector->ToString().'<br>'.
+                Usuario::MostarCantidadDeOperaciones($unSector->ObtenerListaDeEmpelados());
             }
         }
 

@@ -16,15 +16,16 @@ class OrdenController
       
         $unaOrden = new Orden($data['nombreDelCliente'],$unaMesa->GetId());
         $unaMesa->ModificarEstadoBD(Mesa::ESTADO_INICIAL);
+        $unaOrden->ModificarTiempoDeInicioBD(new DateTime('now'));
        
         if( $unaOrden->AgregarBD())
         {
-            $mensaje = 'la Orden se dio de alta <br> '.
-                        $unaOrden->ToString();
+            $mensaje = ['OK' => 'la Orden se dio de alta <br> '.
+                        $unaOrden->ToString()];
         }
         
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -36,7 +37,7 @@ class OrdenController
         $unaOrden = Orden::BuscarOrdenPorIdBD($data['codigoDeOrden']);
         File::CrearUnDirectorio('Imagenes');
         File::CrearUnDirectorio('Imagenes/Mesa');
-        $mensaje = 'No se pudo guarder la foto';
+        $mensaje = ['Error' => 'No se pudo guarder la foto'];
     
         $nombreDeArchivo = $unaOrden->GetFechaStr().$_FILES['imagen']['name'];
 
@@ -44,11 +45,11 @@ class OrdenController
         ,"Imagenes/Mesa/",
         $nombreDeArchivo))
         {
-            $mensaje = 'La foto se guardo correctamente ';
+            $mensaje = ['OK' =>'La foto se guardo correctamente'];
         }
         
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -59,15 +60,15 @@ class OrdenController
         $data = $request->getParsedBody();
         $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
 
-        $mensaje = 'no se pudo dar modificar';
+         $mensaje = ['Error' => 'No se pudo modificar'];
 
         if(Orden::ModificarUnoBD($unaOrden->GetId(),$data['nombreDelCliente'],$data['idDeMesa']))
         {
             $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
-            $mensaje = 'El Orden se modifico correctamente <br>'.$unaOrden->ToString();
+            $mensaje = ['OK' =>'El Orden se modifico correctamente <br>'.$unaOrden->ToString()];
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -76,7 +77,7 @@ class OrdenController
     {
         $data = $request->getParsedBody();
         $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
-        $mensaje = 'no se pudo borrar';
+         $mensaje = ['Error' =>'no se pudo borrar'];
 
         if(Orden::BorrarUnoPorIdBD($unaOrden->GetId()))
         {
@@ -84,7 +85,7 @@ class OrdenController
             $mensaje = 'Esta Orden se borro correctamente <br>'.$unaOrden->ToString();
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -98,14 +99,14 @@ class OrdenController
 
         if(isset($listaDeOrdens))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDeOrdens) > 0)
             {
                 $mensaje = Orden::ToStringList($listaDeOrdens);
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -120,14 +121,14 @@ class OrdenController
 
         if(isset($listaDeOrdens))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDeOrdens) > 0)
             {
                 $mensaje = Orden::ToStringList($listaDeOrdens);
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -141,14 +142,14 @@ class OrdenController
 
         if(isset($listaDeOrdens))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDeOrdens) > 0)
             {
                 $mensaje = Orden::ToStringList($listaDeOrdens);
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -163,7 +164,7 @@ class OrdenController
 
         $mensaje = 'Usted pidio: <br><br>'.$unaOrden->ToString(); 
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
         return $response;
     }

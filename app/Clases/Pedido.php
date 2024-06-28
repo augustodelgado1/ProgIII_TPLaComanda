@@ -212,7 +212,7 @@ class Pedido
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $data = false;
 
-        if(isset($codigo))
+        if(isset($data))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM 
             Pedido as p where LOWER(p.codigo) = LOWER(:codigo)");
@@ -738,7 +738,6 @@ class Pedido
     }
     public function GetTiempoDeInicio()
     {
-      
         return  $this->tiempoDeInicio->format("Y-m-d H-i-s");
     }
 
@@ -975,7 +974,7 @@ class Pedido
     }
     public static function VerificarCodigo($data)
     {
-       return   Pedido::BuscarPorCodigoBD($data['codigo']) !== null;
+       return   Pedido::BuscarPorCodigoBD($data['codigo']) !== false;
         
     }
 

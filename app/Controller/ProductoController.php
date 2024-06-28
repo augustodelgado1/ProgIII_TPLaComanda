@@ -29,7 +29,7 @@ class ProductoController
         }
 
 
-        $response->getBody()->write($mensaje);
+          $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -40,7 +40,7 @@ class ProductoController
         $data = $request->getParsedBody();
         $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']) ;   
 
-        $mensaje = 'no se pudo dar modificar';
+         $mensaje = ['Error' => 'No se pudo modificar'];
 
         if(Producto::ModificarUnoBD($data['id'],$data['nombre'],$unTipoDeProducto->GetId(),$data['precio']))
         {
@@ -48,7 +48,7 @@ class ProductoController
             $mensaje = 'El Producto se modifico correctamente: <br>'.$unProducto->ToString();
         }
         
-        $response->getBody()->write($mensaje);
+          $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -57,14 +57,14 @@ class ProductoController
     {
         $data = $request->getParsedBody();
         $unProducto = Producto::ObtenerUnoPorIdBD($data['id']);
-        $mensaje = 'no se pudo borrar';
+        $mensaje = ['Error' =>'no se pudo borrar'];
 
         if(Producto::BorrarUnoPorIdBD($data['id']))
         {
             $mensaje = 'Este Producto se borro correctamente: <br>'.$unProducto->ToString();
         }
 
-        $response->getBody()->write($mensaje);
+          $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -73,20 +73,20 @@ class ProductoController
     public static function Listar($request, $response, array $args)
     {
        
-        $mensaje = 'Hubo un error  al intentar listar los Productos';      
+        $mensaje = ['Error' => 'Hubo un error  al intentar listar los Productos'];      
         
         $listaDeProductos = Producto::ObtenerListaBD();
 
 
         if(isset($listaDeProductos))
         {
-            $mensaje = "La lista esta vacia";
+            $mensaje = ['Error' =>"La lista esta vacia"];
             if(count($listaDeProductos) > 0)
             {
                 $mensaje = Producto::ToStringList($listaDeProductos);
             }
         }
-        $response->getBody()->write($mensaje);
+          $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -96,7 +96,7 @@ class ProductoController
     {
         $data = $request->getQueryParams();
         
-        $mensaje = 'Hubo un error  al intentar listar los Productos';
+        $mensaje = ['Error'  => 'Hubo un error  al intentar listar los Productos'];
         $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipo']) ;         
         
         $listaDeProductos = Producto::FiltrarPorTipoDeProductoBD($unTipoDeProducto);
@@ -104,14 +104,14 @@ class ProductoController
 
         if(isset($listaDeProductos))
         {
-            $mensaje = "La lista esta vacia";
+            $mensaje = ['Error' =>"La lista esta vacia"];
             if(count($listaDeProductos) > 0)
             {
                 $mensaje = Producto::ToStringList($listaDeProductos);
             }
         }
 
-        $response->getBody()->write($mensaje);
+          $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -121,7 +121,7 @@ class ProductoController
     { 
         $data = $request->getParsedBody();
        
-        $mensaje =  'Hubo un error al intentar guardar la lista ';  
+        $mensaje =  ['Error' => 'Hubo un error al intentar guardar la lista '];  
        
         $listaAGuardar = Producto::ObtenerListaBD();
        

@@ -17,8 +17,6 @@ class Mesa
     private $codigo;
     private $estado;
 
-    
-
     public function __construct() 
     {
         $this->codigo =  Util::CrearUnCodigoAlfaNumerico(5);
@@ -78,7 +76,7 @@ class Mesa
     public static function BuscarMesaPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unMesa = null;
+        $unMesa = false;
 
         if(isset($codigo))
         {
@@ -94,7 +92,6 @@ class Mesa
     }
     public static function ObtenerUnoPorCodigo($codigo)
     {
-      
         return   Mesa::CrearUnaMesa(Mesa::BuscarMesaPorCodigoBD($codigo));
     }
     public static function FiltarMesaEncuestadas()
@@ -115,7 +112,7 @@ class Mesa
 
         return  $listaDeMesas;
     }
-    public static function BuscarMesaPorIdBD($idDeMesa)
+    public static function BuscarUnoPorIdBD($idDeMesa)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unMesa = null;
@@ -136,7 +133,6 @@ class Mesa
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unMesa = null;
 
-        
         if(isset($importe))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT m.id, m.codigo, m.estado, o.costoTotal
@@ -151,8 +147,25 @@ class Mesa
 
         return  $unMesa;
     }
+    public static function ObtenerCantidadDeUnaMesaPorFecha($idDeMesa,$fecha)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $cantidadDeOrdenes = null;
 
-    
+        if(isset($importe))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS cantidadDeOrdenes
+            FROM Orden o
+            WHERE o.fechaDeOrden = :fecha and o.idDeMesa = :idDeMesa");
+            $consulta->bindValue(':fecha',$fecha);
+            $consulta->bindValue(':idDeMesa',$idDeMesa);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $cantidadDeOrdenes =  $data['cantidadDeOrdenes'];
+        }
+
+        return  $cantidadDeOrdenes;
+    }
     public function ModificarEstadoBD($estadoDeLaMesa)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -170,8 +183,6 @@ class Mesa
 
         return  $estado;
     }
-    
-
     public function ObtenerListaDeOrdenes()
     {
         return  Orden::FiltrarPorIdDeMesaBD($this->id);
@@ -211,7 +222,6 @@ class Mesa
        
         if(isset($data) && $data !== false)
         {
-            
             $unaMesa = new Mesa();
             $unaMesa->SetId($data['id']);
             $unaMesa->SetCodigo($data['codigo']);
@@ -260,7 +270,6 @@ class Mesa
             $this->codigo = $codigo;
             $estado = true;
         }
-
         return  $estado ;
     }
     protected function SetEstado($estadoDelaMesa)
@@ -277,7 +286,6 @@ class Mesa
     }
 
     //Getters
-
     public function GetId()
     {
         return  $this->id;
@@ -285,6 +293,10 @@ class Mesa
     public function GetCodigoAlfaNumerico()
     {
         return  $this->codigo;
+    }
+    public function GetOrdenActiva()
+    {
+        return  Orden::ObtenerUnoPorIdDeMesaYEstadoBD($this->id,Orden::ESTADO_ACTIVO) ;
     }
 
     public static function ToStringList($listaDeMesas)
@@ -342,7 +354,7 @@ class Mesa
     }
    
 
-    public static function BuscarMesaMasUsada($listaDeMesas)
+    public static function BuscarMesaMasUsada($listaDeMesas,$listaDeOrdenes)
     { 
         $unaMesa = null;
         $flag = false;
@@ -352,7 +364,7 @@ class Mesa
         {
             foreach ($listaDeMesas as $unaMesaDeLaLista) 
             {
-                $cantidadDeOrdenes = $unaMesaDeLaLista->ObtenerCantidadDeOrdenes();
+                $cantidadDeOrdenes = Orden::ContarPorIdDeMesa($listaDeOrdenes,$unaMesaDeLaLista->id);
 
                 if($cantidadDeOrdenes  >  $mayor || $flag === false)
                 {
@@ -366,7 +378,7 @@ class Mesa
 
         return $unaMesa;
     }
-    public static function BuscarMesaMenosUsada($listaDeMesas)
+    public static function BuscarMesaMenosUsada($listaDeMesas,$listaDeOrdenes)
     { 
         $unaMesa = null;
         $flag = false;
@@ -376,7 +388,7 @@ class Mesa
         {
             foreach ($listaDeMesas as $unaMesaDeLaLista) 
             {
-                $cantidadDeOrdenes = $unaMesaDeLaLista->ObtenerCantidadDeOrdenes();
+                $cantidadDeOrdenes = Orden::ContarPorIdDeMesa($listaDeOrdenes,$unaMesaDeLaLista->id);
 
                 if($cantidadDeOrdenes  <  $menor || $flag === false)
                 {
@@ -390,7 +402,9 @@ class Mesa
 
         return $unaMesa;
     }
-    public static function BuscarMesaMenosFacturo($listaDeMesas)
+ 
+  
+    public static function BuscarMesaMenosFacturo($listaDeMesas,$listaDeOrdenes)
     { 
         $unaMesa = null;
         $flag = false;
@@ -400,8 +414,8 @@ class Mesa
         {
             foreach ($listaDeMesas as $unaMesaDeLaLista) 
             {
-                $facturacionTotal = $unaMesaDeLaLista->ObtenerFacturacionTotal();
-
+                $facturacionTotal = Orden::CalcularFacturacionTotal($listaDeOrdenes);
+                
                 if($facturacionTotal > 0
                 && ($facturacionTotal  <  $menor || $flag === false))
                 {
@@ -415,7 +429,7 @@ class Mesa
 
         return $unaMesa;
     }
-    public static function BuscarMesaMasFacturo($listaDeMesas)
+    public static function BuscarMesaMasFacturo($listaDeMesas,$listaDeOrdenes)
     { 
         $unaMesa = null;
         $flag = false;
@@ -425,7 +439,7 @@ class Mesa
         {
             foreach ($listaDeMesas as $unaMesaDeLaLista) 
             {
-                $facturacionTotal = $unaMesaDeLaLista->ObtenerFacturacionTotal();
+                $facturacionTotal = Orden::CalcularFacturacionTotal($listaDeOrdenes);
 
                 if($facturacionTotal  >  $mayor || $flag === false)
                 {

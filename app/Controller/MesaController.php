@@ -22,62 +22,62 @@ class MesaController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Mesa';
+        $mensaje = ['Error'=> 'Hubo un error con los parametros al intentar dar de alta un Mesa'];
 
         $unaMesa = new Mesa();
 
         if($unaMesa->AgregarBD())
         {
-            $mensaje = 'La Mesa Se Creo Perfectamente: <br>'.$unaMesa->ToString();
+            $mensaje = ['OK'=>'La Mesa Se Creo Perfectamente:'.$unaMesa->ToString()];
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');;
     }
 
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
-        $mensaje = 'no se pudo borrar';
+        $mensaje = ['Error'=> 'no se pudo borrar'];
 
         
         if(Mesa::BorrarUnoPorIdBD($unaMesa->GetId()))
         {
-            $mensaje = 'La Mesa se borro correctamente: <br>'. $unaMesa->ToString();
+            $mensaje = ['OK'=>'La Mesa se borro correctamente:'. $unaMesa->ToString()];
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');;
     }
 
 
     public static function Listar($request, $response, array $args)
     {
         // $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Mesas';  
+        $mensaje = ['Error'=>'Hubo un error  al intentar listar los Mesas'];  
         $listaDeMesas = Mesa::ObtenerListaBD();
 
         if(isset($listaDeMesas))
         {
-            $mensaje = Mesa::ToStringList($listaDeMesas);
+            $mensaje =['OK'=> Mesa::ToStringList($listaDeMesas)];
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');;
     }
 
     public static function SetEstadoCerrarMesa($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = ['Error'=>'No se pudo modificar'];  
        
         $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
         $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
@@ -87,49 +87,51 @@ class MesaController
             $unMesa->ModificarEstadoBD(Mesa::ESTADO_CERRADO);
             $unaOrden->ModificarEstadoBD(Orden::ESTADO_INACTIVO);
             $unaOrden->ActualizarImporte();
-            $mensaje = 'Se modifico correctamente <br>'.$unMesa->ToString();  
+            $mensaje = ['OK'=>'Se modifico correctamente:'.$unMesa->ToString()];  
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');;
     }
     public static function SetEstadoServirComida($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'No se pudo modificar';  
+        $mensaje = ['Error'=>'No se pudo modificar'];  
        
         $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
+        $unaOrden = $unMesa->GetOrdenActiva();
        
         if(isset($unMesa) && $unMesa->ModificarEstadoBD(Mesa::ESTADO_INTERMEDIO))
         {
-            $mensaje = 'Se modifico correctamente <br>'.$unMesa->ToString();  
+            $unaOrden->ModificarTiempoDeFinalizacionBD(new DateTime('now'));
+            $mensaje =  ['OK'=>'Se modifico correctamente'.$unMesa->ToString()];
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');;
     }
     public static function SetEstadoPagarOrden($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'No se pudo modificar';  
+        $mensaje = ['Error'=> 'No se pudo modificar'];  
        
         $unMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
        
         if(isset($unMesa) && $unMesa->ModificarEstadoBD(Mesa::ESTADO_FINAL))
         {
-            $mensaje = 'Se modifico correctamente <br>'.$unMesa->ToString();  
+            $mensaje =  ['OK'=> 'Se modifico correctamente'.$unMesa->ToString()];  
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');;
     }
 
    
@@ -139,18 +141,18 @@ class MesaController
     public static function ListarMesaMasUsada($request, $response, array $args)
     {
         $data = $request->getQueryParams();
-        $mensaje = "no se encontro la mesa mas usada";
+        $mensaje = ['Error'=> "no se encontro la mesa mas usada"];
         $listaDeMesas = Mesa::ObtenerListaBD();
-
-        $unaMesa = Mesa::BuscarMesaMasUsada($listaDeMesas);
-        
+        $listaDeOrdenes = Orden::FiltrarPorFechaBD((new DateTime($data['fecha']))->format("y-m-d"));
+        $unaMesa = Mesa::BuscarMesaMasUsada($listaDeMesas,$listaDeOrdenes);
+        $cantidad = Mesa::ObtenerCantidadDeUnaMesaPorFecha($unaMesa->GetId(),(new DateTime($data['fecha']))->format("y-m-d"));
         if(isset($unaMesa))
         {
-            $mensaje = "la Mesa mas usada es <br>".$unaMesa->ToString()
-            .'<br>'.'y la cantidad de veces usada es '.$unaMesa->ObtenerCantidadDeOrdenes();
+            $mensaje = ['OK'=> "la Mesa mas usada es <br>".$unaMesa->ToString()
+            .'<br>'.'y la cantidad de veces usada es '.$cantidad];
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -162,15 +164,16 @@ class MesaController
         $data = $request->getQueryParams();
         $mensaje = "no se encontro la mesa menos usada";
         $listaDeMesas = Mesa::ObtenerListaBD();
-        $unaMesa = Mesa::BuscarMesaMenosUsada($listaDeMesas);
-        
+        $listaDeOrdenes = Orden::FiltrarPorFechaBD((new DateTime($data['fecha']))->format("y-m-d"));
+        $unaMesa = Mesa::BuscarMesaMenosUsada($listaDeMesas,$listaDeOrdenes);
+        $cantidad = Mesa::ObtenerCantidadDeUnaMesaPorFecha($unaMesa->GetId(),(new DateTime($data['fecha']))->format("y-m-d"));
         if(isset($unaMesa))
         {
-            $mensaje = "la Mesa menos usada es <br>".$unaMesa->ToString()
-            .'<br>'.'y la cantidad de veces usada es '.$unaMesa->ObtenerCantidadDeOrdenes();
+            $mensaje =  ['OK'=> "la Mesa menos usada es <br>".$unaMesa->ToString()
+            .'<br>'.'y la cantidad de veces usada es '.$cantidad];
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -183,9 +186,8 @@ class MesaController
         $data = $request->getQueryParams();
         $mensaje = "no se encontro la mesa que mas facturo";
         $listaDeMesas = Mesa::ObtenerListaBD();
-        $unaMesa = Mesa::BuscarMesaMasFacturo($listaDeMesas);
-        
-      
+        $listaDeOrdenes = Orden::FiltrarPorFechaBD((new DateTime($data['fecha']))->format("y-m-d"));
+        $unaMesa = Mesa::BuscarMesaMasFacturo($listaDeMesas,$listaDeOrdenes);
         
         if(isset($unaMesa) && ($facturacion = $unaMesa->ObtenerFacturacionTotal()) > 0)
         {
@@ -193,7 +195,7 @@ class MesaController
             .'<br>'.'y la Facturacion total fue '.$facturacion;
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -205,7 +207,8 @@ class MesaController
         $data = $request->getQueryParams();
         $mensaje = "no se encontro la mesa que menos facturo";
         $listaDeMesas = Mesa::ObtenerListaBD();
-        $unaMesa = Mesa::BuscarMesaMenosFacturo($listaDeMesas);
+        $listaDeOrdenes = Orden::FiltrarPorFechaBD((new DateTime($data['fecha']))->format("y-m-d"));
+        $unaMesa = Mesa::BuscarMesaMenosFacturo($listaDeMesas,$listaDeOrdenes);
         
         if(isset($unaMesa))
         {
@@ -213,7 +216,7 @@ class MesaController
             .'<br>'.'y la Facturacion total fue '.$unaMesa->ObtenerFacturacionTotal();
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -226,15 +229,16 @@ class MesaController
         $data = $request->getQueryParams();
       
         // $listaDeOrdenes = Orden::FiltarPorEstado(Orden::ESTADO_INACTIVO);
-        $importeMayor = Orden::BusacarMayorImporteBD();
+        $importeMayor = Orden::BuscarMayorImportePorFechaBD((new DateTime($data['fecha']))->format("y-m-d"));
         $listaDeOrdenes = Orden::FiltrarPorImporteBD($importeMayor);
         $listafiltrada = Orden::FiltrarPorEstado($listaDeOrdenes,Orden::ESTADO_INACTIVO);
+        $listafiltrada = Orden::FiltrarPorFecha($listafiltrada,(new DateTime($data['fecha']))->format("y-m-d"));
         $listaDeMesas = Mesa::FiltrarPorImporteDeOrden($importeMayor);
        
         
         if(isset($listaDeMesas))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDeMesas) > 0)
             {
                 $mensaje = "la factura con el mayor importe tiene el valor de $importeMayor <br>".
@@ -242,7 +246,7 @@ class MesaController
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -253,15 +257,16 @@ class MesaController
     public static function ListarMesasConMenorImpote($request, $response, array $args)
     {
         $data = $request->getQueryParams();
-        $importeMenor = Orden::BuscarMenorImporteBD();
+        $importeMenor = Orden::BuscarMenorImportePorFechaBD((new DateTime($data['fecha']))->format("y-m-d"));
         $listaDeOrdenes = Orden::FiltrarPorImporteBD($importeMenor);
         $listafiltrada = Orden::FiltrarPorEstado($listaDeOrdenes,Orden::ESTADO_INACTIVO);
+        $listafiltrada = Orden::FiltrarPorFecha($listafiltrada,(new DateTime($data['fecha']))->format("y-m-d"));
         $listaDeMesas = Mesa::FiltrarPorImporteDeOrden($importeMenor);
        
         
         if(isset($listaDeMesas))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDeMesas) > 0)
             {
                 $mensaje = "la factura con el menor importe tiene el valor de $importeMenor <br>".
@@ -269,20 +274,17 @@ class MesaController
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
     }
-
-    // g- Lo que facturó entre dos fechas dadas.
 
     public static function ListarFacturacionEntreDosFechas($request, $response, array $args)
     {
         $data = $request->getParsedBody();
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
 
-        
         $listaFiltradaPorEstado = Orden::FiltrarPorEstado($unaMesa->ObtenerListaDeOrdenes(),Orden::ESTADO_INACTIVO);
         $listaFiltradaPorFecha = Orden::FiltrarEntreDosFechas($listaFiltradaPorEstado,new DateTime($data['fechaInicial']),new DateTime($data['fechaFinal']));
         $facturacionTotal = Orden::CalcularFacturacionTotal($listaFiltradaPorFecha);
@@ -294,57 +296,49 @@ class MesaController
             " desde ".$data['fechaInicial'].' hasta '.$data['fechaFinal'].' es '.$facturacionTotal;
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
     }
-
-    public static function ListarComentariosPositivosDeLasMesas($request, $response, array $args)
+    public static function ListarComentariosPorUnaPuntuacion($request, $response, array $args)
     {
         $data = $request->getQueryParams();
         $listaDeMesas = Mesa::FiltarMesaEncuestadas();
-        // $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_POSITIVO);
-        // $listaDeEncuesta = Encuesta::FiltrarPorEstadoBD(Encuesta::ESTADO_POSITIVO);
-        $listaDeEncuesta =  Encuesta::ListarBD();
-        $listaDeFiltrada = Encuesta::FiltrarPorEstado($listaDeEncuesta,Encuesta::ESTADO_POSITIVO);
-
-        $mensaje = ['Error' => "No se pudo filtrar las mesas"];
-        if(isset($listaDeFiltrada))
-        {
-           
-            $mensaje = "No se encontraron comentarios ".Puntuacion::ESTADO_POSITIVO.'s';
-            if(count($listaDeFiltrada) > 0)
-            {
-                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeFiltrada);
-            }
-        }
-
-     
-
-
-        return $response->withJson($mensaje);
-    }
-    public static function ListarComentariosNegativosDeLasMesas($request, $response, array $args)
-    {
-        $data = $request->getQueryParams();
-        $listaDeMesas = Mesa::FiltarMesaEncuestadas();
-        // $listaDeEncuesta = Encuesta::FiltrarPorPuntucionBD("Mesa",Puntuacion::ESTADO_NEGATIVO);
-        $listaDeEncuesta =  Encuesta::ListarBD();
+        $listaDeEncuesta =  Encuesta::FiltrarPorPuntucionBD($data['descripcion'],$data['puntuacion']);
         // var_dump($listaDeEncuesta);
-        $listaDeFiltrada = Encuesta::FiltrarPorEstado($listaDeEncuesta,Encuesta::ESTADO_NEGATIVA);
-
         
-        if(isset($listaDeFiltrada))
+        if(isset($listaDeEncuesta))
         {
-            $mensaje = "No se encontraron comentarios ".Encuesta::ESTADO_NEGATIVA.'s';
-            if(count($listaDeFiltrada) > 0)
+            $mensaje = ['Error'=>"No se encontraron comentarios en base al filtro elegido "];
+            if(count($listaDeEncuesta) > 0)
             {
-                $mensaje = Mesa::MostarComentarios($listaDeMesas,$listaDeFiltrada);
+                $mensaje =['OK'=>  Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta)];
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
+
+
+        return $response;
+    }
+    public static function ListarComentariosPorDosPuntuacion($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $listaDeMesas = Mesa::FiltarMesaEncuestadas();
+        $listaDeEncuesta =  Encuesta::FiltrarPorDosPuntucionBD($data['descripcion'],$data['puntuacionMinima'],$data['puntuacionMaxima']);
+        // var_dump($listaDeEncuesta);
+        
+        if(isset($listaDeEncuesta))
+        {
+            $mensaje = ['Error'=>"No se encontraron comentarios en base al filtro elegido "];
+            if(count($listaDeEncuesta) > 0)
+            {
+                $mensaje = ['OK'=> Mesa::MostarComentarios($listaDeMesas,$listaDeEncuesta)];
+            }
+        }
+
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;

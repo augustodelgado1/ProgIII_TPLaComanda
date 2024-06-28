@@ -21,9 +21,17 @@ class Orden
     private $rutaDeLaImagen;
     private $nombreDeLaImagen;
     private $costoTotal;
-    private $tiempoTotal;
+    private $tiempoDeInicio;
+    private $tiempoDeFinalizacion;
+    private $tiempoTotalEstimado;
+    private $estadoDelTiempo;
     private $estado;
     private $listaDePedidos;
+
+    public const ESTADO_TIEMPO_NOCUMPLIDO = "no cumplido";
+    public const ESTADO_TIEMPO_CUMPLIDO = "cumplido";
+    public const ESTADO_TIEMPO_INDETERMINADO = "indeterminado";
+
 
     public function __construct($nombreDelCliente,$idDeMesa,$rutaDeLaImagen = null,$nombreDeLaImagen = null) 
     {
@@ -34,10 +42,67 @@ class Orden
         $this->costoTotal = 0;
         $this->codigo = Util::CrearUnCodigoAlfaNumerico(5);
         $this->SetImagen($rutaDeLaImagen,$nombreDeLaImagen);
-        $this->CalcularTiempoTotal();
+        $this->CalculartiempoTotalEstimado();
         $this->CalcularCostoTotal();
+    }
 
+    private function ObetenerEstadoDelTiempo()
+    {
+        $this->estadoDelTiempo = Pedido::ESTADO_TIEMPO_INDETERMINADO;
+
+        $diferencia = $this->tiempoDeInicio->diff($this->tiempoDeFinalizacion);
+
+        if(isset($diferencia))
+        {
+            if($diferencia > $this->tiempoTotalEstimado)
+            {
+                $this->estadoDelTiempo  = Pedido::ESTADO_TIEMPO_NOCUMPLIDO;
+            }else
+            {
+                if($diferencia < $this->tiempoTotalEstimado)
+                {
+                    $this->estadoDelTiempo  = Pedido::ESTADO_TIEMPO_CUMPLIDO;
+                }
+            }
+        }
         
+        
+        return  $this->estadoDelTiempo ;
+    }
+
+    public function ModificarTiempoDeInicioBD($tiempoInicio)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+       
+        if($this->SetTiempoDeInicio($tiempoInicio))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p 
+            SET p.tiempoDeInicio = :tiempoInicio 
+            where p.id = :id");
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':tiempoInicio',$this->tiempoDeInicio->format('Y-m-d-H-i-s'),PDO::PARAM_STR);
+            $estado =$consulta->execute();
+            // var_dump($estado);
+        }
+
+        return  $estado;
+    }
+    public function ModificarTiempoDeFinalizacionBD($tiempoDeFinalizacion)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = null;
+        // var_dump($tiempoDeFinalizacion);
+        if($this->SetTiempoDeFinalizacion($tiempoDeFinalizacion))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.tiempoDeFinalizacion = :tiempoDeFinalizacion where p.id = :id");
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':tiempoDeFinalizacion',$this->tiempoDeFinalizacion->format('Y-m-d-H-i-s'),PDO::PARAM_STR);
+            $consulta->execute();
+            $estado = $consulta->execute();
+        }
+
+        return  $estado;
     }
     private function CalcularCostoTotal()
     {
@@ -56,24 +121,24 @@ class Orden
         }
         return $this->costoTotal;
     }
-    private function CalcularTiempoTotal()
+    private function CalculartiempoTotalEstimado()
     {
-        $tiempoTotal = null;
+        $tiempoTotalEstimado = null;
         $this->listaDePedidos = $this->ObtenerListaDePedidos();
        
         if(isset($this->listaDePedidos) && count($this->listaDePedidos) > 0)
         {
-            $tiempoTotal = new DateTime('00:00');
+            $tiempoTotalEstimado = new DateTime('00:00');
             foreach ($this->listaDePedidos as $unPedido) {
                
                 if(isset($unPedido) && $unPedido->GetEstado() === Pedido::ESTADO_INTERMEDIO)
                 {
-                    $tiempoTotal->add($unPedido->GetTiempoEstimado());  
+                    $tiempoTotalEstimado->add($unPedido->GetTiempoEstimado());  
                 }
             }
         }
 
-        return $tiempoTotal;
+        return $tiempoTotalEstimado;
     }
 
     public function ObtenerListaDePedidos()
@@ -246,7 +311,6 @@ class Orden
         return  $estado;
     }
 
-    
     public static function BuscarOrdenPorIdBD($idDeOrden)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -279,7 +343,40 @@ class Orden
 
         return  $listaDeOrdenes;
     }
-    public static function BusacarMayorImporteBD()
+    public static function FiltrarPorFechaBD($fecha)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeOrdenes = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.fechaDeOrden = :fecha");
+            $consulta->bindValue(':fecha',$fecha,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeOrdenes = Orden::CrearLista($data);
+        }
+
+        return  $listaDeOrdenes;
+    }
+    public static function ObtenerUnoPorIdDeMesaYEstadoBD($idDeMesa,$estado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $unaOrden = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.idDeMesa = :idDeMesa and o.estado = :estado");
+            $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $unaOrden = Orden::CrearUnaOrden($data);
+        }
+
+        return  $unaOrden;
+    }
+    public static function BuscarMayorImportePorFechaBD($fecha)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $mayorImporte = null;
@@ -288,8 +385,9 @@ class Orden
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MAX(costoTotal) as importeTotal
             FROM orden
-            WHERE estado = :estado");
+            WHERE estado = :estado and o.fechaDeOrden = :fecha");
             $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_STR);
+            $consulta->bindValue(':fecha',$fecha,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $mayorImporte = $data['importeTotal'];
@@ -298,7 +396,7 @@ class Orden
 
         return  $mayorImporte;
     }
-    public static function BuscarMenorImporteBD()
+    public static function BuscarMenorImportePorFechaBD($fecha)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $menorImporte = null;
@@ -307,8 +405,9 @@ class Orden
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MIN(costoTotal) as importeTotal
             FROM orden
-            WHERE estado = :estado");
+            WHERE estado = :estado and o.fechaDeOrden = :fecha");
             $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_INT);
+            $consulta->bindValue(':fecha',$fecha,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $menorImporte = $data['importeTotal'];
@@ -321,7 +420,6 @@ class Orden
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeOrdenes = null;
 
-       
         if(isset($importe))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.costoTotal = :importe");
@@ -333,11 +431,29 @@ class Orden
 
         return  $listaDeOrdenes;
     }
+
+    public static function FiltrarPorEstadoDelTiempoBD($estadoDelTiempo)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaFiltrada= null;
+
+        if(isset($estadoDelTiempo))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden 
+            as o where o.estadoDelTiempo = :estadoDelTiempo");
+            $consulta->bindValue(':estadoDelTiempo',$estadoDelTiempo,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaFiltrada =  Orden::CrearLista($data);
+        }
+
+        return $listaFiltrada;
+    }
   
     public static function BuscarPorCodigoBD($codigo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data = null;
+        $data = false;
 
         if(isset($codigo))
         {
@@ -415,36 +531,25 @@ class Orden
         return   $listaDeOrdenes;
     }
 
-    public static function BuscarOrdenPorId($listaDeOrdens,$id)
-    {
-        $unaOrdenABuscar = null; 
-        $index = Orden::ObtenerIndicePorId($listaDeOrdens,$id);
-        if($index > 0 )
-        {
-            $unaOrdenABuscar = $listaDeOrdens[$index];
-        }
+    public static function ContarPorIdDeMesa($listaDeOrdenes,$idDeMesa)
+    { 
+        $cantidadDeOrdenes = -1;
 
-        return  $unaOrdenABuscar;
-    }
-
-     public static function ObtenerIndicePorId($listaDeOrdens,$id)
-    {
-        $index = -1;
-       
-        if(isset($listaDeOrdens)  && isset($id))
+        if(isset($listaDeOrdenes))
         {
-            $leght = count($listaDeOrdens); 
-            for ($i=0; $i < $leght; $i++) { 
-         
-                if($listaDeOrdens[$i]->id == $id)
+            $cantidadDeOrdenes = 0;
+            foreach ($listaDeOrdenes as $unaOrden) 
+            {
+                
+                if($unaOrden->idDeMesa === $idDeMesa)
                 {
-                    $index = $i;
-                    break;
+                    $cantidadDeOrdenes++;
                 }
+                
             }
         }
 
-        return $index;
+        return $cantidadDeOrdenes;
     }
 
     
@@ -463,6 +568,19 @@ class Orden
         return  $estado ;
     }
 
+    private function SetEstadoDelTiempo($estadoDelTiempo)
+    {
+        $estado = false;
+        $array = array(Orden::ESTADO_TIEMPO_CUMPLIDO,Orden::ESTADO_TIEMPO_NOCUMPLIDO,Orden::ESTADO_TIEMPO_INDETERMINADO);
+
+        if(isset($estadoDelTiempo) && in_array($estadoDelTiempo,$array))
+        {
+            $this->estadoDelTiempo = $estadoDelTiempo;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
     
 
     public function SetCodigo($codigo)
@@ -538,8 +656,55 @@ class Orden
         return  $estado ;
     }
 
+    private function SetTiempoDeFinalizacion($tiempoDeFinalizacion)
+    {
+        $estado = false;
+        if(isset($tiempoDeFinalizacion))
+        {
+            $this->tiempoDeFinalizacion = $tiempoDeFinalizacion;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+    private function SetTiempoDeInicio($tiempoDeInicio)
+    {
+        $estado = false;
+        if(isset($tiempoDeInicio))
+        {
+            $this->tiempoDeInicio = $tiempoDeInicio;
+            $estado = true;
+        }
+
+        return  $estado ;
+    }
+
 
     #Getters
+
+    public function GetStrTiempoInicio()
+    {
+        $mensaje = "No definido";
+
+        if(isset($this->tiempoDeInicio))
+        {
+            $mensaje = $this->tiempoDeInicio->format('Y-m-d-H-i-s'); 
+        }
+
+        return  $mensaje;
+    }
+    public function GetStrTiempoFinalizacion()
+    {
+        $mensaje = "No definido";
+      
+        if(isset($this->tiempoDeFinalizacion))
+        {
+            $mensaje = $this->tiempoDeFinalizacion->format('Y-m-d-H-i-s');; 
+           
+        }
+
+        return  $mensaje;
+    }
     public function GetCodigo()
     {
         return  $this->codigo;
@@ -567,20 +732,24 @@ class Orden
     }
     public function GetMesa()
     {
-        return  Mesa::BuscarMesaPorIdBD($this->idDeMesa);
+        return  Mesa::BuscarUnoPorIdBD($this->idDeMesa);
+    }
+    public function GetIdDeMesa()
+    {
+        return  $this->idDeMesa;
     }
 
     public function GetStrTiempoEstimado()
     {
         $mensaje = "No definido";
-        $this->tiempoTotal = $this->CalcularTiempoTotal();
+        $this->tiempoTotalEstimado = $this->CalculartiempoTotalEstimado();
 
-        if(isset($this->tiempoTotal) 
-        && ($this->tiempoTotal->format('H') != '00' || 
-           $this->tiempoTotal->format('i') != '00'))
+        if(isset($this->tiempoTotalEstimado) 
+        && ($this->tiempoTotalEstimado->format('H') != '00' || 
+           $this->tiempoTotalEstimado->format('i') != '00'))
         {
-            $mensaje = $this->tiempoTotal->format('H')
-            ." horas y ".$this->tiempoTotal->format('i')
+            $mensaje = $this->tiempoTotalEstimado->format('H')
+            ." horas y ".$this->tiempoTotalEstimado->format('i')
             ." minutos";
         }
 
@@ -692,6 +861,25 @@ class Orden
             foreach($listaDeOrdenes as $unaOrden)
             {
                 if(strcasecmp($unaOrden->estado,$estado) === 0)
+                {
+                    array_push($listaFiltrada,$unaOrden);
+                }
+            }
+        }
+
+        return  $listaFiltrada;
+    }
+    public static function FiltrarPorFecha($listaDeOrdenes,$fechaDeOrden)
+    {
+        $listaFiltrada = null;
+
+        if(isset($listaDeOrdenes) && isset($fechaDeOrden) && count($listaDeOrdenes) > 0)
+        {
+            $listaFiltrada =  [];
+
+            foreach($listaDeOrdenes as $unaOrden)
+            {
+                if($unaOrden->fechaDeOrden === $fechaDeOrden)
                 {
                     array_push($listaFiltrada,$unaOrden);
                 }
@@ -817,7 +1005,7 @@ class Orden
 
     public static function VerificarUnoPorCodigo($codigo)
     {
-        return  Orden::BuscarPorCodigoBD($codigo) !== null;
+        return  Orden::BuscarPorCodigoBD($codigo) !== false;
     }
     public static function ValidadorCodigo($data)
     {

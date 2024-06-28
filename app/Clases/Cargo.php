@@ -244,6 +244,10 @@ class Cargo
     {
         return Cargo::BuscarCargoPorIdBD($data['id']) !== null;
     }
+    public static function VerificarPorDescripcion($data)
+    {
+        return Cargo::BuscarCargoPorDescripcionBD($data['cargo']) !== null;
+    }
     private static function ValidadorDescripcion($descripcion)
     {
         return  isset($descripcion) && Util::ValidadorDeNombre($descripcion);

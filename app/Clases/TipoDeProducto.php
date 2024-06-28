@@ -169,29 +169,6 @@ class TipoDeProducto
         return  TipoDeProducto::CrearUnTipoDeProducto(TipoDeProducto::BuscarPorNombreBD($nombre));
     }
 
-    
-
-     public static function ObtenerIndicePorId($listaDeTipoDeProductos,$id)
-    {
-        $index = -1;
-       
-        if(isset($listaDeTipoDeProductos)  && isset($id))
-        {
-            $leght = count($listaDeTipoDeProductos); 
-            for ($i=0; $i < $leght; $i++) { 
-         
-                if($listaDeTipoDeProductos[$i]->id == $id)
-                {
-                    $index = $i;
-                    break;
-                }
-            }
-        }
-
-        return $index;
-    }
-
-
     //Setters
     private function SetId($id)
     {

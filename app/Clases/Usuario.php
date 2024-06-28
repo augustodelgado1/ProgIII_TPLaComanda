@@ -50,15 +50,13 @@ class Usuario
         
         return $unUsuario ;
     }
-    public function ObtenerListaDePedidos()
+    public function ObtenerListaDeOperaciones()
     {
-        $listaDePedidos = null;
-
-        if($this->GetRolDeUsuario()->GetDescripcion()  === 'Empleado')
-        {
-            $listaDePedidos = Pedido::FiltrarPorIdDeEmpleadoBD($this->id);
-        }
-        return  $listaDePedidos ;
+        return LogDeAuditoria::FiltrarPorIdDeUsuarioBD($this->id);
+    }
+    public function ObtenerCantidadDeOperaciones()
+    {
+        return  LogDeAuditoria::ObternerCantidadDeAccionesDeUnUsuarioBD($this->id);
     }
 
     private static function CrearLista($data)
@@ -302,6 +300,30 @@ class Usuario
         return $listaDeTipos;
     }
 
+    public static function ObternerListaDeEmpledosPorSectorBD($idDeSector)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeUsuario= null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombre,e.apellido,e.dni,e.idDeRol,e.idDeCargo,e.fechaDeRegistro 
+            FROM usuario e 
+            JOIN cargo c on c.id = e.idDeCargo 
+            JOIN sector s on s.id = c.idDeSector 
+            JOIN Rol r ON r.id = e.idDeRol 
+            WHERE r.descripcion = 'Empleado' and s.id = :id");
+            $consulta->bindValue(':descripcion',$idDeSector,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            
+            $listaDeUsuario = Usuario::CrearLista($data);
+        }
+
+        return  $listaDeUsuario;
+    }
+  
+
     public static function ToStringList($listaDeSocioes)
     {
         $strLista = null; 
@@ -317,8 +339,7 @@ class Usuario
 
         return   $strLista;
     }
-
-    public static function MostarCantidadDePedidos($listaDeUsuarios)
+    public static function MostarCantidadDeOperaciones($listaDeUsuarios)
     {
         $strLista = null; 
 
@@ -327,7 +348,7 @@ class Usuario
             $strLista = "";
             foreach($listaDeUsuarios as $unUsuario)
             {
-                $cantidad = Pedido::ContarPorIdDeEmpeladoBD($unUsuario->id);
+                $cantidad = $unUsuario->ObtenerCantidadDeOperaciones();
 
                 if( $cantidad > 0)
                 {
@@ -340,30 +361,27 @@ class Usuario
 
         return   $strLista;
     }
-    public static function MostarCantidadDeOperacionesPorSector($listaDeUsuarios,$listaDeSectores)
+    public static function CantidadDeOperacionesDeUnaLista($listaDeUsuarios)
     {
-        $strLista = null; 
+        $acumulador = null; 
 
-        if(isset($listaDeUsuarios) && isset($listaDeSectores))
+        if(isset($listaDeUsuarios))
         {
-            $strLista = "";
+            $acumulador = 0;
             foreach($listaDeUsuarios as $unUsuario)
             {
-                $listaDeCantidades = Sector::ContarPedidos($listaDeSectores,$unUsuario->ObtenerListaDePedidos());
+                $cantidad = $unUsuario->ObtenerCantidadDeOperaciones();
 
-                if( isset($listaDeCantidades) && count($listaDeCantidades) > 0)
+                if( $cantidad > 0)
                 {
-                    $strLista .= $unUsuario->ToString().'<br>'. 
-                    Sector::ToStringList($listaDeCantidades);
+                    $acumulador += $cantidad;
                 }
                 
             }
         }
 
-        return   $strLista;
+        return   $acumulador;
     }
-
-    
     public static function FiltrarPorEstado($listaDeUsuarios,$estado)
     {
         $listaFiltrada = null; 

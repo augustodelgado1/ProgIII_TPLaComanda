@@ -52,7 +52,7 @@ class Rol
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
         
-        if(isset($unObjetoAccesoDato))
+        if(isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("DELETE FROM Rol where id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);
@@ -67,7 +67,7 @@ class Rol
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unRol = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Rol as c where c.id = :id");
             $consulta->bindValue(':id',$id,PDO::PARAM_INT);

@@ -14,14 +14,14 @@ class RolController
 
         if(isset($listaDeRoles))
         {
-            $mensaje = "La lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDeRoles) > 0)
             {
                 $mensaje = Rol::ToStringList($listaDeRoles);
             }
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -40,7 +40,7 @@ class RolController
             $mensaje = 'El Rol se registro correctamente:<br>'.$unRol->ToString();
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -58,7 +58,7 @@ class RolController
             $mensaje = 'El Rol se modifico correctamente <br>'.$unRol->ToString();
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -67,14 +67,14 @@ class RolController
     {
         $data = $request->getParsedBody();
         $unRol = Rol::BuscarRolPorIdBD($data['id']);
-        $mensaje = 'no se pudo borrar';
+         $mensaje = ['Error' =>'no se pudo borrar'];
 
         if(Rol::BorrarUnoPorIdBD($data['id']))
         {
             $mensaje = 'Este Rol se borro correctamente: <br>'.$unRol->ToString();
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;

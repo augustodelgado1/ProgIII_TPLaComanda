@@ -25,7 +25,7 @@ class Producto implements IFileManejadorCSV
         return 
         "Nombre: ".$this->nombre.'<br>'.
         "Precio: ".$this->precio.'<br>'
-        ."TipoDeProducto: ".$this->GetTipo()->GetDescripcion().'<br>';
+        ."Tipo: ".$this->GetTipo()->GetDescripcion().'<br>';
     }
 
     public function AgregarBD()

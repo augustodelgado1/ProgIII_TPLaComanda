@@ -54,13 +54,13 @@ class SocioController
     {
         $data = $request->getParsedBody();
         $unCargo = Cargo::ObtenerUnoPorDescripcionBD($data['cargo']) ;  
-        $mensaje = 'no se pudo dar modificar';
+        $mensaje = ['Error' =>'No se pudo dar modificar'];
 
         if(Usuario::ModificarUnoBD($data['id'],$data['email'],$data['clave'],$data['nombre'] ,
         $data['apellido'],$data['dni'],$unCargo->GetId()))
         {
             $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
-            $mensaje = 'El Socio se modifico correctamente: <br>'.$unUsuario->ToString();
+            $mensaje = ['OK' =>'El Socio se modifico correctamente: <br>'.$unUsuario->ToString()];
         }
         
         $response->getBody()->write($mensaje);

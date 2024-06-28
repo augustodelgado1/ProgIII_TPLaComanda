@@ -34,7 +34,7 @@ class PedidoController
             
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -49,7 +49,7 @@ class PedidoController
         $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipo->GetId()) ; 
         $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
 
-        $mensaje = 'no se pudo dar modificar';
+        $mensaje = ['Error' => 'No se pudo modificar'];
 
         if(isset($unProducto) && Pedido::ModificarUnoBD($unPedido->GetId(),$unaOrden->GetId(),$unProducto->GetId()))
         {
@@ -57,7 +57,7 @@ class PedidoController
             $mensaje = 'El Pedido se modifico correctamente: <br>'.$unPedido->ToString();
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -66,14 +66,14 @@ class PedidoController
     {
         $data = $request->getParsedBody();
         $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigoDePedido']);
-        $mensaje = 'no se pudo borrar';
+        $mensaje =  ['Error' => 'No se pudo borrar'];
 
         if(Pedido::BorrarUnoPorIdBD($unPedido->GetId()))
         {
             $mensaje = 'Este Pedido se borro correctamente: <br>'.$unPedido->ToString();;
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -88,14 +88,14 @@ class PedidoController
 
         if(isset($listaDePedidos))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidos) > 0)
             {
                 $mensaje = Pedido::ToStringList($listaDePedidos);
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -108,14 +108,14 @@ class PedidoController
 
         if(isset($listaDePedidosTerminados))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidosTerminados) > 0)
             {
                 $mensaje = Pedido::ToStringList($listaDePedidosTerminados);
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -130,14 +130,14 @@ class PedidoController
 
         if(isset($listaDePedidos))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidos) > 0)
             {
                 $mensaje = Pedido::ToStringList($listaDePedidos);
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -152,14 +152,14 @@ class PedidoController
 
         if(isset($listaDePedidos))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidos) > 0)
             {
                 $mensaje = Pedido::ToStringList($listaDePedidos);
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -172,14 +172,14 @@ class PedidoController
 
         if(isset($listaDePedidos))
         {
-            $mensaje = "la lista esta vacia";
+            $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidos) > 0)
             {
                 $mensaje = Pedido::ToStringList($listaDePedidos);
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -208,7 +208,7 @@ class PedidoController
             $mensaje = 'Se modifico Correctamente <br>'.$unPedido->ToString();
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
         
         return $response;
     }
@@ -228,7 +228,7 @@ class PedidoController
             $mensaje = 'Se finalizo Correctamente <br>'.$unPedido->ToString();
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -248,7 +248,7 @@ class PedidoController
             $mensaje = 'Se modifico Correctamente <br>'.$unPedido->ToString();
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -272,7 +272,7 @@ class PedidoController
             "<br> Y La Cantidad es " .$cantidad;
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
@@ -295,7 +295,7 @@ class PedidoController
             $mensaje = "El Pedido mas Vendido es ".$unPedido->ToString(). "<br> y la cantidad es ".$cantidad;
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response;
