@@ -19,7 +19,7 @@ class PuntuacionController
         
 
         $response->getBody()->write(json_encode($mensaje));
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
 
@@ -38,7 +38,7 @@ class PuntuacionController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function BorrarUno($request, $response, array $args)
     {
@@ -54,7 +54,7 @@ class PuntuacionController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
    
 }

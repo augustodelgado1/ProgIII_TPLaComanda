@@ -16,7 +16,7 @@ class OrdenController
       
         $unaOrden = new Orden($data['nombreDelCliente'],$unaMesa->GetId());
         $unaMesa->ModificarEstadoBD(Mesa::ESTADO_INICIAL);
-        $unaOrden->ModificarTiempoDeInicioBD(new DateTime('now'));
+        // $unaOrden->ModificarTiempoDeInicioBD(new DateTime('now'));
        
         if( $unaOrden->AgregarBD())
         {
@@ -28,17 +28,17 @@ class OrdenController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     // ❏ 2- El mozo saca una foto de la mesa y lo relaciona con el pedido.
     public static function AgregarFoto($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $unaOrden = Orden::BuscarOrdenPorIdBD($data['codigoDeOrden']);
+        $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
         File::CrearUnDirectorio('Imagenes');
         File::CrearUnDirectorio('Imagenes/Mesa');
         $mensaje = ['Error' => 'No se pudo guarder la foto'];
-    
+        
         $nombreDeArchivo = $unaOrden->GetFechaStr().$_FILES['imagen']['name'];
 
         if($unaOrden->GuardarImagen($_FILES['imagen']['tmp_name']
@@ -52,17 +52,17 @@ class OrdenController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function ModificarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
         $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
-
+        $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
          $mensaje = ['Error' => 'No se pudo modificar'];
 
-        if(Orden::ModificarUnoBD($unaOrden->GetId(),$data['nombreDelCliente'],$data['idDeMesa']))
+        if(Orden::ModificarUnoBD($unaOrden->GetId(),$data['nombreDelCliente'],$unaMesa->GetId()))
         {
             $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
             $mensaje = ['OK' =>'El Orden se modifico correctamente <br>'.$unaOrden->ToString()];
@@ -71,7 +71,7 @@ class OrdenController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function BorrarUno($request, $response, array $args)
     {
@@ -81,20 +81,19 @@ class OrdenController
 
         if(Orden::BorrarUnoPorIdBD($unaOrden->GetId()))
         {
-          
-            $mensaje = 'Esta Orden se borro correctamente <br>'.$unaOrden->ToString();
+            $mensaje =  ['OK'=>'Esta Orden se borro correctamente <br>'.$unaOrden->ToString()];
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function Listar($request, $response, array $args)
     {
         // $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Ordens';  
+        $mensaje =  ['Error' =>'Hubo un error  al intentar listar los Ordens'];  
         $listaDeOrdens = Orden::ListarBD();
 
         if(isset($listaDeOrdens))
@@ -102,20 +101,20 @@ class OrdenController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDeOrdens) > 0)
             {
-                $mensaje = Orden::ToStringList($listaDeOrdens);
+                $mensaje =  ['OK' =>Orden::ToStringList($listaDeOrdens)];
             }
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function ListarActivas($request, $response, array $args)
     {
         // $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Ordens';  
+        $mensaje = ['Error' =>'Hubo un error  al intentar listar los Ordens'];  
         $listaDeOrdens = Orden::ListarBD();
         Orden::FiltrarPorEstado($listaDeOrdens,Orden::ESTADO_ACTIVO);
 
@@ -131,12 +130,12 @@ class OrdenController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function ListarInactivas($request, $response, array $args)
     {
         // $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Ordens';  
+        $mensaje = ['Error' => 'Hubo un error  al intentar listar los Ordenes'];  
         $listaDeOrdens = Orden::ListarBD();
         Orden::FiltrarPorEstado($listaDeOrdens,Orden::ESTADO_INACTIVO);
 
@@ -152,7 +151,7 @@ class OrdenController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function ListarUno($request, $response, array $args)
@@ -162,11 +161,31 @@ class OrdenController
         $unaMesa = Mesa::ObtenerUnoPorCodigo($data['codigoDeMesa']);
         $unaOrden = Orden::ObtenerUnoPorCodigo($data['codigoDeOrden']);
 
-        $mensaje = 'Usted pidio: <br><br>'.$unaOrden->ToString(); 
+        $mensaje = ['OK'=> 'Usted pidio: <br><br>'.$unaOrden->ToString()]; 
         
         $response->getBody()->write(json_encode($mensaje));
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public static function ListarFacturacionEntreDosFechas($request, $response, array $args)
+    {
+        $data = $request->getParsedBody();
+        $fechaInicial = new DateTime($data['fechaInicial']);
+        $fechaFinal = new DateTime($data['fechaFinal']);
+        $facturacionTotal = Orden::CalcularFecturacionPorDosFechasBD($fechaInicial->format('y-m-d'),$fechaFinal->format('y-m-d'));
+        $mensaje = "La facturacion es ".$facturacionTotal;
+        
+        if($facturacionTotal > 0)
+        {
+            $mensaje = "lo que se facturo ".$data['codigoDeMesa'].
+            " desde ".$fechaInicial->format('y-m-d').' hasta '.$fechaFinal->format('y-m-d').' es '.$facturacionTotal;
+        }
+
+        $response->getBody()->write(json_encode($mensaje));
+
+
+        return $response->withHeader('Content-Type', 'application/json');
     }
 }
 

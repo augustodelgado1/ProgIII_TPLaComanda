@@ -183,7 +183,7 @@ class Pedido
             SET p.tiempoDeInicio = :tiempoInicio 
             where p.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
-            $consulta->bindValue(':tiempoInicio',$this->GetTiempoDeInicio(),PDO::PARAM_STR);
+            $consulta->bindValue(':tiempoInicio',$this->tiempoDeInicio->format("Y-m-d H-i-s"),PDO::PARAM_STR);
             $estado =$consulta->execute();
             // var_dump($estado);
         }
@@ -199,7 +199,7 @@ class Pedido
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Pedido as p SET p.tiempoDeFinalizacion = :tiempoDeFinalizacion where p.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
-            $consulta->bindValue(':tiempoDeFinalizacion',$this->GetTiempoDeFinalizacion(),PDO::PARAM_STR);
+            $consulta->bindValue(':tiempoDeFinalizacion',$this->tiempoDeFinalizacion->format("Y-m-d H-i-s"),PDO::PARAM_STR);
             $consulta->execute();
             $estado = $consulta->execute();
         }
@@ -364,8 +364,6 @@ class Pedido
 
         return  $listaDePedidos;
     }
-
-    
     public static function ObtenerListaBD()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -415,6 +413,28 @@ class Pedido
         }
 
         return  $listaFiltrada;
+    }
+    public static function BuscarPedidoConMayorTiempoDeInicio($listaDePedidos)
+    {
+        $flag = false;
+        $unPedido = null;
+
+        if(isset($listaDePedidos) )
+        {
+            $tiempoDeInicio = false;
+
+            foreach($listaDePedidos as $unPedidoDeLaLista)
+            {
+                if($tiempoDeInicio < $unPedidoDeLaLista->tiempoDeInicio || $flag == false)
+                {
+                    $tiempoDeInicio = $unPedidoDeLaLista->tiempoDeInicio;
+                    $unPedido = $unPedidoDeLaLista;
+                    $flag = true;
+                }
+            }
+        }
+
+        return  $unPedido;
     }
     private static function CrearLista($data)
     {
@@ -719,7 +739,7 @@ class Pedido
        
         if(isset($this->tiempoDeInicio))
         {
-            $mensaje = $this->GetTiempoDeInicio(); 
+            $mensaje = $this->tiempoDeInicio->format("Y-m-d H-i-s"); 
            
         }
 
@@ -731,19 +751,19 @@ class Pedido
       
         if(isset($this->tiempoDeFinalizacion))
         {
-            $mensaje = $this->GetTiempoDeFinalizacion(); 
+            $mensaje = $this->tiempoDeFinalizacion->format("Y-m-d H-i-s"); 
         }
 
         return  $mensaje;
     }
     public function GetTiempoDeInicio()
     {
-        return  $this->tiempoDeInicio->format("Y-m-d H-i-s");
+        return  $this->tiempoDeInicio;
     }
 
     public function GetTiempoDeFinalizacion()
     {
-        return  $this->tiempoDeFinalizacion->format("Y-m-d H-i-s");
+        return  $this->tiempoDeFinalizacion;
     }
     public function Getcodigo()
     {

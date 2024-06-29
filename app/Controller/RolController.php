@@ -9,7 +9,7 @@ class RolController
 
     public static function Listar($request, $response, array $args)
     {
-        $mensaje = 'Hubo un error  al intentar listar los Rol';
+        $mensaje = ['Error' =>'Hubo un error  al intentar listar los Rol'];
         $listaDeRoles =  Rol::ObternerListaBD();
 
         if(isset($listaDeRoles))
@@ -17,7 +17,7 @@ class RolController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDeRoles) > 0)
             {
-                $mensaje = Rol::ToStringList($listaDeRoles);
+                $mensaje = ['Ok' =>Rol::ToStringList($listaDeRoles)];
             }
         }
         
@@ -31,13 +31,13 @@ class RolController
     {
         $data = $request->getParsedBody();
        
-        $mensaje = 'no se pudo dar de alta';
+        $mensaje = ['Error' =>'no se pudo dar de alta'];
 
         $unRol = new Rol($data['descripcion']);
 
         if($unRol->AgregarBD())
         {
-            $mensaje = 'El Rol se registro correctamente:<br>'.$unRol->ToString();
+            $mensaje = ['Ok' =>'El Rol se registro correctamente:<br>'.$unRol->ToString()];
         }
         
         $response->getBody()->write(json_encode($mensaje));
@@ -50,12 +50,12 @@ class RolController
     {
         $data = $request->getParsedBody();
         
-        $mensaje = 'no se pudo dar modificar';
+        $mensaje = ['Error' =>'no se pudo dar modificar'];
 
         if(Rol::ModificarUnoBD($data['id'],$data['descripcion']))
         {
             $unRol = Rol::BuscarRolPorIdBD($data['id']);
-            $mensaje = 'El Rol se modifico correctamente <br>'.$unRol->ToString();
+            $mensaje = ['Ok' =>'El Rol se modifico correctamente <br>'.$unRol->ToString()];
         }
         
         $response->getBody()->write(json_encode($mensaje));
@@ -71,7 +71,7 @@ class RolController
 
         if(Rol::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'Este Rol se borro correctamente: <br>'.$unRol->ToString();
+            $mensaje = ['Ok' =>'Este Rol se borro correctamente: <br>'.$unRol->ToString()];
         }
 
         $response->getBody()->write(json_encode($mensaje));

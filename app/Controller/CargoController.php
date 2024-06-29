@@ -14,9 +14,9 @@ class CargoController
         $mensaje = ['Error'=> 'Hubo un error con los parametros al intentar dar de alta un Cargo'];
         $unSector = Sector::BuscarPorDescripcionBD($data['sector']) ;   
     
-        if(isset($data) && isset($unSector))
+        if(isset($unSector))
         {
-            $mensaje = 'no se pudo dar de alta';
+            $mensaje = ['Error'=> 'no se pudo dar de alta'];
             $unCargo = new Cargo($data['descripcion'],$unSector->GetId());
             
             if($unCargo->AgregarBD())

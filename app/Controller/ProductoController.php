@@ -13,18 +13,18 @@ class ProductoController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Producto';
+        $mensaje = ['Error' =>'Hubo un error con los parametros al intentar dar de alta un Producto'];
         $unTipoDeProducto = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']) ;   
       
      
         if(isset($data))
         {
-            $mensaje = 'no se pudo dar de alta';
+            $mensaje =  ['Error' =>'no se pudo dar de alta'];
             $unProducto =  new Producto($data['nombre'],$unTipoDeProducto->GetId(),$data['precio']);
            
             if($unProducto->AgregarBD())
             {
-                $mensaje = 'El Producto se dio de alta <br>'.$unProducto->ToString();
+                $mensaje = ['OK' =>'El Producto se dio de alta <br>'.$unProducto->ToString()];
             }
         }
 
@@ -32,7 +32,7 @@ class ProductoController
           $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function ModificarUno($request, $response, array $args)
@@ -45,13 +45,13 @@ class ProductoController
         if(Producto::ModificarUnoBD($data['id'],$data['nombre'],$unTipoDeProducto->GetId(),$data['precio']))
         {
             $unProducto = Producto::ObtenerUnoPorIdBD($data['id']);
-            $mensaje = 'El Producto se modifico correctamente: <br>'.$unProducto->ToString();
+            $mensaje = ['OK' =>'El Producto se modifico correctamente: <br>'.$unProducto->ToString()];
         }
         
           $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function BorrarUno($request, $response, array $args)
     {
@@ -61,13 +61,13 @@ class ProductoController
 
         if(Producto::BorrarUnoPorIdBD($data['id']))
         {
-            $mensaje = 'Este Producto se borro correctamente: <br>'.$unProducto->ToString();
+            $mensaje = ['OK' =>'Este Producto se borro correctamente: <br>'.$unProducto->ToString()];
         }
 
           $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function Listar($request, $response, array $args)
@@ -83,13 +83,13 @@ class ProductoController
             $mensaje = ['Error' =>"La lista esta vacia"];
             if(count($listaDeProductos) > 0)
             {
-                $mensaje = Producto::ToStringList($listaDeProductos);
+                $mensaje = ['OK' => Producto::ToStringList($listaDeProductos)];
             }
         }
           $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function ListarPorTipoDeProducto($request, $response, array $args)
@@ -114,7 +114,7 @@ class ProductoController
           $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function GuardarListaEnCsv($request, $response, array $args)
@@ -154,7 +154,7 @@ class ProductoController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 }
 

@@ -17,7 +17,7 @@ class PedidoController
     public static function CargarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'Hubo un error con los parametros al intentar dar de alta un Pedido';
+        $mensaje = ['Error' => 'Hubo un error con los parametros al intentar dar de alta un Pedido'];
         $unTipo = TipoDeProducto::ObtenerUnoPorNombreBD($data['tipoDeProducto']);
         $listaFiltrada = Producto::FiltrarPorTipoDeProductoBD($unTipo->GetId()) ; 
         $unProducto = Producto::BuscarPorNombre($listaFiltrada,$data['nombreDeProducto']);
@@ -29,7 +29,7 @@ class PedidoController
             
             if($unPedido->AgregarBD())
             {
-                $mensaje = 'Se dio de alta correctamente <br>'.$unPedido->ToString();
+                $mensaje = ['Ok' =>'Se dio de alta correctamente <br>'.$unPedido->ToString()];
             }
             
         }
@@ -37,7 +37,7 @@ class PedidoController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function ModificarUno($request, $response, array $args)
@@ -54,13 +54,13 @@ class PedidoController
         if(isset($unProducto) && Pedido::ModificarUnoBD($unPedido->GetId(),$unaOrden->GetId(),$unProducto->GetId()))
         {
             $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigoDePedido']);
-            $mensaje = 'El Pedido se modifico correctamente: <br>'.$unPedido->ToString();
+            $mensaje =  ['Ok' =>'El Pedido se modifico correctamente: <br>'.$unPedido->ToString()];
         }
         
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function BorrarUno($request, $response, array $args)
     {
@@ -76,14 +76,14 @@ class PedidoController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
 
     public static function Listar($request, $response, array $args)
     {
         // $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = ['Error'=>'Hubo un error  al intentar listar los Pedidos'];  
         $listaDePedidos = Pedido::ObtenerListaBD();
 
         if(isset($listaDePedidos))
@@ -91,19 +91,19 @@ class PedidoController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidos) > 0)
             {
-                $mensaje = Pedido::ToStringList($listaDePedidos);
+                $mensaje = ['OK' => Pedido::ToStringList($listaDePedidos)];
             }
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function ListarTerminados($request, $response, array $args)
     {
         // $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = ['Error'=>'Hubo un error  al intentar listar los Pedidos'];  
         $listaDePedidosTerminados = Pedido::FiltrarPorEstadoBD(Pedido::ESTADO_FINAL);
 
         if(isset($listaDePedidosTerminados))
@@ -111,21 +111,21 @@ class PedidoController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidosTerminados) > 0)
             {
-                $mensaje = Pedido::ToStringList($listaDePedidosTerminados);
+                $mensaje = ['OK' => Pedido::ToStringList($listaDePedidosTerminados)];
             }
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
 
     public static function ListarPendientes($request, $response, array $args)
     {
         // $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = ['Error'=>'Hubo un error  al intentar listar los Pedidos'];  
         $listaDePedidos = Pedido::FiltrarPorEstadoBD(Pedido::ESTADO_INICIAL);
 
         if(isset($listaDePedidos))
@@ -133,21 +133,21 @@ class PedidoController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidos) > 0)
             {
-                $mensaje = Pedido::ToStringList($listaDePedidos);
+                $mensaje = ['OK' => Pedido::ToStringList($listaDePedidos)];
             }
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     // d- Los cancelados.
     public static function ListarCancelados($request, $response, array $args)
     {
         // $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = ['Error'=>'Hubo un error  al intentar listar los Pedidos'];  
         $listaDePedidos = Pedido::FiltrarPorEstadoBD(PEDIDO::ESTADO_CANCELADO);
 
         if(isset($listaDePedidos))
@@ -155,19 +155,19 @@ class PedidoController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidos) > 0)
             {
-                $mensaje = Pedido::ToStringList($listaDePedidos);
+                $mensaje =['OK' => Pedido::ToStringList($listaDePedidos)];
             }
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function ListarNoEntregadoEnElTimpoEstipulado($request, $response, array $args)
     {
         // $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = ['Error'=>'Hubo un error  al intentar listar los Pedidos'];  
         $listaDePedidos = Pedido::FiltrarPorEstadoDelTiempoBD(PEDIDO::ESTADO_TIEMPO_NOCUMPLIDO);
 
         if(isset($listaDePedidos))
@@ -175,14 +175,14 @@ class PedidoController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaDePedidos) > 0)
             {
-                $mensaje = Pedido::ToStringList($listaDePedidos);
+                $mensaje =['OK' => Pedido::ToStringList($listaDePedidos)];
             }
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function PreapararUnPedido($request, $response, array $args)
@@ -192,7 +192,7 @@ class PedidoController
         $token = trim(explode("Bearer", $header)[1]);
         $data = (array) AutentificadorJWT::ObtenerData($token);
        
-        $mensaje = 'Hubo un error  al intentar preparar un pedido';  
+        $mensaje = ['Error'=>'Hubo un error  al intentar preparar un pedido'];  
        
         $unPedido = Pedido::ObtenerUnoPorCodigoBD($dataBody['codigo']);
        
@@ -205,18 +205,18 @@ class PedidoController
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_INTERMEDIO);
             $unPedido->ModificarTiempoEstimadoBD($unPedido->GetTiempoEstimado());
             $unPedido->ModificarTiempoDeInicioBD(new DateTime('now'));
-            $mensaje = 'Se modifico Correctamente <br>'.$unPedido->ToString();
+            $mensaje = ['OK'=>'Se modifico Correctamente <br>'.$unPedido->ToString()];
         }
 
         $response->getBody()->write(json_encode($mensaje));
         
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function FinalizarPreparacionDeUnPedido($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'Hubo un error al intentar finalizar un Pedido';  
+        $mensaje =['Error'=> 'Hubo un error al intentar finalizar un Pedido'];  
        
         $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigo']);
        
@@ -225,19 +225,19 @@ class PedidoController
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_FINAL);
             $unPedido->ModificarTiempoDeFinalizacionBD(new DateTime("now"));
             $unPedido->EvaluarEstadoDelTiempo();
-            $mensaje = 'Se finalizo Correctamente <br>'.$unPedido->ToString();
+            $mensaje = ['OK'=>'Se finalizo Correctamente <br>'.$unPedido->ToString()];
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function CancelarUnPedido($request, $response, array $args)
     { 
         $data = $request->getParsedBody();
        
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
+        $mensaje = ['Error'=>'Hubo un error  al intentar listar los Pedidos'];  
        
         $unPedido = Pedido::ObtenerUnoPorCodigoBD($data['codigo']);
        
@@ -245,19 +245,19 @@ class PedidoController
         {
            
             $unPedido->ModificarEstadoBD(Pedido::ESTADO_CANCELADO);
-            $mensaje = 'Se modifico Correctamente <br>'.$unPedido->ToString();
+            $mensaje = ['OK'=>'Se modifico Correctamente <br>'.$unPedido->ToString()];
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function ListarElPedidoMasVendido($request, $response, array $args)
     { 
         $data = $request->getQueryParams();
        
-        $mensaje = 'Hubo un error al intentar obtener el mas vendido ';  
+        $mensaje = ['Error'=>'Hubo un error al intentar obtener el mas vendido '];  
         $listaDePedidos = Pedido::ObtenerListaBD();
         // $listaDePedidos = Pedido::FiltrarPorFechaDePedidoBD($data['fechaIngresada']);
         $listaDeProducto = Producto::ObtenerListaBD();
@@ -267,21 +267,21 @@ class PedidoController
         
         if(isset($unPedido))
         {
-            $mensaje = "El Pedido mas Vendido es ".
+            $mensaje = ['OK'=> "El Pedido mas Vendido es ".
             $unPedido->ToString().
-            "<br> Y La Cantidad es " .$cantidad;
+            "<br> Y La Cantidad es " .$cantidad];
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function ListarElPedidoMenosVendido($request, $response, array $args)
     { 
         $data = $request->getQueryParams();
        
-        $mensaje = 'Hubo un error al intentar obtener el mas vendido ';  
+        $mensaje = ['Error'=>'Hubo un error al intentar obtener el mas vendido '];  
       
         $listaDePedidos = Pedido::ObtenerListaBD();
         $listaDeProducto = Producto::ObtenerListaBD();
@@ -292,13 +292,13 @@ class PedidoController
         if(isset($unPedido))
         {
            
-            $mensaje = "El Pedido mas Vendido es ".$unPedido->ToString(). "<br> y la cantidad es ".$cantidad;
+            $mensaje = ['OK'=>"El Pedido mas Vendido es ".$unPedido->ToString(). "<br> y la cantidad es ".$cantidad];
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     
 

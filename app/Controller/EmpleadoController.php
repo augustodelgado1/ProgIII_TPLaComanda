@@ -44,7 +44,7 @@ class EmpleadoController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function ModificarUno($request, $response, array $args)
     {
@@ -62,41 +62,41 @@ class EmpleadoController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function BorrarUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
      
-        $mensaje = 'no se pudo dar de alta';
+        $mensaje = ['Error' =>'no se pudo dar de alta'];
 
         if(Usuario::BorrarUnoPorIdBD($data['id']))
         {
             $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
-            $mensaje = 'Este Empleado se borro correctamente: <br>'. $unUsuario->ToString();
+            $mensaje = ['OK' =>'Este Empleado se borro correctamente: <br>'. $unUsuario->ToString()];
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function SuspenderUno($request, $response, array $args)
     {
         $data = $request->getParsedBody();
-        $mensaje = 'no se pudo suspender';
+        $mensaje = ['Error' =>'no se pudo suspender'];
 
         if(Usuario::SuspenderUnoPorIdBD($data['id']))
         {
             $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
-            $mensaje = 'El Empleado se suspendio correctamente <br>'.$unUsuario->ToString();
+            $mensaje = ['OK' =>'El Empleado se suspendio correctamente <br>'.$unUsuario->ToString()];
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
      // d- Cantidad de operaciones de cada uno por separado.
 
@@ -113,15 +113,15 @@ class EmpleadoController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaFiltrada) > 0)
             {
-                $mensaje = 'Empleados:'.'<br>'.
-                Usuario::ToStringList($listaFiltrada);
+                $mensaje = ['OK' =>'Empleados:'.'<br>'.
+                Usuario::ToStringList($listaFiltrada)];
             }
         }
         
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function ListarSuspendidos($request, $response, array $args)
     {
@@ -138,15 +138,15 @@ class EmpleadoController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaFiltrada) > 0)
             {
-                $mensaje = 'Empleados:'.'<br>'.
-                Usuario::ToStringList($listaFiltrada);
+                $mensaje = ['OK' =>'Empleados:'.'<br>'.
+                Usuario::ToStringList($listaFiltrada)];
             }
         }
 
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function ListarBorrados($request, $response, array $args)
     {
@@ -163,8 +163,8 @@ class EmpleadoController
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaFiltrada) > 0)
             {
-                $mensaje = 'Empleados:'.'<br>'.
-                Usuario::ToStringList($listaFiltrada);
+                $mensaje = ['OK' =>'Empleados:'.'<br>'.
+                Usuario::ToStringList($listaFiltrada)];
             }
         }
 
@@ -192,10 +192,10 @@ class EmpleadoController
 
             if(isset($listaDePedidosPendientes))
             {
-                $mensaje = "No se encontraron pedidos pendientes";
+                $mensaje =  ['Error' =>"No se encontraron pedidos pendientes"];
                 if(count($listaDePedidosPendientes) > 0)
                 {
-                    $mensaje = Pedido::ToStringList($listaDePedidosPendientes);
+                    $mensaje = ['OK' => Pedido::ToStringList($listaDePedidosPendientes)];
                 }
             }
         }
@@ -203,7 +203,7 @@ class EmpleadoController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     public static function ListarCantidadDeTareasRealizadas($request, $response, array $args)
@@ -226,7 +226,7 @@ class EmpleadoController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     // c- Cantidad de operaciones de todos por sector, listada por cada empleado.
@@ -248,7 +248,7 @@ class EmpleadoController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
     public static function ListarPorCargo($request, $response, array $args)
     {
@@ -276,7 +276,7 @@ class EmpleadoController
         $response->getBody()->write(json_encode($mensaje));
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
   

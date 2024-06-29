@@ -319,12 +319,13 @@ $app->group('/consultaMesa',function (RouteCollectorProxy $grupoDeRutas)
 	
 });
 
+
 $app->group('/comentarios',function (RouteCollectorProxy $grupoDeRutas)
 {
-	$grupoDeRutas->get('[/]',\MesaController::class.':ListarComentariosPositivosDeLasMesas')
+	$grupoDeRutas->get('[/]',\MesaController::class.':ListarComentariosPorUnaPuntuacion')
 	->add(new VerificarRoles(array('Socio')));;;
 
-	$grupoDeRutas->get('/negativos',\MesaController::class.':ListarComentariosNegativosDeLasMesas')
+	$grupoDeRutas->get('/{filtrar}',\MesaController::class.':ListarComentariosPorDosPuntaciones')
 	->add(new VerificarRoles(array('Socio')));;;
 });
 
@@ -336,8 +337,7 @@ $app->group('/facturacionMesa',function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->get('/{menos}',\MesaController::class.':ListarMesaMenosFacturo')
 	->add(new VerificarRoles(array('Socio')));;;
 
-	$grupoDeRutas->post('[/]',\MesaController::class.':ListarFacturacionEntreDosFechas')
-	->add(new ValidadorMiddleware(array(Mesa::class,'ValidadorCodigoDeMesa'),'la Mesa ingresada no existe '))
+	$grupoDeRutas->post('[/]',\OrdenController::class.':ListarFacturacionEntreDosFechas')
 	->add(new VerificarRoles(array('Socio')));;;
 });
 

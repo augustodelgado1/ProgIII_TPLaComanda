@@ -25,7 +25,8 @@ class LogDeAuditoria
         $objAccesoDatos = AccesoDatos::ObtenerUnObjetoPdo();
         if(isset($objAccesoDatos))
         {
-            $consulta = $objAccesoDatos->RealizarConsulta("Insert into LogDeAuditoria (idDeUsuario,accion,fechaDeEntrada,fechaDeSalida) values (:idDeUsuario,:accion,:fechaDeEntrada,:fechaDeSalida)");
+           
+            $consulta = $objAccesoDatos->RealizarConsulta("Insert into LogDeAuditoria (idDeUsuario,accion,fechaDeEntrada) values (:idDeUsuario,:accion,:fechaDeEntrada)");
             $consulta->bindValue(':idDeUsuario',$this->idDeUsuario,PDO::PARAM_INT);
             $consulta->bindValue(':accion',$this->accion,PDO::PARAM_STR);
             $consulta->bindValue(':fechaDeEntrada',$this->fechaDeEntrada->format('y-m-d-h-i-s'),PDO::PARAM_STR);

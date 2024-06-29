@@ -141,7 +141,7 @@ class SectorController
     //     $response->getBody()->write($mensaje);
 
 
-    //     return $response;
+    //     return $response->withHeader('Content-Type', 'application/json');
     // }
 
     public static function ListarPedidos($request, $response, array $args)
@@ -166,7 +166,7 @@ class SectorController
         $response->getBody()->write($mensaje);
 
 
-        return $response;
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
 

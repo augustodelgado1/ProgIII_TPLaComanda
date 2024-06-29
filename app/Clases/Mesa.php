@@ -147,7 +147,7 @@ class Mesa
 
         return  $unMesa;
     }
-    public static function ObtenerCantidadDeUnaMesaPorFecha($idDeMesa,$fecha)
+    public function ObtenerCantidadDeOrdenesUnaMesaPorFecha($fecha)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $cantidadDeOrdenes = null;
@@ -158,13 +158,33 @@ class Mesa
             FROM Orden o
             WHERE o.fechaDeOrden = :fecha and o.idDeMesa = :idDeMesa");
             $consulta->bindValue(':fecha',$fecha);
-            $consulta->bindValue(':idDeMesa',$idDeMesa);
+            $consulta->bindValue(':idDeMesa',$this->id);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $cantidadDeOrdenes =  $data['cantidadDeOrdenes'];
         }
 
         return  $cantidadDeOrdenes;
+    }
+   
+    public function CalcularFacturacionPorFecha($fecha)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $facturacionTotal = null;
+
+        if(isset($importe))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT SUM(o.costoTotal) AS facturacionTotal
+            FROM Orden o
+            WHERE o.fechaDeOrden = :fecha and o.idDeMesa = :idDeMesa");
+            $consulta->bindValue(':fecha',$fecha);
+            $consulta->bindValue(':idDeMesa',$this->id);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $facturacionTotal =  $data['facturacionTotal'];
+        }
+
+        return  $facturacionTotal;
     }
     public function ModificarEstadoBD($estadoDeLaMesa)
     {
@@ -191,11 +211,6 @@ class Mesa
     {
         return  Orden::ContarPorIdDeMesaBD($this->id);
     }
-    public function ObtenerFacturacionTotal()
-    {
-        return  Orden::CalcularFacturacionTotal($this->ObtenerListaDeOrdenes());
-    }
-
     public static function ObtenerListaBD()
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -378,6 +393,7 @@ class Mesa
 
         return $unaMesa;
     }
+    
     public static function BuscarMesaMenosUsada($listaDeMesas,$listaDeOrdenes)
     { 
         $unaMesa = null;
@@ -414,7 +430,7 @@ class Mesa
         {
             foreach ($listaDeMesas as $unaMesaDeLaLista) 
             {
-                $facturacionTotal = Orden::CalcularFacturacionTotal($listaDeOrdenes);
+                $facturacionTotal = Orden::CalcularFacturacionTotal($listaDeOrdenes,$unaMesaDeLaLista->id);
                 
                 if($facturacionTotal > 0
                 && ($facturacionTotal  <  $menor || $flag === false))
@@ -439,7 +455,7 @@ class Mesa
         {
             foreach ($listaDeMesas as $unaMesaDeLaLista) 
             {
-                $facturacionTotal = Orden::CalcularFacturacionTotal($listaDeOrdenes);
+                $facturacionTotal = Orden::CalcularFacturacionTotal($listaDeOrdenes,$unaMesaDeLaLista->id);
 
                 if($facturacionTotal  >  $mayor || $flag === false)
                 {
@@ -453,7 +469,7 @@ class Mesa
 
         return $unaMesa;
     }
- 
+
 
     public function ToString()
     {
