@@ -476,65 +476,33 @@ class Orden
 
         return  $unaOrden;
     }
-    public static function BuscarMayorImportePorMesBD($mes)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $mayorImporte = null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MAX(costoTotal) as importeTotal
-            FROM orden
-            WHERE estado = :estado and MONTH(o.fechaDeOrden) = :mes");
-            $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_STR);
-            $consulta->bindValue(':mes',$mes,PDO::PARAM_STR);
-            $consulta->execute();
-            $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $mayorImporte = $data['importeTotal'];
-            // var_dump($mayorImporte);
-        }
-
-        return  $mayorImporte;
-    }
     public static function BuscarMenorImportePorMesBD($fecha)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $menorImporte = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($fecha))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MIN(costoTotal) as importeTotal
-            FROM orden
-            WHERE estado = :estado and MONTH(o.fechaDeOrden) = MONTH(:fecha) and YEAR(o.fechaDeOrden) = YEAR(:fecha) ");
-            $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_INT);
-            $consulta->bindValue(':fecha',$fecha->format('y-m-d'),PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MIN(costoTotal) as costoMenor
+            FROM orden o
+            WHERE o.estado = :estado 
+            and MONTH(o.fechaDeOrden) = MONTH(:fecha) 
+            and YEAR(o.fechaDeOrden) = YEAR(:fecha) ");
+            $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_STR);
+            $consulta->bindValue(':fecha',$fecha->format('Y-m-d'),PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
-            $menorImporte = $data['importeTotal'];
+            $menorImporte = $data['costoMenor'];
+            
         }
+
+       
+
+        
 
         return  $menorImporte;
     }
 
-    public static function OrdenarPorImporteDeFacturaPorMesBD($importe,$fecha)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDeOrdenes = false;
-
-        if(isset($codigo))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta(
-                "SELECT * FROM Orden o 
-            ORDER BY o.costoTotal < :importe 
-            WHERE MONTH(o.fechaDeOrden) = MONTH(:fecha) and YEAR(o.fechaDeOrden) = YEAR(:fecha)");
-            $consulta->bindValue(':importe',$importe,PDO::PARAM_STR);
-            $consulta->bindValue(':fecha',$fecha->format('y-m-d'),PDO::PARAM_STR);
-            $consulta->execute();
-            $listaDeOrdenes = Orden::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
-        }
-
-        return  $listaDeOrdenes;
-    }
     public static function FiltrarPorImporteBD($importe)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -642,7 +610,7 @@ class Orden
     private static function CrearLista($data)
     {
         $listaDeOrdenes = null;
-        if(isset($data))
+        if(isset($data) && $data !== false)
         {
             $listaDeOrdenes = [];
 
@@ -961,11 +929,11 @@ class Orden
     public static function FiltrarPorEstado($listaDeOrdenes,$estado)
     {
         $listaFiltrada = null;
-
+        
         if(isset($listaDeOrdenes) && isset($estado) && count($listaDeOrdenes) > 0)
         {
             $listaFiltrada =  [];
-
+            
             foreach($listaDeOrdenes as $unaOrden)
             {
                 if(strcasecmp($unaOrden->estado,$estado) === 0)
@@ -1000,7 +968,7 @@ class Orden
     {
        
         $listaDefiltrada = null;
-
+       
         if(isset($listaDeOrdenes) && isset($idDeMesa))
         {
             $listaDefiltrada = [];

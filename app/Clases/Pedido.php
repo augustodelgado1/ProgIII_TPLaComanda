@@ -437,18 +437,18 @@ class Pedido
         return  $listaFiltrada;
     }
     
-    public static function ContarProductos($listaDeProductos,$idDeProducto)
+    public static function ContarProductos($listaDePedidos,$idDeProducto)
     {
         $cantidad = -1;
 
-        if(isset($listaDePedidos) && isset($listaDeProductos) && count($listaDePedidos) > 0)
+        if(isset($listaDePedidos) && isset($idDeProducto) && count($listaDePedidos) > 0)
         {
             $cantidad = 0;
 
             foreach($listaDePedidos as $unPedido)
             {
                 
-                if($unPedido->idDeProducto ===  $idDeProducto)
+                if($unPedido->unProducto ===  $idDeProducto)
                 {
                    $cantidad++;
                 }

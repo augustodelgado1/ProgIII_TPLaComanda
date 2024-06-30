@@ -23,7 +23,7 @@ class SectorController
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
         return $response->withHeader('Content-Type', 'application/json');
     }
     
@@ -39,7 +39,7 @@ class SectorController
             $mensaje = ['Ok'=> 'el Sector se modifico correctamente:'.$unSector->ToString()];
         }
         
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response->withHeader('Content-Type', 'application/json');
@@ -55,7 +55,7 @@ class SectorController
             $mensaje = ['Ok' =>'Este Sector se borro correctamente: <br>'.$unSector->ToString()];
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response->withHeader('Content-Type', 'application/json');
@@ -72,11 +72,11 @@ class SectorController
             $mensaje = ['Error'=> "la lista esta vacia"];
             if(count($listaDeSectores) > 0)
             {
-                $mensaje = Sector::ToStringList($listaDeSectores);
+                $mensaje = ['OK'=> Sector::ToStringList($listaDeSectores)];
             }
         }
 
-        $response->getBody()->write($mensaje);
+        $response->getBody()->write(json_encode($mensaje));
 
 
         return $response->withHeader('Content-Type', 'application/json');

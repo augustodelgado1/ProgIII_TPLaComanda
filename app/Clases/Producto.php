@@ -495,7 +495,7 @@ class Producto implements IFileManejadorCSV
     public static function MostarProductosConCantidadDeUnaListaDePedidos($listaDeProductos,$listaDePedidos)
     {
         $strList = null;
-
+       
         if(isset($listaDePedidos) && isset($listaDeProductos) && count($listaDePedidos) > 0)
         {
             $strList = "Productos".'<br>';
@@ -511,6 +511,8 @@ class Producto implements IFileManejadorCSV
                     $strList .= $unProducto->ToString().'<br>'.'Cantidad: '.$cantidad.'<br>'.'<br>';;
                 }
             }
+
+            
         }
 
         return  $strList;

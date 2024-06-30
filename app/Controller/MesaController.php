@@ -241,28 +241,6 @@ class MesaController
     // f- 21- Alguno de los socios pide un listado de las mesas ordenadas de la que hizo la factura más
 // barata a la más cara.
 
-    public static function ListarMesasOrdenadasPorFacturaASC($request, $response, array $args)
-    {
-        $data = $request->getQueryParams();
-        $fechaIngresada = new DateTime($data['fecha']);
-        $importeMenor = Orden::BuscarMenorImportePorMesBD($fechaIngresada);
-        $listaDeMesas = Mesa::OrdenarPorImporteDeFacturaPorMesBD($importeMenor,$fechaIngresada);
-        $listaDeOrdenes = Orden::OrdenarPorImporteDeFacturaPorMesBD($importeMenor,$fechaIngresada);
-        
-        if(isset($listaDeMesas))
-        {
-            $mensaje = ['Error' => "la lista esta vacia"];
-            if(count($listaDeMesas) > 0)
-            {
-                $mensaje =  ['ok' => Mesa::MostrarConOrdenes($listaDeMesas,$listaDeOrdenes)];
-            }
-        }
-
-        $response->getBody()->write(json_encode($mensaje));
-
-
-        return $response->withHeader('Content-Type', 'application/json');
-    }
 
    
     public static function ListarFacturacionEntreDosFechas($request, $response, array $args)

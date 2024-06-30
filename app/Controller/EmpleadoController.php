@@ -310,28 +310,7 @@ class EmpleadoController
 
         return $response->withHeader('Content-Type', 'application/json');
     }
-    public static function ListarUno($request, $response, array $args)
-    {
-        $data = $request->getQueryParams();
-        
-        $mensaje = ['Error' => 'Hubo un error  al intentar listar los empleados'];
-        $unEmpleado = Usuario::ObtenerUnoPorIdBD($data['id']);
-        
-
-        if(isset($listaFiltrada))
-        {
-            $mensaje = ['Error' => "la lista esta vacia"];
-            if(count($listaFiltrada) > 0)
-            {
-                $mensaje = ['OK' => 'Empleados:'.'<br>'];
-            }
-        }
-
-        $response->getBody()->write(json_encode($mensaje));
-
-
-        return $response->withHeader('Content-Type', 'application/json');
-    }
+    
 
   
 

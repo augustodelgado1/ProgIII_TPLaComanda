@@ -95,13 +95,15 @@ class Mesa
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeMesas = false;
 
-        if(isset($codigo))
+        if(isset($importe) && isset($fecha))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta(
-                "SELECT DISTINCT m.id,m.codigo,m.estado FROM Mesa 
-            as m JOIN orden o ON o.idDeMesa = m.id 
-            ORDER BY o.costoTotal < :importe 
-            WHERE MONTH(o.fechaDeOrden) = MONTH(:fecha) and YEAR(o.fechaDeOrden) = YEAR(:fecha)");
+                "SELECT DISTINCT m.id, m.codigo, m.estado 
+                FROM Mesa AS m 
+                JOIN orden o ON o.idDeMesa = m.id 
+                WHERE MONTH(o.fechaDeOrden) = MONTH(:fecha) 
+                AND YEAR(o.fechaDeOrden) = YEAR(:fecha) 
+                ORDER BY o.costoTotal < :importe");
             $consulta->bindValue(':importe',$importe,PDO::PARAM_STR);
             $consulta->bindValue(':fecha',$fecha->format('y-m-d'),PDO::PARAM_STR);
             $consulta->execute();
@@ -287,12 +289,14 @@ class Mesa
     private static function CrearLista($data)
     {
         $listaDeEmpleados = null;
+      
         if(isset($data) && $data !== false)
         {
             $listaDeEmpleados = [];
-
+           
             foreach($data as $unArray)
             {
+               
                 $unEmpleado = Mesa::CrearUnaMesa($unArray);
                 if(isset($unEmpleado))
                 {
@@ -378,7 +382,7 @@ class Mesa
             foreach($listaDeMesas as $unaMesa)
             {
                 $listaFiltrada = Orden::FiltrarOrdenesPorIdDeMesa($listaDeOrdenes,$unaMesa->id);
-
+               
                 if(isset($listaFiltrada) && count($listaFiltrada) > 0)
                 {
                     $strLista .= $unaMesa->ToString().'<br>'. 

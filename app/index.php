@@ -101,9 +101,13 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 	->add(new ValidadorMiddleware(array(Cargo::class,'VerificarDescripcion'),"El cargo ingresado no existe"))
 	->add(new VerificarRoles(array('Socio')));;
 
-	$grupoDeRutas->get('/{pedidos}',\EmpleadoController::class.':ListarPedidosPendientes')
+	$grupoDeRutas->get('/pedidos',\EmpleadoController::class.':ListarPedidosPendientes')
 	->add(new AuthLogMiddleware('Listar Pedidos Pendientes'))
 	->add(new VerificarRoles(array('Empleado')));;
+
+	$grupoDeRutas->get('/productos',\EmpleadoController::class.':ListarProductosPendientes')
+	->add(new AuthLogMiddleware('Listar Productos Pendientes'))
+	->add(new VerificarRoles(array('Empleado')));
 });
 
 //LISTADOS
@@ -174,6 +178,8 @@ $app->group('/producto', function (RouteCollectorProxy $grupoDeRutas)
 	->add(new ValidadorGetMiddleware(array(File::class,'ValidarExistenciaDelArchivo'),'El archivo no existe'))
 	->add(new ValidadorGetMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'))
 	->add(new VerificarRoles(array('Socio')));
+
+	
 
 	
 });
@@ -342,7 +348,7 @@ $app->group('/facturacionMesa',function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->get('[/]',\MesaController::class.':ListarMesaMasFacturo')
 	->add(new VerificarRoles(array('Socio')));;;
 
-	$grupoDeRutas->get('/{menos}',\MesaController::class.':ListarMesaMenosFacturo')
+	$grupoDeRutas->get('/menos',\MesaController::class.':ListarMesaMenosFacturo')
 	->add(new VerificarRoles(array('Socio')));;;
 
 	$grupoDeRutas->post('[/]',\MesaController::class.':ListarFacturacionEntreDosFechas')
