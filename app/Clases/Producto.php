@@ -25,7 +25,7 @@ class Producto implements IFileManejadorCSV
         return 
         "Nombre: ".$this->nombre.'<br>'.
         "Precio: ".$this->precio.'<br>'
-        ."Tipo: ".$this->GetTipo()->GetDescripcion().'<br>';
+        ."Tipo: ".$this->GetTipo()->GetDescripcion();
     }
 
     public function AgregarBD()
@@ -83,6 +83,178 @@ class Producto implements IFileManejadorCSV
 
         return  $estado;
     }
+
+    public static function FiltrarProductosPorIdDeOrdenBD($idDeOrden)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeProducto = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeOrden))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT 
+            DISTINCT p.id,p.nombre,p.idDeTipo,p.precio FROM Producto p JOIN pedido pe ON p.id = pe.idDeProducto 
+            WHERE pe.idDeOrden = :idDeOrden");
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeProducto= Producto::CrearLista($data);
+        }
+
+        return  $listaDeProducto;
+    }
+    public static function FiltrarPorIdDeEmpleadoBD($idDeEmpleado)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeProducto = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeEmpleado))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("
+            SELECT  DISTINCT p.id,p.nombre,p.idDeTipo,p.precio FROM Producto p JOIN Pedido pe ON p.id = pe.idDeProducto WHERE pe.idDeEmpleado = :idDeEmpleado");
+            $consulta->bindValue(':idDeEmpleado',$idDeEmpleado,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeProducto= Producto::CrearLista($data);
+        }
+
+        return  $listaDeProducto;
+    }
+    public static function ContarPorIdDeEmpleadoBD($idDeEmpleado,$idDeProducto)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $cantidad = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeEmpleado))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("
+            SELECT COUNT(p.id) AS cantidad FROM Producto p JOIN Pedido pe ON 
+            p.id = pe.idDeProducto WHERE pe.idDeEmpleado = :idDeEmpleado AND p.id = :id");
+            $consulta->bindValue(':idDeEmpleado',$idDeEmpleado,PDO::PARAM_INT);
+            $consulta->bindValue(':id',$idDeProducto,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $cantidad= $data['cantidad'];
+        }
+
+        return  $cantidad;
+    }
+    public static function ContarPorIdDeOrdenBD($idDeOrden,$idDeProducto)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $cantidad = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeOrden))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("
+            SELECT COUNT(p.id) AS cantidad FROM Producto p JOIN Pedido pe ON p.id = pe.idDeProducto 
+            WHERE pe.idDeOrden = :idDeOrden AND p.id = :id");
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $consulta->bindValue(':id',$idDeProducto,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $cantidad= $data['cantidad'];
+        }
+
+        return  $cantidad;
+    }
+    public static function OrdenarPorCantidadDeVecesVendidoBD()
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeProducto = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("
+            SELECT DISCRINT p.id, p.nombre,p.idDeTipo,p.precio,COUNT(pe.idDeProducto) AS total_vendido
+            FROM Producto p
+            JOIN Pedido pe ON p.id = pe.idDeProducto
+            GROUP BY p.id, p.nombre
+            ORDER BY total_vendido DESC");
+            
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeProducto =  Producto::CrearLista($data);
+        }
+       
+        return  $listaDeProducto;
+    }
+    public static function OrdenarPorCantidadDeVecesVendidoPorMesBD($fecha)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeProducto = null;
+
+        if(isset($unObjetoAccesoDato))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("
+            SELECT p.id, p.nombre,p.idDeTipo,p.precio, COUNT(pe.idDeProducto) AS total_vendido
+            FROM Producto p
+            JOIN Pedido pe ON p.id = pe.idDeProducto
+            WHERE MONTH(pe.fechaDePedido) = MONTH(:fecha) AND YEAR(pe.fechaDePedido) = YEAR(:fecha)
+            GROUP BY p.id, p.nombre
+            ORDER BY total_vendido DESC");
+            $consulta->bindValue(':fecha',$fecha,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $listaDeProducto =  Producto::CrearLista($data);
+        }
+       
+        return  $listaDeProducto;
+    }
+    public static function CantidadDeVecesVendidoPorMesBD($idDeProducto,$fecha)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $cantidad = null;
+
+        if(isset($unObjetoAccesoDato) && isset($idDeProducto))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("
+            SELECT p.id, p.nombre, COUNT(pe.idDeProducto) AS total_vendido
+            FROM Producto p
+            JOIN Pedido pe ON p.id = pe.idDeProducto
+            WHERE p.id = :id and MONTH(pe.fechaDePedido) = MONTH(:fecha) AND YEAR(pe.fechaDePedido) = YEAR(:fecha)");
+            $consulta->bindValue(':id',$idDeProducto,PDO::PARAM_INT);
+            $consulta->bindValue(':fecha',$fecha,PDO::PARAM_STR);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $cantidad= $data['total_vendido'];
+        }
+
+        return  $cantidad;
+    }
+
+    public static function AgregarListaBD($listaDeProductos)
+    {
+        $estado = false;
+        if(isset($listaDeProductos))
+        {
+            foreach($listaDeProductos as $unProducto)
+            {
+                if(Producto::ObtenerUnoPorIdBD($unProducto->id) === null)
+                {
+                    $estado = $unProducto->AgregarBD();
+                }
+            }
+        }
+
+        return   $estado;
+    }
+    public static function ModificarListaBD($listaDeProductos)
+    {
+        $estado = false;
+        if(isset($listaDeProductos))
+        {
+            foreach($listaDeProductos as $unProducto)
+            {
+                if(Producto::ObtenerUnoPorIdBD($unProducto->id) !== null)
+                {
+                    $estado =  Producto::ModificarUnoBD($unProducto->id,$unProducto->nombre,$unProducto->tipoDeProducto,$unProducto->precio);
+                }
+            }
+        }
+
+        return   $estado;
+    }
+    
     public static function FiltrarPorTipoDeProductoBD($tipo)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -301,9 +473,71 @@ class Producto implements IFileManejadorCSV
 
         return   $strLista;
     }
+    public static function MostrarConCantiadadDeOrden($listaDeProducto,$idDeOrden)
+    {
+        $strLista = null; 
+        $cantidad = 0;
+       
+        if(isset($listaDeProducto) && isset($idDeOrden) )
+        {
+            $strLista  = "";
+           
+            foreach($listaDeProducto as $unProducto)
+            {
+                $cantidad = Producto::ContarPorIdDeOrdenBD($idDeOrden,$unProducto->GetId());
+                $strLista .= $unProducto->ToString().'<br>'.'Cantidad: '.$cantidad.'<br>'.'<br>';
+                
+            }
+        }
 
-   
+        return   $strLista;
+    }
+    public static function MostarProductosConCantidadDeUnaListaDePedidos($listaDeProductos,$listaDePedidos)
+    {
+        $strList = null;
 
+        if(isset($listaDePedidos) && isset($listaDeProductos) && count($listaDePedidos) > 0)
+        {
+            $strList = "Productos".'<br>';
+            
+            foreach($listaDeProductos as $unProducto)
+            {
+                
+                $cantidad = Pedido::ContarProductos($listaDePedidos,$unProducto->GetId());
+                
+                if(isset($cantidad) && $cantidad > 0)
+                {
+                   
+                    $strList .= $unProducto->ToString().'<br>'.'Cantidad: '.$cantidad.'<br>'.'<br>';;
+                }
+            }
+        }
+
+        return  $strList;
+    }
+    
+    public static function MostarProductosConCantidad($listaDeProductos,$fecha)
+    {
+        $strList = null;
+
+        if(isset($listaDeProductos))
+        {
+            $strList = "Productos".'<br>';
+            
+            foreach($listaDeProductos as $unProducto)
+            {
+                $cantidad = Producto::CantidadDeVecesVendidoPorMesBD($unProducto->id,$fecha);
+                
+                if(isset($cantidad) && $cantidad > 0)
+                {
+                    $strList .= $unProducto->ToString().'<br>'.'Cantidad: '.$cantidad.'<br>'.'<br>';;
+                }
+            }
+        }
+
+        return  $strList;
+    }
+    
     public static function EscribirCsv($nombreDeArchivo,$listaDeProductos)
     {
         $estado = false;
@@ -327,6 +561,35 @@ class Producto implements IFileManejadorCSV
 
         return   $estado;
     }
+    
+    public static function EscribirUnoEnPdf($unProducto,$pdf)
+    {
+        $estado = false;
+        
+        if(isset($unProducto) && isset($pdf))
+        {
+            $pdf->Cell(50,10,$unProducto->nombre,1,0);
+            $pdf->Cell(50,10,$unProducto->GetTipo()->GetDescripcion(),1,0);
+            $pdf->Cell(50,10,$unProducto->precio,1,0);
+            $pdf->Ln(0.5);
+        }
+
+        return   $estado;
+    }
+    public static function EscribirCabeceraPdf($unProducto,$pdf)
+    {
+        $estado = false;
+        
+        if(isset($unProducto) && isset($pdf))
+        {
+            $pdf->Cell(50,10,"Nombre",1,0,'C',0);
+            $pdf->Cell(50,10,"Tipo",1,0,'C',0);
+            $pdf->Cell(50,10,"Precio",1,0,'C',0);
+        }
+
+        return   $estado;
+    }
+    
    
     public static function LeerCsv($nombreDeArchivo)
     {
@@ -360,38 +623,6 @@ class Producto implements IFileManejadorCSV
         }
 
         return   $listaDeProductos;
-    }
-    public static function AgregarListaBD($listaDeProductos)
-    {
-        $estado = false;
-        if(isset($listaDeProductos))
-        {
-            foreach($listaDeProductos as $unProducto)
-            {
-                if(Producto::ObtenerUnoPorIdBD($unProducto->id) === null)
-                {
-                    $estado = $unProducto->AgregarBD();
-                }
-            }
-        }
-
-        return   $estado;
-    }
-    public static function ModificarListaBD($listaDeProductos)
-    {
-        $estado = false;
-        if(isset($listaDeProductos))
-        {
-            foreach($listaDeProductos as $unProducto)
-            {
-                if(Producto::ObtenerUnoPorIdBD($unProducto->id) !== null)
-                {
-                    $estado =  Producto::ModificarUnoBD($unProducto->id,$unProducto->nombre,$unProducto->tipoDeProducto,$unProducto->precio);
-                }
-            }
-        }
-
-        return   $estado;
     }
 
     public static function Validador($data)

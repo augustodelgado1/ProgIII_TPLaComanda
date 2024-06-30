@@ -141,14 +141,13 @@ class Encuesta
 
         if(isset($descripcion) && Puntuacion::ValidarUnaPuntacion($puntuacion) )
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombreDelCliente,e.mensaje,e.idDeOrden,e.estado FROM Encuesta e
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombreDelCliente,e.mensaje,e.idDeOrden FROM Encuesta e
             JOIN Puntuacion p ON p.idDeEncuesta = e.id WHERE LOWER(p.descripcion) = LOWER(:descripcion) 
             AND p.puntuacion = :puntuacion");
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->bindValue(':puntuacion',$puntuacion,PDO::PARAM_INT);
             $consulta->execute();
             $listaDeEncuestas = Encuesta::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
-          
         }
        
 
@@ -162,11 +161,12 @@ class Encuesta
         if(isset($descripcion) && Puntuacion::ValidarUnaPuntacion($puntuacionMinima) && Puntuacion::ValidarUnaPuntacion($puntuacionMaxima)
         && $puntuacionMinima <= $puntuacionMaxima)
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombreDelCliente,e.mensaje,e.idDeOrden,e.estado 
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombreDelCliente,e.mensaje,e.idDeOrden 
             FROM Encuesta e
             JOIN Puntuacion p ON p.idDeEncuesta = e.id 
             WHERE LOWER(p.descripcion) = LOWER(:descripcion) 
             AND p.puntuacion BETWEEN :puntuacionMinima AND :puntuacionMaxima");
+            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->bindValue(':puntuacionMinima',$puntuacionMinima,PDO::PARAM_INT);
             $consulta->bindValue(':puntuacionMaxima',$puntuacionMaxima,PDO::PARAM_INT);
             $consulta->execute();

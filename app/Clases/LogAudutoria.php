@@ -96,13 +96,13 @@ class LogDeAuditoria
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(l.id)
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(l.id) as cantidad
             FROM LogDeAuditoria l
             JOIN Usuario e on l.idDeUsuario = e.id
             WHERE e.id = :idDeEmpelado");
             $consulta->bindValue(':idDeEmpelado',$idDeUsuario,PDO::PARAM_INT);
             $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $cantidad = $data['cantidad'];
         }
 
@@ -229,7 +229,7 @@ class LogDeAuditoria
             $strLista = "Logs De Auditorias".'<br>';
             foreach($listaDeLogDeAuditoriaes as $unLogDeAuditoria)
             {
-                $strLista .= $unLogDeAuditoria->ToString().'<br>';
+                $strLista .= "Log De Auditoria".'<br>'.$unLogDeAuditoria->ToString().'<br>'.'<br>';
             }
         }
 
@@ -238,7 +238,10 @@ class LogDeAuditoria
 
     public function ToString()
     {
-        return "fecha De Entrada: ".$this->fechaDeEntrada.'<br>';
+        return 
+        "Accion: ".$this->accion.'<br>'.
+        "fecha De Entrada: ".$this->fechaDeEntrada->format('y-m-d').'<br>'
+        ."Usuario: ".$this->GetUsuario()->ToString();
     }
 
 

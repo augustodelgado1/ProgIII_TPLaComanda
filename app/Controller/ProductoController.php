@@ -107,7 +107,7 @@ class ProductoController
             $mensaje = ['Error' =>"La lista esta vacia"];
             if(count($listaDeProductos) > 0)
             {
-                $mensaje = Producto::ToStringList($listaDeProductos);
+                $mensaje = ['OK' => Producto::ToStringList($listaDeProductos)];
             }
         }
 
@@ -152,6 +152,32 @@ class ProductoController
         }
 
         $response->getBody()->write(json_encode($mensaje));
+
+
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    // 19- Alguno de los socios pide un listado del producto ordenado del que más se vendió al que
+    // menos se vendió
+
+    public static function ListarOrdenadosPorCantidadVendido($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        $fecha = new DateTime('now');
+        $mensaje = ['Error'  => 'Hubo un error  al intentar listar los Productos'];       
+        $listaDeProductos = Producto::OrdenarPorCantidadDeVecesVendidoPorMesBD($fecha->format('y-m-d'));
+
+
+        if(isset($listaDeProductos))
+        {
+            $mensaje = ['Error' =>"La lista esta vacia"];
+            if(count($listaDeProductos) > 0)
+            {
+                $mensaje = ['OK' => Producto::MostarProductosConCantidad($listaDeProductos,$fecha->format('y-m-d'))];
+            }
+        }
+
+          $response->getBody()->write(json_encode($mensaje));
 
 
         return $response->withHeader('Content-Type', 'application/json');

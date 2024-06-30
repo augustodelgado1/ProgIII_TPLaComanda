@@ -53,7 +53,7 @@ class Pedido
         {
             $consulta = $objAccesoDatos->RealizarConsulta("
            Insert into Pedido (codigo,idDeOrden,idDeSector,idDeProducto,importeTotal,fechaDePedido,estado,estadoDelTiempo) 
-        values (:codigo,:idDeOrden,:idDeSector,:idDeProducto,:importeTotal,:fechaDePedido,:estado,:estadoDelTiempo)");
+           values (:codigo,:idDeOrden,:idDeSector,:idDeProducto,:importeTotal,:fechaDePedido,:estado,:estadoDelTiempo)");
             $consulta->bindValue(':codigo',$this->codigo,PDO::PARAM_STR);
             $consulta->bindValue(':idDeSector',$this->idDeSector,PDO::PARAM_INT);
             $consulta->bindValue(':idDeOrden',$this->orden,PDO::PARAM_INT);
@@ -314,6 +314,25 @@ class Pedido
 
         return  $cantidadTotal;
     }
+    public static function ObtenerCantidadDeUnProductoPedidoBD($idDeOrden,$idDeProducto)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $cantidadTotal = null;
+
+        if(isset($idDeEmpelado))
+        {
+            // var_dump($idDeEmpelado);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT COUNT(*) AS totalPedidos 
+            FROM Pedido as p where p.idDeOrden = :idDeOrden and p.idDeProducto = :idDeProducto");
+            $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
+            $consulta->bindValue(':idDeProducto',$idDeProducto,PDO::PARAM_INT);
+            $consulta->execute();
+            $data = $consulta->fetch(PDO::FETCH_ASSOC);
+            $cantidadTotal =  $data['totalPedidos'];
+        }
+
+        return  $cantidadTotal;
+    }
     public static function FiltrarPorIdDeEmpleadoBD($idDeEmpleado)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -347,6 +366,7 @@ class Pedido
 
         return  $listaDePedidos;
     }
+   
 
     public static function FiltrarPorEstadoBD($estado)
     {
@@ -356,11 +376,13 @@ class Pedido
         if(isset($unObjetoAccesoDato) && isset($estado))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Pedido as p where LOWER(p.estado) = LOWER(:estado)");
-            $consulta->bindValue(':estado',$estado,PDO::PARAM_INT);
+            $consulta->bindValue(':estado',$estado,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $listaDePedidos = Pedido::CrearLista($data);
         }
+
+       
 
         return  $listaDePedidos;
     }
@@ -413,6 +435,27 @@ class Pedido
         }
 
         return  $listaFiltrada;
+    }
+    
+    public static function ContarProductos($listaDeProductos,$idDeProducto)
+    {
+        $cantidad = -1;
+
+        if(isset($listaDePedidos) && isset($listaDeProductos) && count($listaDePedidos) > 0)
+        {
+            $cantidad = 0;
+
+            foreach($listaDePedidos as $unPedido)
+            {
+                
+                if($unPedido->idDeProducto ===  $idDeProducto)
+                {
+                   $cantidad++;
+                }
+            }
+        }
+
+        return  $cantidad;
     }
     public static function BuscarPedidoConMayorTiempoDeInicio($listaDePedidos)
     {
@@ -804,10 +847,10 @@ class Pedido
 
         if(isset($listaDePedidos) )
         {
-            $strLista  = "Pedidos".'<br>';
+            $strLista  = "Pedidos".'<br>'.'<br>';
             foreach($listaDePedidos as $unaPedido)
             {
-                $strLista .= $unaPedido->ToString().'<br>';
+                $strLista .= "Pedido:<br>".$unaPedido->ToString().'<br>';
             }
         }
 
@@ -824,7 +867,7 @@ class Pedido
         $this->GetStrClienteIngresado().'<br>'.
         "Fecha Del Pedido: ".$this->fechaDelPedido->format('y-m-d H:i:s').'<br>'.
         "Producto Pedido: ".'<br>'.$this->GetProducto()->ToString().'<br>'.
-        "importe Total: ".$this->GetImporteTotal().'<br>'
+        "Importe Total: ".$this->GetImporteTotal().'<br>'
         ."Estado: ".$this->estado.'<br>';
     }
 
@@ -968,6 +1011,7 @@ class Pedido
             $strLista = "";
             foreach ($listaDePedidos as $unPedidoDelaLista) 
             {
+                $unProducto = $unPedidoDelaLista->GetProducto();
                 $unProducto = $unPedidoDelaLista->GetProducto();
                 if(isset($unProducto))
                 {

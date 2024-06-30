@@ -65,7 +65,7 @@ class Rol
     public static function BuscarRolPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unRol = null;
+        $unRol = false;
 
         if(isset($id))
         {
@@ -100,7 +100,7 @@ class Rol
     private static function BuscarRolPorDescripcionBD($descripcion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unRol = null;
+        $unRol = false;
 
         if(isset($descripcion))
         {
@@ -109,7 +109,6 @@ class Rol
             $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_STR);
             $consulta->execute();
             $unRol = $consulta->fetch(PDO::FETCH_ASSOC);
-            
         }
 
         return  $unRol;
@@ -215,11 +214,11 @@ class Rol
       }
       public static function VerificarDescripcionBD($descripcion)
       {
-          return Rol::BuscarRolPorDescripcionBD($descripcion) !== null;
+          return Rol::BuscarRolPorDescripcionBD($descripcion) !== false;
       }
       public static function VerificarUno($data)
       {
-          return Rol::BuscarRolPorIdBD($data['id']) !== null;
+          return Rol::BuscarRolPorIdBD($data['id']) !== false;
       }
   
       public static function Validador($data)

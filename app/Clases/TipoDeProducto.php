@@ -15,16 +15,7 @@ class TipoDeProducto
         $this->idDeSector = $sector;
     }
 
-    private function SetSector($idDeSector)
-    {
-        $estado  = false;
-        if(isset( $idDeSector))
-        {
-            $this->idDeSector = $idDeSector;
-        }
-
-        return $estado;
-    }
+    
     public function AgregarBD()
     {
         $estado = false;
@@ -78,7 +69,7 @@ class TipoDeProducto
     private static function BuscarTipoDeProductoPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $data = null;
+        $data = false;
 
         if(isset($id))
         {
@@ -182,6 +173,17 @@ class TipoDeProducto
         return  $estado ;
     }
 
+    private function SetSector($idDeSector)
+    {
+        $estado  = false;
+        if(isset( $idDeSector))
+        {
+            $this->idDeSector = $idDeSector;
+        }
+
+        return $estado;
+    }
+
     public function SetNombre($nombre)
     {
         $estado = false;
@@ -234,12 +236,12 @@ class TipoDeProducto
     public static function Validador($data)
     {
         return  TipoDeProducto::ValidadorDescripcion($data['descripcion']) 
-                && Sector::BuscarPorDescripcionBD($data['sector']) !== null;
+                && Sector::BuscarPorDescripcionBD($data['sector']) !== false;
     }
 
     public static function VerificarUno($data)
     {
-        return TipoDeProducto::BuscarTipoDeProductoPorIdBD($data['id']) !== null;
+        return TipoDeProducto::BuscarTipoDeProductoPorIdBD($data['id']) !== false;
     }
     private static function ValidadorDescripcion($descripcion)
     {

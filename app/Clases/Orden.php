@@ -48,7 +48,7 @@ class Orden
 
     private function ObetenerEstadoDelTiempo()
     {
-        $this->estadoDelTiempo = Pedido::ESTADO_TIEMPO_INDETERMINADO;
+        $this->estadoDelTiempo = Orden::ESTADO_TIEMPO_INDETERMINADO;
 
         $diferencia = $this->tiempoDeInicio->diff($this->tiempoDeFinalizacion);
 
@@ -56,12 +56,12 @@ class Orden
         {
             if($diferencia > $this->tiempoTotalEstimado)
             {
-                $this->estadoDelTiempo  = Pedido::ESTADO_TIEMPO_NOCUMPLIDO;
+                $this->estadoDelTiempo  = Orden::ESTADO_TIEMPO_NOCUMPLIDO;
             }else
             {
                 if($diferencia < $this->tiempoTotalEstimado)
                 {
-                    $this->estadoDelTiempo  = Pedido::ESTADO_TIEMPO_CUMPLIDO;
+                    $this->estadoDelTiempo  = Orden::ESTADO_TIEMPO_CUMPLIDO;
                 }
             }
         }
@@ -74,11 +74,12 @@ class Orden
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $estado = false;
-       
+        
         if($this->SetTiempoDeInicio($tiempoInicio))
         {
+            
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden 
-            SET tiempoDeInicio = :tiempoInicio where id = :id");
+            SET tiempoInicio = :tiempoInicio where id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
             $consulta->bindValue(':tiempoInicio',$this->tiempoDeInicio->format('Y-m-d-H-i-s'),PDO::PARAM_STR);
             $estado =$consulta->execute();
@@ -92,9 +93,9 @@ class Orden
         $estado = null;
         if($this->SetTiempoDeFinalizacion($tiempoDeFinalizacion))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden as o SET o.tiempoDeFinal = :tiempoDeFinal where o.id = :id");
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden as o SET o.tiempoFinal = :tiempoDeFinal where o.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
-            $consulta->bindValue(':tiempoDeFinalizacion',$this->tiempoDeFinalizacion->format('Y-m-d-H-i-s'),PDO::PARAM_STR);
+            $consulta->bindValue(':tiempoDeFinal',$this->tiempoDeFinalizacion->format('Y-m-d-H-i-s'),PDO::PARAM_STR);
             $consulta->execute();
             $estado = $consulta->execute();
         }
@@ -108,9 +109,10 @@ class Orden
 
         if($this->SetTiempoEstimado($tiempoTotalEstimado))
         {
+            
             $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden as o SET o.tiempoTotalEstimado = :tiempoTotalEstimado where o.id = :id");
             $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
-            $consulta->bindValue(':tiempoTotalEstimado',$this->tiempoTotalEstimado->format('Y-m-d-H-i-s'),PDO::PARAM_STR);
+            $consulta->bindValue(':tiempoTotalEstimado',$this->tiempoTotalEstimado->format('h-i-s'),PDO::PARAM_STR);
             $consulta->execute();
             $estado = $consulta->execute();
         }
@@ -144,7 +146,7 @@ class Orden
             $tiempoTotalEstimado = new DateTime('00:00');
             foreach ($this->listaDePedidos as $unPedido) {
                
-                if(isset($unPedido) && $unPedido->GetEstado() === Pedido::ESTADO_INTERMEDIO)
+                if(isset($unPedido) && $unPedido->GetEstado() !== Pedido::ESTADO_INICIAL )
                 {
                     $tiempoTotalEstimado->add($unPedido->GetTiempoEstimado());  
                 }
@@ -167,6 +169,10 @@ class Orden
         
         return  $this->listaDePedidos;
     }
+    public function ObtenerListaDeProductos()
+    {
+        return  Producto::FiltrarProductosPorIdDeOrdenBD($this->id);
+    }
     public function ObtenerTiempoDeInicio()
     {
         $unPedido = Pedido::BuscarPedidoConMayorTiempoDeInicio($this->ObtenerListaDePedidos());
@@ -175,12 +181,8 @@ class Orden
         {
             $this->tiempoDeInicio = $unPedido->GetTiempoDeInicio();
         }
-        
         return  $this->tiempoDeInicio;
     }
-
-    
-
     public static function ContarPorIdDeMesaBD($idDeMesa)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -375,7 +377,7 @@ class Orden
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $unaOrden = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($idDeOrden))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.id = :idDeOrden");
             $consulta->bindValue(':idDeOrden',$idDeOrden,PDO::PARAM_INT);
@@ -386,12 +388,30 @@ class Orden
         return  $unaOrden;
     }
 
+    public function EvaluarEstadoDelTiempo()
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $estado = false;
+        $this->ObetenerEstadoDelTiempo();
+
+        if($this->SetEstadoDelTiempo($this->estadoDelTiempo))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("UPDATE Orden as o 
+            SET o.estadoDelTiempo = :estadoDelTiempo 
+            where o.id = :id");
+            $consulta->bindValue(':id',$this->id,PDO::PARAM_INT);
+            $consulta->bindValue(':estadoDelTiempo',$this->estadoDelTiempo,PDO::PARAM_STR);
+            $estado =$consulta->execute();
+        }
+
+        return  $estado;
+    }
     public static function FiltrarPorIdDeMesaBD($idDeMesa)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeOrdenes = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($idDeMesa))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.idDeMesa = :idDeMesa");
             $consulta->bindValue(':idDeMesa',$idDeMesa,PDO::PARAM_INT);
@@ -402,15 +422,17 @@ class Orden
 
         return  $listaDeOrdenes;
     }
-    public static function FiltrarPorFechaBD($fecha)
+
+    public static function FiltrarPorMesBD($fecha)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeOrdenes = null;
 
-        if(isset($unObjetoAccesoDato))
+        if(isset($fecha))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden as o where o.fechaDeOrden = :fecha");
-            $consulta->bindValue(':fecha',$fecha,PDO::PARAM_STR);
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("
+            SELECT * FROM Orden as o WHERE MONTH(o.fechaDeOrden) = MONTH(:fecha) and YEAR(o.fechaDeOrden) = YEAR(:fecha)");
+            $consulta->bindValue(':fecha',$fecha->format("y-m-d"),PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             $listaDeOrdenes = Orden::CrearLista($data);
@@ -418,7 +440,7 @@ class Orden
 
         return  $listaDeOrdenes;
     }
-    public static function CalcularFecturacionPorDosFechasBD($fechaInicio,$fechaFin)
+    public static function CalcularFacturacionDeUnaMesaEntreDosFechas($idDeLaMesa,$fechaInicio,$fechaFin)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $listaDeOrdenes = null;
@@ -426,8 +448,9 @@ class Orden
         if(isset($unObjetoAccesoDato))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("
-            SELECT * FROM Orden as o WHERE o.fechaDeOrden BETWEEN :fechaInicio AND :fechaFin");
+            SELECT * FROM Orden as o WHERE o.idDeMesa = :idDeLaMesa AND o.fechaDeOrden BETWEEN :fechaInicio AND :fechaFin");
             $consulta->bindValue(':fechaInicio',$fechaInicio,PDO::PARAM_STR);
+            $consulta->bindValue(':idDeLaMesa',$idDeLaMesa,PDO::PARAM_INT);
             $consulta->bindValue(':fechaFin',$fechaFin,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
@@ -453,26 +476,7 @@ class Orden
 
         return  $unaOrden;
     }
-
-    public static function ObtenerListaDeOrdenesDeUnaMesaPorFecha($idDeMesa,$fecha)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDeOrdenes = null;
-
-        if(isset($importe))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Orden o
-            WHERE o.fechaDeOrden = :fecha and o.idDeMesa = :idDeMesa");
-            $consulta->bindValue(':fecha',$fecha);
-            $consulta->bindValue(':idDeMesa',$idDeMesa);
-            $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $listaDeOrdenes = Orden::CrearLista($data);
-        }
-
-        return  $listaDeOrdenes;
-    }
-    public static function BuscarMayorImportePorFechaBD($fecha)
+    public static function BuscarMayorImportePorMesBD($mes)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $mayorImporte = null;
@@ -481,9 +485,9 @@ class Orden
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MAX(costoTotal) as importeTotal
             FROM orden
-            WHERE estado = :estado and o.fechaDeOrden = :fecha");
+            WHERE estado = :estado and MONTH(o.fechaDeOrden) = :mes");
             $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_STR);
-            $consulta->bindValue(':fecha',$fecha,PDO::PARAM_STR);
+            $consulta->bindValue(':mes',$mes,PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $mayorImporte = $data['importeTotal'];
@@ -492,7 +496,7 @@ class Orden
 
         return  $mayorImporte;
     }
-    public static function BuscarMenorImportePorFechaBD($fecha)
+    public static function BuscarMenorImportePorMesBD($fecha)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
         $menorImporte = null;
@@ -501,15 +505,35 @@ class Orden
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT MIN(costoTotal) as importeTotal
             FROM orden
-            WHERE estado = :estado and o.fechaDeOrden = :fecha");
+            WHERE estado = :estado and MONTH(o.fechaDeOrden) = MONTH(:fecha) and YEAR(o.fechaDeOrden) = YEAR(:fecha) ");
             $consulta->bindValue(':estado',ORDEN::ESTADO_INACTIVO,PDO::PARAM_INT);
-            $consulta->bindValue(':fecha',$fecha,PDO::PARAM_STR);
+            $consulta->bindValue(':fecha',$fecha->format('y-m-d'),PDO::PARAM_STR);
             $consulta->execute();
             $data = $consulta->fetch(PDO::FETCH_ASSOC);
             $menorImporte = $data['importeTotal'];
         }
 
         return  $menorImporte;
+    }
+
+    public static function OrdenarPorImporteDeFacturaPorMesBD($importe,$fecha)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeOrdenes = false;
+
+        if(isset($codigo))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta(
+                "SELECT * FROM Orden o 
+            ORDER BY o.costoTotal < :importe 
+            WHERE MONTH(o.fechaDeOrden) = MONTH(:fecha) and YEAR(o.fechaDeOrden) = YEAR(:fecha)");
+            $consulta->bindValue(':importe',$importe,PDO::PARAM_STR);
+            $consulta->bindValue(':fecha',$fecha->format('y-m-d'),PDO::PARAM_STR);
+            $consulta->execute();
+            $listaDeOrdenes = Orden::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
+        }
+
+        return  $listaDeOrdenes;
     }
     public static function FiltrarPorImporteBD($importe)
     {
@@ -591,7 +615,6 @@ class Orden
       
         if(isset($unArrayAsosiativo) && $unArrayAsosiativo !== false)
         {
-            
             $unaOrden = new Orden($unArrayAsosiativo['nombreDelCliente'],$unArrayAsosiativo['idDeMesa'],
             $unArrayAsosiativo['rutaDeLaImagen'],$unArrayAsosiativo['nombreDeLaImagen']);
             $unaOrden->SetId($unArrayAsosiativo['id']);
@@ -600,6 +623,17 @@ class Orden
             $unaOrden->SetFechaDeOrden(new DateTime($unArrayAsosiativo['fechaDeOrden']));
             $unaOrden->SetCostoTotal($unArrayAsosiativo['costoTotal']);
             $unaOrden->SetEstado($unArrayAsosiativo['estado']);
+            $unaOrden->SetEstadoDelTiempo($unArrayAsosiativo['estadoDelTiempo']);
+
+            if(isset($unArrayAsosiativo['tiempoFinal']))
+            {
+                $unaOrden->SetTiempoDeFinalizacion(new DateTime($unArrayAsosiativo['tiempoFinal']));
+            }
+
+            if(isset($unArrayAsosiativo['tiempoInicio']))
+            {
+                $unaOrden->SetTiempoDeInicio(new DateTime($unArrayAsosiativo['tiempoInicio']));   
+            }  
         }
         
         return $unaOrden ;
@@ -792,7 +826,6 @@ class Orden
     public function GetStrTiempoInicio()
     {
         $mensaje = "No definido";
-
         if(isset($this->tiempoDeInicio))
         {
             $mensaje = $this->tiempoDeInicio->format('Y-m-d-H-i-s'); 
@@ -803,7 +836,7 @@ class Orden
     public function GetStrTiempoFinalizacion()
     {
         $mensaje = "No definido";
-      
+       
         if(isset($this->tiempoDeFinalizacion))
         {
             $mensaje = $this->tiempoDeFinalizacion->format('Y-m-d-H-i-s');; 
@@ -896,7 +929,8 @@ class Orden
         $mensaje = "no se encontraron pedidos";
         if(isset($ListaDePedidos) && count($ListaDePedidos) > 0)
         {
-            $mensaje = Pedido::MostrarProductos($ListaDePedidos);
+            $mensaje = Producto::MostrarConCantiadadDeOrden($this->ObtenerListaDeProductos(),$this->id);
+            
         }
 
         return  $mensaje ;
@@ -917,53 +951,11 @@ class Orden
     {
         return "Codigo: ".strtoupper($this->codigo).'<br>'.
         "Productos Pedidos: ".'<br>'.$this->GetStrPedidos().'<br>'.
+        "Tiempo Total De Inicio: ".$this->GetStrTiempoInicio().'<br>'.
         "Tiempo Total De Espera: ".$this->GetStrTiempoEstimado().'<br>'.
+        "Tiempo Total De Finalizacion: ".$this->GetStrTiempoFinalizacion().'<br>'.
         "Mesa: ".'<br>'.$this->GetMesa()->ToString().'<br>'.
         "Facturacion Total: ".$this->GetStrCosto();
-    }
-
-    public static function MostarComentarios($listaDeOrdenes,$listaDeEncuesta)
-    {
-        $strLista = null; 
-        
-        if(isset($listaDeOrdenes) && isset($listaDeEncuesta))
-        {
-            $strLista  = "";
-            foreach($listaDeOrdenes as $unaOrden)
-            {
-                $listafiltrada = Encuesta::FiltrarPorIdDeOrdenes($listaDeEncuesta,$unaOrden->id);
-
-                if(isset($listafiltrada) && count($listafiltrada) > 0)
-                {
-                     $strLista .= "Orden: ".strtoupper($unaOrden->codigo).'<br>'.
-                    Encuesta::ToStringList( $listafiltrada);
-                }
-            }
-        }
-
-        return   $strLista;
-    }
-
-    public static function FiltrarEntreDosFechas($listaDeOrdenes,$fechaDesde,$fechaHasta)
-    {
-       
-        $listaDefiltrada = null;
-
-        if(isset($listaDeOrdenes) && $fechaDesde <= $fechaHasta)
-        {
-            $listaDefiltrada = [];
-
-            foreach ($listaDeOrdenes as $unaOrden) 
-            {
-                if( $unaOrden->fechaDeOrden >= $fechaDesde
-                && $unaOrden->fechaDeOrden <= $fechaHasta )
-                {
-                    array_push($listaDefiltrada,$unaOrden);
-                }
-            }
-        }
-
-        return  $listaDefiltrada;
     }
 
     public static function FiltrarPorEstado($listaDeOrdenes,$estado)
@@ -985,7 +977,7 @@ class Orden
 
         return  $listaFiltrada;
     }
-    public static function FiltrarPorFecha($listaDeOrdenes,$fechaDeOrden)
+    public static function FiltrarPorMes($listaDeOrdenes,$fechaDeOrden)
     {
         $listaFiltrada = null;
 
@@ -995,7 +987,7 @@ class Orden
 
             foreach($listaDeOrdenes as $unaOrden)
             {
-                if($unaOrden->fechaDeOrden === $fechaDeOrden)
+                if($unaOrden->fechaDeOrden->format('m') === $fechaDeOrden)
                 {
                     array_push($listaFiltrada,$unaOrden);
                 }
@@ -1036,53 +1028,6 @@ class Orden
         }
 
         return $estado;
-    }
-
-    public static function BuscarElMayorImporte($listaDeOrdenes)
-    { 
-        $importe = 0;
-        $flag = false;
-        $mayor =null;
-
-        if(isset($listaDeOrdenes))
-        {
-            foreach ($listaDeOrdenes as $unaOrden) 
-            {
-                $importe = $unaOrden->importeTotal;
-
-                if($mayor >  $importe || $flag === false)
-                {
-                    $mayor =  $importe;
-                    $flag = true;
-                }
-                
-            }
-        }
-
-        return $mayor;
-    }
-    public static function BuscarElMenorImporte($listaDeOrdenes)
-    {
-        $importe = 0;
-        $flag = false;
-        $menor =null;
-
-        if(isset($listaDeOrdenes))
-        {
-            foreach ($listaDeOrdenes as $unaOrden) 
-            {
-                $importe = $unaOrden->importeTotal;
-
-                if($menor <  $importe || $flag === false)
-                {
-                    $menor =  $importe;
-                    $flag = true;
-                }
-                
-            }
-        }
-
-        return $menor;
     }
     public static function CalcularFacturacionTotal($listaDeOrdenes,$idDeMesa)
     {

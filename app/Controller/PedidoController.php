@@ -106,6 +106,7 @@ class PedidoController
         $mensaje = ['Error'=>'Hubo un error  al intentar listar los Pedidos'];  
         $listaDePedidosTerminados = Pedido::FiltrarPorEstadoBD(Pedido::ESTADO_FINAL);
 
+    
         if(isset($listaDePedidosTerminados))
         {
             $mensaje = ['Error' => "la lista esta vacia"];
@@ -253,53 +254,7 @@ class PedidoController
 
         return $response->withHeader('Content-Type', 'application/json');
     }
-    public static function ListarElPedidoMasVendido($request, $response, array $args)
-    { 
-        $data = $request->getQueryParams();
-       
-        $mensaje = ['Error'=>'Hubo un error al intentar obtener el mas vendido '];  
-        $listaDePedidos = Pedido::ObtenerListaBD();
-        // $listaDePedidos = Pedido::FiltrarPorFechaDePedidoBD($data['fechaIngresada']);
-        $listaDeProducto = Producto::ObtenerListaBD();
 
-        $cantidad = Pedido::BuscarElPedidoMasVendido($listaDeProducto, $listaDePedidos );
-        $unPedido =  Pedido::BuscarPorCantidad($listaDePedidos,$cantidad);
-        
-        if(isset($unPedido))
-        {
-            $mensaje = ['OK'=> "El Pedido mas Vendido es ".
-            $unPedido->ToString().
-            "<br> Y La Cantidad es " .$cantidad];
-        }
-
-        $response->getBody()->write(json_encode($mensaje));
-
-
-        return $response->withHeader('Content-Type', 'application/json');
-    }
-    public static function ListarElPedidoMenosVendido($request, $response, array $args)
-    { 
-        $data = $request->getQueryParams();
-       
-        $mensaje = ['Error'=>'Hubo un error al intentar obtener el mas vendido '];  
-      
-        $listaDePedidos = Pedido::ObtenerListaBD();
-        $listaDeProducto = Producto::ObtenerListaBD();
-        // $listaDePedidos = Pedido::FiltrarPorFechaDePedidoBD($data['fechaIngresada']);
-        $cantidad = Pedido::BuscarElPedidoMenosVendido($listaDeProducto, $listaDePedidos );
-        $unPedido =  Pedido::BuscarPorCantidad($listaDePedidos,$cantidad);
-
-        if(isset($unPedido))
-        {
-           
-            $mensaje = ['OK'=>"El Pedido mas Vendido es ".$unPedido->ToString(). "<br> y la cantidad es ".$cantidad];
-        }
-
-        $response->getBody()->write(json_encode($mensaje));
-
-
-        return $response->withHeader('Content-Type', 'application/json');
-    }
     
 
     // c- Los que no se entregaron en el tiempo estipulado.

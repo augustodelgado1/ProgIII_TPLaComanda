@@ -205,7 +205,39 @@ class EmpleadoController
 
         return $response->withHeader('Content-Type', 'application/json');
     }
+    public static function ListarProductosPendientes($request, $response, array $args)
+    {
+        $header = $request->getHeaderLine('Authorization');
+        $token = trim(explode("Bearer", $header)[1]);
+        $data = (array) AutentificadorJWT::ObtenerData($token);
 
+        $mensaje = ['Error' => 'Hubo un error al intentar listar los Pedidos'];
+        
+        $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
+       
+       
+        if(isset($unUsuario))
+        {
+            $listaDePedidos = $unUsuario->GetSector()->ObtenerListaDePedidos();
+            $listaDeProductos = Producto::ObtenerListaBD();
+            $listaDePedidosPendientes = Pedido::FiltrarPorEstado($listaDePedidos,Pedido::ESTADO_INICIAL);
+
+            if(isset($listaDePedidosPendientes))
+            {
+                $mensaje =  ['Error' =>"No se encontraron pedidos pendientes"];
+                if(count($listaDePedidosPendientes) > 0)
+                {
+                    $mensaje = ['OK' => Producto::MostarProductosConCantidadDeUnaListaDePedidos($listaDeProductos,$listaDePedidosPendientes)];
+                }
+            }
+        }
+
+        $response->getBody()->write(json_encode($mensaje));
+
+
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    
     public static function ListarCantidadDeTareasRealizadas($request, $response, array $args)
     {
         $mensaje = ['Error' => 'Hubo un error  al intentar listar los empleados'];      
@@ -270,6 +302,28 @@ class EmpleadoController
             {
                 $mensaje = ['OK' => 'Empleados:'.'<br>'.
                 Usuario::ToStringList($listaFiltrada)];
+            }
+        }
+
+        $response->getBody()->write(json_encode($mensaje));
+
+
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+    public static function ListarUno($request, $response, array $args)
+    {
+        $data = $request->getQueryParams();
+        
+        $mensaje = ['Error' => 'Hubo un error  al intentar listar los empleados'];
+        $unEmpleado = Usuario::ObtenerUnoPorIdBD($data['id']);
+        
+
+        if(isset($listaFiltrada))
+        {
+            $mensaje = ['Error' => "la lista esta vacia"];
+            if(count($listaFiltrada) > 0)
+            {
+                $mensaje = ['OK' => 'Empleados:'.'<br>'];
             }
         }
 

@@ -90,6 +90,26 @@ class Mesa
 
         return  $unMesa;
     }
+    public static function OrdenarPorImporteDeFacturaPorMesBD($importe,$fecha)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $listaDeMesas = false;
+
+        if(isset($codigo))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta(
+                "SELECT DISTINCT m.id,m.codigo,m.estado FROM Mesa 
+            as m JOIN orden o ON o.idDeMesa = m.id 
+            ORDER BY o.costoTotal < :importe 
+            WHERE MONTH(o.fechaDeOrden) = MONTH(:fecha) and YEAR(o.fechaDeOrden) = YEAR(:fecha)");
+            $consulta->bindValue(':importe',$importe,PDO::PARAM_STR);
+            $consulta->bindValue(':fecha',$fecha->format('y-m-d'),PDO::PARAM_STR);
+            $consulta->execute();
+            $listaDeMesas = Mesa::CrearLista($consulta->fetchAll(PDO::FETCH_ASSOC));
+        }
+
+        return  $listaDeMesas;
+    }
     public static function ObtenerUnoPorCodigo($codigo)
     {
         return   Mesa::CrearUnaMesa(Mesa::BuscarMesaPorCodigoBD($codigo));
@@ -178,6 +198,25 @@ class Mesa
             FROM Orden o
             WHERE o.fechaDeOrden = :fecha and o.idDeMesa = :idDeMesa");
             $consulta->bindValue(':fecha',$fecha);
+            $consulta->bindValue(':idDeMesa',$this->id);
+            $consulta->execute();
+            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
+            $facturacionTotal =  $data['facturacionTotal'];
+        }
+
+        return  $facturacionTotal;
+    }
+    public function CalcularFacturacionPorMes($mes)
+    {
+        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
+        $facturacionTotal = null;
+
+        if(isset($importe))
+        {
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT SUM(o.costoTotal) AS facturacionTotal
+            FROM Orden o
+            WHERE MONTH(o.fechaDeOrden) = :mes and o.idDeMesa = :idDeMesa");
+            $consulta->bindValue(':mes',$mes);
             $consulta->bindValue(':idDeMesa',$this->id);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
@@ -340,7 +379,7 @@ class Mesa
             {
                 $listaFiltrada = Orden::FiltrarOrdenesPorIdDeMesa($listaDeOrdenes,$unaMesa->id);
 
-                if(isset( $listaFiltrada) && count( $listaFiltrada) > 0)
+                if(isset($listaFiltrada) && count($listaFiltrada) > 0)
                 {
                     $strLista .= $unaMesa->ToString().'<br>'. 
                     Orden::ToStringList($listaFiltrada);
@@ -350,25 +389,6 @@ class Mesa
 
         return   $strLista;
     }
-    public static function MostarComentarios($listaDeMesas,$listaDeEncuesta)
-    {
-        $strLista = null; 
-        
-    
-        if(isset($listaDeMesas) && isset($listaDeEncuesta))
-        {
-            $strLista  = "Mesas".'<br>';
-            foreach($listaDeMesas as $unaMesa)
-            {
-                $strLista .= $unaMesa->ToString().'<br>'.
-                Orden::MostarComentarios($unaMesa->ObtenerListaDeOrdenes(),$listaDeEncuesta);
-            }
-        }
-
-        return   $strLista;
-    }
-   
-
     public static function BuscarMesaMasUsada($listaDeMesas,$listaDeOrdenes)
     { 
         $unaMesa = null;

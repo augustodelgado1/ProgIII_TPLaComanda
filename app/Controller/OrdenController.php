@@ -168,18 +168,19 @@ class OrdenController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    public static function ListarFacturacionEntreDosFechas($request, $response, array $args)
+    public static function ListarNoEntregadoEnElTimpoEstipulado($request, $response, array $args)
     {
-        $data = $request->getParsedBody();
-        $fechaInicial = new DateTime($data['fechaInicial']);
-        $fechaFinal = new DateTime($data['fechaFinal']);
-        $facturacionTotal = Orden::CalcularFecturacionPorDosFechasBD($fechaInicial->format('y-m-d'),$fechaFinal->format('y-m-d'));
-        $mensaje = "La facturacion es ".$facturacionTotal;
-        
-        if($facturacionTotal > 0)
+        // $data = $request->getHeaders();
+        $mensaje = ['Error'=>'Hubo un error  al intentar listar las Ordenes'];  
+        $listaDeOrdenes = Orden::FiltrarPorEstadoDelTiempoBD(Orden::ESTADO_TIEMPO_NOCUMPLIDO);
+
+        if(isset($listaDeOrdenes))
         {
-            $mensaje = "lo que se facturo ".$data['codigoDeMesa'].
-            " desde ".$fechaInicial->format('y-m-d').' hasta '.$fechaFinal->format('y-m-d').' es '.$facturacionTotal;
+            $mensaje = ['Error' => "la lista esta vacia"];
+            if(count($listaDeOrdenes) > 0)
+            {
+                $mensaje =['OK' => Orden::ToStringList($listaDeOrdenes)];
+            }
         }
 
         $response->getBody()->write(json_encode($mensaje));
@@ -187,6 +188,8 @@ class OrdenController
 
         return $response->withHeader('Content-Type', 'application/json');
     }
+
+    
 }
 
 ?>

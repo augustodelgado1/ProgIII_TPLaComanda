@@ -64,7 +64,7 @@ class Sector
     private static function BuscarSectorPorIdBD($idDeSector)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unSector = null;
+        $unSector = false;
 
         if(isset($idDeSector))
         {
@@ -88,7 +88,7 @@ class Sector
     public static function BuscarPorDescripcionBD($descripcion)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $unSector = null;
+        $unSector = false;
 
         if(isset($unObjetoAccesoDato)  && isset($descripcion))
         {
@@ -119,28 +119,6 @@ class Sector
         return  $listaDeSectores;
     }
   
-
-    public static function ContarPedidos($listaDeSectores,$listaDePedidos)
-    {
-        $listaFiltrada = null; 
-
-        if(isset($listaDeSectores) && isset($listaDePedidos))
-        {
-            $listaFiltrada = [];
-            foreach($listaDeSectores as $unSector)
-            {
-                $cantidad = Pedido::ContarPedidosPorIdDeSector($listaDePedidos,$unSector->id);
-
-                if( $cantidad > 0)
-                {
-                    array_push($listaFiltrada,[[$unSector->descripcion] =>  $cantidad]);
-                }
-                
-            }
-        }
-
-        return   $listaFiltrada;
-    }
    
 
     #end
@@ -184,38 +162,6 @@ class Sector
         }
 
         return   $listaDeSectores;
-    }
-
-    public static function BuscarSectorPorId($listaDeSectors,$id)
-    {
-        $unaSectorABuscar = null; 
-        $index = Sector::ObtenerIndicePorId($listaDeSectors,$id);
-        if($index > 0 )
-        {
-            $unaSectorABuscar = $listaDeSectors[$index];
-        }
-
-        return  $unaSectorABuscar;
-    }
-
-     public static function ObtenerIndicePorId($listaDeSectors,$id)
-    {
-        $index = -1;
-       
-        if(isset($listaDeSectors)  && isset($id))
-        {
-            $leght = count($listaDeSectors); 
-            for ($i=0; $i < $leght; $i++) { 
-         
-                if($listaDeSectors[$i]->id === $id)
-                {
-                    $index = $i;
-                    break;
-                }
-            }
-        }
-
-        return $index;
     }
 
     #Setters
@@ -299,7 +245,7 @@ class Sector
             foreach($listaDeSectores as $unSector)
             {
                 $strLista .= $unSector->ToString().'<br>'.
-                "Cantidad De Operaciones: ".$unSector->GetStrCantidadDeOpereaciones().'<br>';
+                "Cantidad De Operaciones: ".$unSector->GetStrCantidadDeOpereaciones().'<br>'.'<br>';
             }
         }
 
@@ -324,7 +270,7 @@ class Sector
  
     public function ToString()
     {
-        return "Sector: ".$this->descripcion.'<br>';
+        return "Sector: ".$this->descripcion;
     }
 
     public static function Validador($data)
@@ -334,7 +280,7 @@ class Sector
 
     public static function VerificarUno($data)
     {
-        return Sector::BuscarSectorPorIdBD($data['id']) !== null;
+        return Sector::BuscarSectorPorIdBD($data['id']) !== false;
     }
     private static function ValidadorDescripcion($descripcion)
     {

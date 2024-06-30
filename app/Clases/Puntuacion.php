@@ -6,8 +6,6 @@ require_once './db/AccesoDatos.php';
 
 class Puntuacion 
 {
-    public const ESTADO_POSITIVO = "positivo";
-    public const ESTADO_NEGATIVO = "negativo";
     private $id;
     private $idDeEncuesta;
     private $descripcion;
@@ -104,44 +102,6 @@ class Puntuacion
 
         return  $listaDePuntuaciones;
     }
-    public static function FiltrarPorPuntuacionBD($puntuacion)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDePuntuaciones= null;
-        
-        if(Puntuacion::ValidarUnaPuntacion($puntuacion))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion 
-            as p where p.puntuacion = :puntuacion");
-            $consulta->bindValue(':puntuacion',$puntuacion,PDO::PARAM_INT);
-            $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $listaDePuntuaciones = Puntuacion::CrearLista($data);
-           
-        }
-
-        return  $listaDePuntuaciones;
-    }
-    
-    public static function FiltrarPorDescripcionBD($descripcion)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDePuntuaciones= null;
-        
-        if(Puntuacion::ValidarDescripcion($descripcion))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Puntuacion 
-            as p where p.descripcion = :descripcion");
-            $consulta->bindValue(':descripcion',$descripcion,PDO::PARAM_INT);
-            $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $listaDePuntuaciones = Puntuacion::CrearLista($data);
-           
-        }
-
-        return  $listaDePuntuaciones;
-    }
-
     private static function BuscarUnoPorIdBD($id)
     {
         $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
@@ -279,11 +239,6 @@ class Puntuacion
     public static function ValidarUnaPuntacion($unaPuntuacion)
     {
         return   isset($unaPuntuacion) && $unaPuntuacion >= 0 && $unaPuntuacion < 11;
-    }
-
-    private static function ValidarEstado($estado)
-    {
-        return   isset($estado) && in_array($estado,array(Puntuacion::ESTADO_NEGATIVO,Puntuacion::ESTADO_POSITIVO));
     }
    
 }

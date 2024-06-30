@@ -123,55 +123,7 @@ class SectorController
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    // c- Cantidad de operaciones de todos por sector, listada por cada empleado
-    // public static function ListarEmpleados($request, $response, array $args)
-    // {
-    //     $mensaje = 'Hubo un error  al intentar listar los Mesas';  
-    //     $listaDeSectores = Sector::ObternerListaBD();
 
-    //     if(isset($listaDeSectores))
-    //     {
-    //         $mensaje = ['Error' => "la lista esta vacia"];
-    //         if(count($listaDeSectores) > 0)
-    //         {
-    //             $mensaje = Sector::MostrarListaDeEmpleados($listaDeSectores);
-    //         }
-    //     }
-
-    //     $response->getBody()->write($mensaje);
-
-
-    //     return $response->withHeader('Content-Type', 'application/json');
-    // }
-
-    public static function ListarPedidos($request, $response, array $args)
-    {
-        $data = $request->getHeaders();
-        $mensaje = 'Hubo un error  al intentar listar los Pedidos';  
-     
-        if(isset($data ) && isset($data['idDeSector']))
-        {
-            $listaDePedidos = Pedido::FiltrarPorIdDeSectorBD($data['idDeSector']);
-
-            if(isset($listaDePedidos))
-            {
-                $mensaje = ['Error' => "la lista esta vacia"];
-                if(count($listaDePedidos) > 0)
-                {
-                    $mensaje = Pedido::ToStringList($listaDePedidos);
-                }
-            }
-        }
-       
-        $response->getBody()->write($mensaje);
-
-
-        return $response->withHeader('Content-Type', 'application/json');
-    }
-
-
-
-   
 }
 
 ?>

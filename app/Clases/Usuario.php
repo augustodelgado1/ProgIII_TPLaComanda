@@ -281,24 +281,6 @@ class Usuario
 
         return $listaDeTipos;
     }
-    public static function FiltrarPorFechaDeRegistroBD($fechaDeRegistro)
-    {
-        $unObjetoAccesoDato = AccesoDatos::ObtenerUnObjetoPdo();
-        $listaDeTipos= null;
-
-        if(isset($unObjetoAccesoDato))
-        {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT * FROM Empleado 
-            JOIN Usuario u ON e.idDeUsuario = u.id
-            as e where u.fechaDeRegistro = :fechaDeRegistro");
-            $consulta->bindValue(':fechaDeRegistro',$fechaDeRegistro->format('d-m-y'),PDO::PARAM_STR);
-            $consulta->execute();
-            $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
-            $listaDeTipos= Usuario::CrearLista($data);
-        }
-
-        return $listaDeTipos;
-    }
 
     public static function ObternerListaDeEmpledosPorSectorBD($idDeSector)
     {
@@ -307,13 +289,13 @@ class Usuario
 
         if(isset($unObjetoAccesoDato))
         {
-            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.nombre,e.apellido,e.dni,e.idDeRol,e.idDeCargo,e.fechaDeRegistro 
+            $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT e.id,e.email,e.clave,e.nombre,e.apellido,e.dni,e.idDeRol,e.idDeCargo,e.fechaDeRegistro,e.estado 
             FROM usuario e 
             JOIN cargo c on c.id = e.idDeCargo 
             JOIN sector s on s.id = c.idDeSector 
             JOIN Rol r ON r.id = e.idDeRol 
             WHERE r.descripcion = 'Empleado' and s.id = :id");
-            $consulta->bindValue(':descripcion',$idDeSector,PDO::PARAM_INT);
+            $consulta->bindValue(':id',$idDeSector,PDO::PARAM_INT);
             $consulta->execute();
             $data = $consulta->fetchAll(PDO::FETCH_ASSOC);
             
@@ -333,7 +315,7 @@ class Usuario
             $strLista = "";
             foreach($listaDeSocioes as $unSocio)
             {
-                $strLista .= $unSocio->ToString().'<br>';
+                $strLista .= 'Usuario:'.'<br>'.$unSocio->ToString().'<br>'.'<br>';
             }
         }
 
@@ -352,8 +334,8 @@ class Usuario
 
                 if( $cantidad > 0)
                 {
-                    $strLista .= $unUsuario->ToString().'<br>'. 
-                    "Cantidad De Operaciones: ".$cantidad;
+                    $strLista .= 'Usuario:'.'<br>'.$unUsuario->ToString().'<br>'. 
+                    "Cantidad De Operaciones: ".$cantidad.'<br>'.'<br>';
                 }
                 
             }

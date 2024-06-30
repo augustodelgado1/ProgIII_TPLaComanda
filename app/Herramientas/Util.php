@@ -76,6 +76,15 @@ class Util
         return    isset($string) 
                && Util::VerificarQueContengaSoloLetras($string);
     }
+    public static function ValidarDosFechas($data)
+    {
+        return     Util::ValidarUnaFecha($data['fechaInicial']) && 
+                    Util::ValidarUnaFecha($data['fechaFinal']);
+    }
+    public static function ValidarUnaFecha($fecha)
+    {
+        return   isset($fecha);
+    }
 }
 
 ?>
