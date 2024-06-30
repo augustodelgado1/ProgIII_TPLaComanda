@@ -79,28 +79,6 @@
 							"response": []
 						},
 						{
-							"name": "ComentariosPositivos",
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": {
-										"token": "{{JwtSocio}}"
-									}
-								},
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "formdata",
-									"formdata": []
-								},
-								"url": "http://localhost:666/comentarios"
-							},
-							"response": []
-						},
-						{
 							"name": "MesaQueMasFacturo",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
@@ -214,6 +192,28 @@
 									]
 								},
 								"url": "http://localhost:666/facturacionMesa"
+							},
+							"response": []
+						},
+						{
+							"name": "MesaFacturacion",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{JwtSocio}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/facturacionMesa/ordenar"
 							},
 							"response": []
 						}
@@ -721,6 +721,119 @@
 						"url": "http://localhost:666/orden"
 					},
 					"response": []
+				},
+				{
+					"name": "ListarOrdenes",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "codigo",
+								"value": "4fh3f",
+								"type": "text"
+							},
+							{
+								"key": "codigoDeMesa",
+								"value": "eit64",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "marianocloss@gmail.com",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "nombre",
+									"value": "mariano",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "clave",
+									"value": "12345678",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "apellido",
+									"value": "Closs",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "rol",
+									"value": "cliente",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "nombreDelCliente",
+									"value": "julian",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "codigoDeMesa",
+									"value": "eit64",
+									"type": "text"
+								},
+								{
+									"key": "imagen",
+									"type": "file",
+									"src": "/C:/Users/PC/Desktop/mesa.jpg"
+								},
+								{
+									"key": "codigo",
+									"value": "4fh3f",
+									"type": "text"
+								}
+							]
+						},
+						"url": "http://localhost:666/orden/"
+					},
+					"response": []
+				},
+				{
+					"name": "p",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "codigoDeMesa",
+									"value": "wp2ab",
+									"type": "text"
+								},
+								{
+									"key": "codigoDeLaOrden",
+									"value": "kbppy",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": "http://localhost:666/orden/tiempoNoCumlplido"
+					},
+					"response": []
 				}
 			]
 		},
@@ -793,39 +906,149 @@
 					]
 				},
 				{
-					"name": "CargaDePedidos",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{Cocinero}}"
-							}
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "nombreDeProducto",
-									"value": "milanesa a caballo",
-									"type": "text"
+					"name": "Alta",
+					"item": [
+						{
+							"name": "CargaDeCerveza",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{Mozo}}"
+									}
 								},
-								{
-									"key": "tipoDeProducto",
-									"value": "Comida",
-									"type": "text"
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "nombreDeProducto",
+											"value": "corona",
+											"type": "text"
+										},
+										{
+											"key": "tipoDeProducto",
+											"value": "cerveza artesanal",
+											"type": "text"
+										},
+										{
+											"key": "codigoDeOrden",
+											"value": "t4hr2",
+											"type": "text"
+										}
+									]
 								},
-								{
-									"key": "codigoDeOrden",
-									"value": "4fh3f",
-									"type": "text"
-								}
-							]
+								"url": "http://localhost:666/pedido"
+							},
+							"response": []
 						},
-						"url": "http://localhost:666/pedido"
-					},
-					"response": []
+						{
+							"name": "CargaDeHamburguesa",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{Mozo}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "nombreDeProducto",
+											"value": "hamburguesa de garbanzo",
+											"type": "text"
+										},
+										{
+											"key": "tipoDeProducto",
+											"value": "Comida",
+											"type": "text"
+										},
+										{
+											"key": "codigoDeOrden",
+											"value": "t4hr2",
+											"type": "text"
+										}
+									]
+								},
+								"url": "http://localhost:666/pedido"
+							},
+							"response": []
+						},
+						{
+							"name": "CargaDePedidos",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{Cocinero}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "nombreDeProducto",
+											"value": "milanesa a caballo",
+											"type": "text"
+										},
+										{
+											"key": "tipoDeProducto",
+											"value": "Comida",
+											"type": "text"
+										},
+										{
+											"key": "codigoDeOrden",
+											"value": "t4hr2",
+											"type": "text"
+										}
+									]
+								},
+								"url": "http://localhost:666/pedido"
+							},
+							"response": []
+						},
+						{
+							"name": "CargaVino",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{Mozo}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "nombreDeProducto",
+											"value": "daikiri",
+											"type": "text"
+										},
+										{
+											"key": "tipoDeProducto",
+											"value": "Vino",
+											"type": "text"
+										},
+										{
+											"key": "codigoDeOrden",
+											"value": "t4hr2",
+											"type": "text"
+										}
+									]
+								},
+								"url": "http://localhost:666/pedido"
+							},
+							"response": []
+						}
+					]
 				},
 				{
 					"name": "ListadoDePedidos",
@@ -888,7 +1111,7 @@
 						"auth": {
 							"type": "bearer",
 							"bearer": {
-								"token": "{{Cocinero}}"
+								"token": "{{Cervecero}}"
 							}
 						},
 						"method": "PUT",
@@ -898,12 +1121,12 @@
 							"urlencoded": [
 								{
 									"key": "codigo",
-									"value": "676",
+									"value": "bue8v",
 									"type": "text"
 								},
 								{
 									"key": "hora",
-									"value": "2",
+									"value": "1",
 									"type": "text"
 								},
 								{
@@ -913,7 +1136,7 @@
 								}
 							]
 						},
-						"url": "http://localhost:666/pedido"
+						"url": "http://localhost:666/pedido/preparar"
 					},
 					"response": []
 				},
@@ -1001,6 +1224,25 @@
 						"url": "http://localhost:666/pedido/cancelar"
 					},
 					"response": []
+				},
+				{
+					"name": "ModificarUnPedidos",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{Mozo}}"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": "http://localhost:666/pedido"
+					},
+					"response": []
 				}
 			]
 		},
@@ -1058,6 +1300,95 @@
 							]
 						},
 						"url": "http://localhost:666/encuesta"
+					},
+					"response": []
+				},
+				{
+					"name": "ComentariosPorPuntuacion",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://localhost:666/comentarios?descripcion=Mesa&puntuacion=2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "666",
+							"path": [
+								"comentarios"
+							],
+							"query": [
+								{
+									"key": "descripcion",
+									"value": "Mesa"
+								},
+								{
+									"key": "puntuacion",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ComentariosPorDosPuntuaciones",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://localhost:666/comentarios/rango?descripcion=mesa&puntuacionMinima=6&puntuacionMaxima=9",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "666",
+							"path": [
+								"comentarios",
+								"rango"
+							],
+							"query": [
+								{
+									"key": "descripcion",
+									"value": "mesa"
+								},
+								{
+									"key": "puntuacionMinima",
+									"value": "6"
+								},
+								{
+									"key": "puntuacionMaxima",
+									"value": "9"
+								}
+							]
+						}
 					},
 					"response": []
 				}
@@ -1148,6 +1479,28 @@
 									"formdata": []
 								},
 								"url": "http://localhost:666/consultaEmpleados/sector"
+							},
+							"response": []
+						},
+						{
+							"name": "EmpleadoProductos",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{Cocinero}}"
+									}
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": []
+								},
+								"url": "http://localhost:666/empleado/productos"
 							},
 							"response": []
 						}
@@ -1306,7 +1659,7 @@
 							"formdata": [
 								{
 									"key": "email",
-									"value": "julakami@gmail.com",
+									"value": "evaLopez@gmail.com",
 									"type": "text"
 								},
 								{
@@ -1399,7 +1752,7 @@
 					"name": "CSV",
 					"item": [
 						{
-							"name": "TraerCsv",
+							"name": "CargarCsv",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1424,14 +1777,14 @@
 									"formdata": [
 										{
 											"key": "nombreDelArchivo",
-											"value": "pepe.csv",
+											"value": "producto.",
 											"type": "text",
 											"disabled": true
 										}
 									]
 								},
 								"url": {
-									"raw": "http://localhost:666/producto/csv?nombreDelArchivo=pepe.csv",
+									"raw": "http://localhost:666/producto/csv?nombreDelArchivo=producto.csv",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1444,7 +1797,7 @@
 									"query": [
 										{
 											"key": "nombreDelArchivo",
-											"value": "pepe.csv"
+											"value": "producto.csv"
 										}
 									]
 								}
@@ -1474,7 +1827,7 @@
 									"formdata": [
 										{
 											"key": "nombreDelArchivo",
-											"value": "pepe.csv",
+											"value": "producto.csv",
 											"type": "text"
 										}
 									]
@@ -1630,68 +1983,27 @@
 							}
 						],
 						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "email",
-									"value": "manu@gmail.com",
-									"type": "text"
-								},
-								{
-									"key": "clave",
-									"value": "123456789",
-									"type": "text"
-								},
+							"mode": "urlencoded",
+							"urlencoded": [
 								{
 									"key": "nombre",
-									"value": "hamburguesa de garbanzo",
-									"type": "text"
-								},
-								{
-									"key": "sector",
-									"value": "1",
-									"type": "text",
-									"disabled": true
-								},
-								{
-									"key": "nombre",
-									"value": "barraDeChoperas",
-									"type": "text",
-									"disabled": true
-								},
-								{
-									"key": "rolDeTrabajo",
-									"value": "mozo",
-									"type": "text",
-									"disabled": true
-								},
-								{
-									"key": "categoria",
-									"value": "",
-									"type": "text",
-									"disabled": true
-								},
-								{
-									"key": "sector",
-									"value": "CandyBar",
-									"type": "text",
-									"disabled": true
-								},
-								{
-									"key": "tipoDeProducto",
-									"value": "Comida",
+									"value": "daikiri",
 									"type": "text"
 								},
 								{
 									"key": "precio",
-									"value": "8500",
+									"value": "700",
 									"type": "text"
 								},
 								{
-									"key": "apellido",
-									"value": "moroco",
-									"type": "text",
-									"disabled": true
+									"key": "tipoDeProducto",
+									"value": "Vino",
+									"type": "text"
+								},
+								{
+									"key": "id",
+									"value": "13",
+									"type": "text"
 								}
 							]
 						},
@@ -1748,6 +2060,40 @@
 							]
 						},
 						"url": "http://localhost:666/producto"
+					},
+					"response": []
+				},
+				{
+					"name": "ProductosOrdenadosPorCantidadVendida",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{JwtSocio}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "codigoDeMesa",
+									"value": "wp2ab",
+									"type": "text"
+								},
+								{
+									"key": "codigoDeLaOrden",
+									"value": "kbppy",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": "http://localhost:666/producto/venta"
 					},
 					"response": []
 				}
@@ -2528,9 +2874,6 @@
 		},
 		{
 			"name": "Puebas",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -2538,7 +2881,7 @@
 						"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MTg3NzM5ODEsImRhdGEiOmZhbHNlLCJhcHAiOiJBcGkgUmVzdGF1cmFudGUifQ.t2a7fuT_hzinc15B8pKHf7XSz6OBniAYlVMer65xyI4"
 					}
 				},
-				"method": "GET",
+				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "formdata",
@@ -2565,57 +2908,26 @@
 						}
 					]
 				},
-				"url": "http://localhost:666/empleado/consulta"
+				"url": "http://localhost:666/prueva"
 			},
 			"response": []
 		},
 		{
-			"name": "ConsultasMesa",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
+			"name": "ListarLogs",
 			"request": {
-				"method": "GET",
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{JwtSocio}}"
+					}
+				},
+				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "formdata",
 					"formdata": []
 				},
-				"url": "http://localhost:666/consultaMesa/menos"
-			},
-			"response": []
-		},
-		{
-			"name": "ConsultaPedidos",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": "http://localhost:666/consultaPedidos"
-			},
-			"response": []
-		},
-		{
-			"name": "ConsultaEmpleados",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": "http://localhost:666/consultaEmpleados"
-			},
-			"response": []
-		},
-		{
-			"name": "ComentariosPositivos",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": []
-				},
-				"url": "http://localhost:666/comentarios"
+				"url": "http://localhost:666/log"
 			},
 			"response": []
 		}
