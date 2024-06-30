@@ -464,10 +464,10 @@ class Producto implements IFileManejadorCSV
 
         if(isset($listaDeProducto) )
         {
-            $strLista  = "Producto".'<br>';
+            $strLista  = "Productos".'<br>';
             foreach($listaDeProducto as $unProducto)
             {
-                $strLista .= $unProducto->ToString().'<br>';
+                $strLista .= 'Producto:<br>'.$unProducto->ToString().'<br>'.'<br>';
             }
         }
 

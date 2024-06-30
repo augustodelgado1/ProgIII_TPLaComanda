@@ -143,12 +143,15 @@ class ProductoController
        
         $mensaje = ['Error' => 'Hubo un error al intentar obtener la lista '];  
       
-        $listaDeProductos = Producto::LeerCsv($data['nombreDelArchivo']);
-        Producto::ModificarListaBD($listaDeProductos);
-        Producto::AgregarListaBD($listaDeProductos);
+        $listaDeProductosCsv = Producto::LeerCsv($data['nombreDelArchivo']);
+        
+        Producto::ModificarListaBD($listaDeProductosCsv);
+        Producto::AgregarListaBD($listaDeProductosCsv);
+        $listaDeProductos = Producto::ObtenerListaBD();
         if(isset( $listaDeProductos ))
         {
-            $mensaje = ['OK' => "El Archivo Se cargo correctamente"];
+            $mensaje = ['OK' => "El Archivo Se cargo correctamente:<br>". 
+            Producto::ToStringList($listaDeProductos)];
         }
 
         $response->getBody()->write(json_encode($mensaje));
