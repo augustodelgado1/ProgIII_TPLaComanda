@@ -186,7 +186,7 @@ class Usuario
         if(isset($id))
         {
             $consulta = $unObjetoAccesoDato->RealizarConsulta("SELECT 
-            u.id, u.nombre, u.dni, r.descripcion AS rol, c.descripcion AS cargo
+            u.id, u.nombre, r.descripcion AS rol, c.descripcion AS cargo
             FROM Usuario AS u
             JOIN rol AS r ON r.id = u.idDeRol
             JOIN Cargo AS c ON c.id = u.idDeCargo

@@ -495,11 +495,6 @@ class Orden
             $menorImporte = $data['costoMenor'];
             
         }
-
-       
-
-        
-
         return  $menorImporte;
     }
 

@@ -235,14 +235,6 @@ class MesaController
 
         return $response->withHeader('Content-Type', 'application/json');
     }
-
-
-
-    // f- 21- Alguno de los socios pide un listado de las mesas ordenadas de la que hizo la factura más
-// barata a la más cara.
-
-
-   
     public static function ListarFacturacionEntreDosFechas($request, $response, array $args)
     {
         $data = $request->getParsedBody();
