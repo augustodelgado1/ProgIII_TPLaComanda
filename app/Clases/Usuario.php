@@ -315,6 +315,7 @@ class Usuario
             $strLista = "";
             foreach($listaDeSocioes as $unSocio)
             {
+               
                 $strLista .= 'Usuario:'.'<br>'.$unSocio->ToString().'<br>'.'<br>';
             }
         }
@@ -325,6 +326,7 @@ class Usuario
     {
         $strLista = null; 
 
+   
         if(isset($listaDeUsuarios))
         {
             $strLista = "";
@@ -405,6 +407,7 @@ class Usuario
     
     public function ToString()
     {
+       
         return      "Email: ".$this->mail.'<br>'.
             "Nombre Completo: ".$this->GetNombreCompleto().'<br>'.
             "fecha De Registro: ".$this->fechaDeRegistro->format('y-m-d H:i:s').'<br>'.

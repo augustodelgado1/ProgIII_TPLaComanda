@@ -91,7 +91,7 @@ $app->group('/empleado', function (RouteCollectorProxy $grupoDeRutas)
 	->add(new VerificarRoles(array('Socio')));
 
 
-	$grupoDeRutas->delete('[/]',\EmpleadoController::class.':EliminarUno')
+	$grupoDeRutas->delete('[/]',\EmpleadoController::class.':BorrarUno')
 	->add(new ValidadorMiddleware(array(Usuario::class,'ValidarRolEmpleado'),"El empleado ingresado no existe"))
 	->add(new VerificarRoles(array('Socio')));
 
@@ -117,7 +117,11 @@ $app->group('/consultaEmpleados', function (RouteCollectorProxy $grupoDeRutas)
 	$grupoDeRutas->get('[/]',\EmpleadoController::class.':ListarSuspendidos')
 	->add(new VerificarRoles(array('Socio')));;;
 
-	$grupoDeRutas->get('/{borrados}',\EmpleadoController::class.':ListarBorrados')
+	$grupoDeRutas->get('/borrados',\EmpleadoController::class.':ListarBorrados')
+	->add(new VerificarRoles(array('Socio')));;;
+
+	
+	$grupoDeRutas->get('/PorSectorCadaEmpleado',\SectorController::class.':ListarCantidadDeTareasRealizadasPorSectorPorCadaEmpleado')
 	->add(new VerificarRoles(array('Socio')));;;
 
 	$grupoDeRutas->post('[/]',\EmpleadoController::class.':ListarCantidadDeTareasRealizadas')

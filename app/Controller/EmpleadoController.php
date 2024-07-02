@@ -1,6 +1,7 @@
 
 
 <?php
+use Slim\Psr7\Response;
 
 require_once './Clases/Usuario.php';
 require_once './Clases/Cargo.php';
@@ -152,23 +153,29 @@ class EmpleadoController
     {
         $data = $request->getQueryParams();
         
+
         $mensaje = ['Error' => 'Hubo un error  al intentar listar los Empleados Borrados'];
         $unRol = Rol::ObtenerUnoPorDescripcionBD('Empleado');
 
+        $response = New Response();
         $listaDeEmpleados = Usuario::FiltrarPorRolBD( $unRol->GetId());
         $listaFiltrada = Usuario::FiltrarPorEstado($listaDeEmpleados,Usuario::ESTADO_BORRADO);
-
+    
+       
         if(isset($listaFiltrada))
         {
             $mensaje = ['Error' => "la lista esta vacia"];
             if(count($listaFiltrada) > 0)
             {
+               
                 $mensaje = ['OK' =>'Empleados:'.'<br>'.
                 Usuario::ToStringList($listaFiltrada)];
             }
         }
 
         $response->getBody()->write(json_encode($mensaje));
+
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
    
@@ -211,9 +218,9 @@ class EmpleadoController
         $token = trim(explode("Bearer", $header)[1]);
         $data = (array) AutentificadorJWT::ObtenerData($token);
 
+        $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
         $mensaje = ['Error' => 'Hubo un error al intentar listar los Pedidos'];
         
-        $unUsuario = Usuario::ObtenerUnoPorIdBD($data['id']);
        
        
         if(isset($unUsuario))
