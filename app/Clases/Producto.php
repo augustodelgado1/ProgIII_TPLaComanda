@@ -563,6 +563,36 @@ class Producto implements IFileManejadorCSV
 
         return   $estado;
     }
+
+    public static function GuardarPdf($listaDeProductos)
+    {
+        $retorno = false;
+       
+        if(isset($listaDeProductos))
+        {
+            
+            $pdf = new PDF();
+            $pdf->SetFont('Times','B',30);
+            $pdf->AddPage();
+            $pdf->SetTextColor(0, 0, 0); // Color negro
+            $pdf->SetFillColor(255, 255, 255); // Color de fondo blanco
+            $pdf->SetLineWidth(0.4); // Grosor del borde
+            $pdf->SetXY(20,15);
+            $pdf->Cell(0, 15,'Productos', 0, 1, 'C', true);
+            $pdf->Image('../logo/restaurant_logo.jpg', 165, 5, 35);
+            $pdf->SetXY(15, 30);
+            $pdf->Ln(40);
+            $pdf->SetAutoPageBreak(true,20);
+            $pdf->SetFont('Times','B',20);
+            Producto::EscribirCabeceraPdf($pdf);
+            $pdf->SetFont('Times','B',18);
+            $pdf->Ln(10);
+            $pdf->EscribirLista($listaDeProductos,array(__CLASS__,'EscribirUnoEnPdf'));
+            $retorno = $pdf->Output('S');
+        }
+
+        return $retorno;
+    }
     
     public static function EscribirUnoEnPdf($unProducto,$pdf)
     {
@@ -570,23 +600,27 @@ class Producto implements IFileManejadorCSV
         
         if(isset($unProducto) && isset($pdf))
         {
-            $pdf->Cell(50,10,$unProducto->nombre,1,0);
-            $pdf->Cell(50,10,$unProducto->GetTipo()->GetDescripcion(),1,0);
-            $pdf->Cell(50,10,$unProducto->precio,1,0);
-            $pdf->Ln(0.5);
+            $pdf->Cell(80,12,$unProducto->nombre,1,0);
+            $pdf->Cell(75,12,$unProducto->GetTipo()->GetDescripcion(),1,0,'C');
+            $pdf->Cell(40,12,$unProducto->precio,1,0,'C');
+            $pdf->Ln(12);
+            
+            $estado = true;
         }
 
         return   $estado;
     }
-    public static function EscribirCabeceraPdf($unProducto,$pdf)
+    public static function EscribirCabeceraPdf($pdf)
     {
         $estado = false;
         
-        if(isset($unProducto) && isset($pdf))
+        if(isset($pdf))
         {
-            $pdf->Cell(50,10,"Nombre",1,0,'C',0);
-            $pdf->Cell(50,10,"Tipo",1,0,'C',0);
-            $pdf->Cell(50,10,"Precio",1,0,'C',0);
+            $pdf->Cell(80,10,"Nombre",1,0,'C',0);
+            $pdf->Cell(75,10,"Tipo",1,0,'C',0);
+            $pdf->Cell(40,10,"Precio",1,0,'C',0);
+            
+            $estado = true;
         }
 
         return   $estado;

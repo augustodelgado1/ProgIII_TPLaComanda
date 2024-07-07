@@ -159,6 +159,19 @@ class ProductoController
 
         return $response->withHeader('Content-Type', 'application/json');
     }
+    public static function GuardarEnPdf($request, $response, array $args)
+    { 
+        $data = $request->getQueryParams();
+       
+        $listaAGuardar = Producto::ObtenerListaBD();
+
+        $pdf = Producto::GuardarPdf($listaAGuardar);
+        
+        $response->getBody()->write($pdf);
+
+        return $response->withHeader('Content-Type', 'application/pdf')
+                    ->withHeader('Content-Disposition', 'attachment; filename='.'productos'.'.pdf');
+    }
 
     // 19- Alguno de los socios pide un listado del producto ordenado del que más se vendió al que
     // menos se vendió

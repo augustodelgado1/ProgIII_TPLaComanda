@@ -18,6 +18,7 @@ require_once './Controller/PuntuacionController.php';
 require_once './Controller/RolController.php';
 require_once './Controller/LogDeAuditoriaController.php';
 require_once './Herramientas/File.php';
+require_once './Herramientas/Pdf.php';
 
 
 
@@ -183,9 +184,8 @@ $app->group('/producto', function (RouteCollectorProxy $grupoDeRutas)
 	->add(new ValidadorGetMiddleware(array(File::class,'ValidarNombreDelArchivo'),'Debe Ingresar Un Nombre para el archivo'))
 	->add(new VerificarRoles(array('Socio')));
 
-	
-
-	
+	$grupoDeRutas->get('/pdf',\ProductoController::class.':GuardarEnPdf')
+	->add(new VerificarRoles(array('Socio')));;
 });
 
 $app->group('/pedido', function (RouteCollectorProxy $grupoDeRutas) 
