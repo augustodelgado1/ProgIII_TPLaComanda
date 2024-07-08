@@ -831,7 +831,7 @@ class Orden
     }
     public function GetFechaStr()
     {
-        return  $this->fechaDeOrden->format('Y-m-d-H-i-s');
+        return  $this->fechaDeOrden->format('Y-m-d-h-i-s');
     }
     public function GetFecha()
     {

@@ -39,8 +39,10 @@ class OrdenController
         File::CrearUnDirectorio('Imagenes/Mesa');
         $mensaje = ['Error' => 'No se pudo guarder la foto'];
         
-        $nombreDeArchivo = $unaOrden->GetFechaStr().$_FILES['imagen']['name'];
+        $nombreDeArchivo = $unaOrden->GetFechaStr().$unaOrden->GetNombreDelCliente().$_FILES['imagen']['name'];
+        $rutaCompleta = "Imagenes/Mesa/" . $nombreDeArchivo;
 
+        
         if($unaOrden->GuardarImagen($_FILES['imagen']['tmp_name']
         ,"Imagenes/Mesa/",
         $nombreDeArchivo))
@@ -48,11 +50,17 @@ class OrdenController
             $mensaje = ['OK' =>'La foto se guardo correctamente'];
         }
         
+        $imagenContenido = file_get_contents($rutaCompleta);
         
-        $response->getBody()->write(json_encode($mensaje));
+        // Configurar la respuesta con el contenido de la imagen
+        $response->getBody()->write($imagenContenido);
+        
+        // Establecer los encabezados para indicar que es una imagen
 
+       
 
-        return $response->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', mime_content_type($rutaCompleta))
+        ->withHeader('Content-Disposition', 'inline; filename="' . $nombreDeArchivo. '"');
     }
 
     public static function ModificarUno($request, $response, array $args)
